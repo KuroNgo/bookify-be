@@ -1,0 +1,257 @@
+basePath: /api/v1
+definitions:
+  domain.ChangePasswordInput:
+    properties:
+      password:
+        type: string
+      password_compare:
+        type: string
+    required:
+    - password
+    - password_compare
+    type: object
+  domain.ForgetPassword:
+    properties:
+      email:
+        type: string
+    type: object
+  domain.SignIn:
+    properties:
+      email:
+        example: admin@admin.com
+        type: string
+      password_hash:
+        example: "12345"
+        type: string
+    type: object
+  domain.VerificationInput:
+    properties:
+      verification_code:
+        type: string
+    required:
+    - verification_code
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: hoaiphong01012002@gmail.com
+    name: API Support
+  description: This is a server for Kuro API
+  title: Bookify
+  version: "1.0"
+paths:
+  /api/v1/users/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes the user's information
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - CookieAuth: []
+      summary: Delete User Information
+      tags:
+      - User
+  /api/v1/users/forget:
+    post:
+      consumes:
+      - application/json
+      description: Sends an email with a verification code for password reset
+      parameters:
+      - description: Forget password input
+        in: body
+        name: forgetInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ForgetPassword'
+      produces:
+      - application/json
+      responses: {}
+      summary: User forget password
+      tags:
+      - User
+  /api/v1/users/get/info:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the user's information using the access token stored
+        in cookies.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - CookieAuth: []
+      summary: Get User Information
+      tags:
+      - User
+  /api/v1/users/get/refresh:
+    get:
+      consumes:
+      - application/json
+      description: Refresh the user's access token using a valid refresh token stored
+        in cookies.
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - CookieAuth: []
+      summary: Refresh Access Token
+      tags:
+      - User
+  /api/v1/users/google/callback:
+    get:
+      description: Login the user's google, but the function not use with swagger.
+      responses: {}
+      summary: Login Google
+      tags:
+      - User
+  /api/v1/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user
+      parameters:
+      - description: User data
+        in: body
+        name: LoginUser
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SignIn'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Login user
+      tags:
+      - User
+  /api/v1/users/logout:
+    get:
+      consumes:
+      - application/json
+      description: Logout the current user
+      produces:
+      - application/json
+      responses: {}
+      summary: Logout user
+      tags:
+      - User
+  /api/v1/users/password/forget:
+    patch:
+      consumes:
+      - application/json
+      description: Allows the user to change their password after verifying the code
+      parameters:
+      - description: Change password input
+        in: body
+        name: changePasswordInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ChangePasswordInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Change password
+      tags:
+      - User
+  /api/v1/users/signup:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - multipart/form-data
+      description: Register a new user with form data
+      parameters:
+      - description: Email of the user
+        example: '"john.doe@example.com"'
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password of the user
+        example: '"securepassword123"'
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Full name of the user
+        example: '"John Doe"'
+        in: formData
+        name: fullName
+        required: true
+        type: string
+      - description: Avatar URL of the user
+        example: '"http://example.com/avatar.jpg"'
+        in: formData
+        name: avatarUrl
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: file
+        type: file
+      - description: Phone number of the user
+        example: '"+1234567890"'
+        in: formData
+        name: phone
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Register user
+      tags:
+      - User
+  /api/v1/users/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates the user's first name, last name, and username
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - CookieAuth: []
+      summary: Update User Information
+      tags:
+      - User
+  /api/v1/users/verify:
+    patch:
+      consumes:
+      - application/json
+      description: Register a new user with form data
+      parameters:
+      - description: User data
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VerificationInput'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Register user
+      tags:
+      - User
+  /api/v1/users/verify/password:
+    patch:
+      consumes:
+      - application/json
+      description: Verifies the code sent to the user's email for changing password
+      parameters:
+      - description: Verification code input
+        in: body
+        name: verificationCode
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VerificationInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Verify code for password change
+      tags:
+      - User
+swagger: "2.0"
