@@ -108,6 +108,7 @@ func (u *UserController) VerificationCodeForChangePassword(ctx *gin.Context) {
 	}
 
 	// Set cookie
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("verification_code", verificationCode.VerificationCode, u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, true)
 
 	// Trả về phản hồi thành công
@@ -152,6 +153,7 @@ func (u *UserController) ChangePassword(ctx *gin.Context) {
 		return
 	}
 
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("verification_code", "", -1, "/", u.Database.ClientServer, false, true)
 
 	// Trả về phản hồi thành công
@@ -226,8 +228,11 @@ func (l *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("access_token", user.AccessToken, l.Database.AccessTokenMaxAge*1000, "/", l.Database.ClientServer, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("refresh_token", user.RefreshToken, l.Database.AccessTokenMaxAge*1000, "/", l.Database.ClientServer, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("logged_in", user.IsLogged, l.Database.AccessTokenMaxAge*1000, "/", l.Database.ClientServer, false, false)
 
 	// Trả về phản hồi thành công
@@ -254,8 +259,11 @@ func (u *UserController) GoogleLoginWithUser(c *gin.Context) {
 		return
 	}
 
+	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("access_token", response.AccessToken, 0, "/", "localhost", false, true)
+	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("refresh_token", response.RefreshToken, 0, "/", "localhost", false, true)
+	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("logged_in", response.IsLogged, 0, "/", "localhost", false, false)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -291,8 +299,11 @@ func (u *UserController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("access_token", data.AccessToken, u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("refresh_token", data.RefreshToken, u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("logged_in", "true", u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{
@@ -328,8 +339,11 @@ func (u *UserController) LogoutUser(ctx *gin.Context) {
 		return
 	}
 
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("access_token", "", -1, "/", u.Database.ClientServer, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("refresh_token", "", -1, "/", u.Database.ClientServer, false, true)
+	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("logged_in", "", -1, "/", u.Database.ClientServer, false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{

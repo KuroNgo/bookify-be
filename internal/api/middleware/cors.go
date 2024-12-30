@@ -36,8 +36,8 @@ func CORSPublic() gin.HandlerFunc {
 func CORSPrivate() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		origin := ctx.Request.Header.Get("Origin")
-		//if origin == host2 || origin == host3 || origin == host4 {
-		if origin == host2 {
+		if origin == host2 || origin == host3 || origin == host4 {
+			//if origin == host2 {
 			ctx.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 			ctx.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 			ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization,Content-Type,Content,Content-Length,Accept-Encoding")
