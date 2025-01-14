@@ -198,15 +198,15 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 
 	// Map EventInput to Event
 	newEvent := domain.Event{
-		ID:           primitive.NewObjectID(),
-		Name:         event.Name,
-		Description:  event.Description,
-		StartTime:    parsedStartTime,
-		EndTime:      parsedEndTime,
-		Location:     event.Location,
-		AttendanceID: userID,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		ID:          primitive.NewObjectID(),
+		Title:       event.Name,
+		Description: event.Description,
+		StartTime:   parsedStartTime,
+		EndTime:     parsedEndTime,
+		Location:    event.Location,
+		//AttendanceID: userID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	// Save event to repository
@@ -279,14 +279,14 @@ func (e eventUseCase) UpdateOne(ctx context.Context, id string, event *domain.Ev
 
 	// Map EventInput to Event
 	updatedEvent := &domain.Event{
-		ID:           eventID,
-		Name:         event.Name,
-		Description:  event.Description,
-		StartTime:    parsedStartTime,
-		EndTime:      parsedEndTime,
-		Location:     event.Location,
-		AttendanceID: userID,
-		UpdatedAt:    time.Now(),
+		ID:          eventID,
+		Title:       event.Name,
+		Description: event.Description,
+		StartTime:   parsedStartTime,
+		EndTime:     parsedEndTime,
+		Location:    event.Location,
+		//AttendanceID: userID,
+		UpdatedAt: time.Now(),
 	}
 
 	// Update event in repository
