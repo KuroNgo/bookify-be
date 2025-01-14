@@ -30,6 +30,7 @@ type IUserUseCase interface {
 	GetByVerificationCode(ctx context.Context, verificationCode string) (domain.OutputUser, error)
 
 	UpdateOne(ctx context.Context, userID string, input *domain.InputUser, file *multipart.FileHeader) error
+	UpdateUserInfoOne(ctx context.Context, userID string, input *domain.UpdateUserInfo, file *multipart.FileHeader) error
 	UpdateVerify(ctx context.Context, id string, input *domain.InputUser) error
 	UpdateImage(ctx context.Context, id string, file *multipart.FileHeader) error
 
@@ -49,6 +50,11 @@ type userUseCase struct {
 	contextTimeout time.Duration
 	userRepository repository.IUserRepository
 	client         *mongo_driven.Client
+}
+
+func NewUserUseCase(database *config.Database, contextTimeout time.Duration, userRepository repository.IUserRepository,
+	client *mongo_driven.Client) IUserUseCase {
+	return &userUseCase{database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
 }
 
 func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.OutputUser, error) {
@@ -180,8 +186,8 @@ func (u *userUseCase) UpdateOne(ctx context.Context, userID string, input *domai
 
 	if file == nil {
 		user := domain.User{
-			ID:        userData.ID,
-			Username:  input.Username,
+			ID: userData.ID,
+			//Username:  input.Username,
 			UpdatedAt: time.Now(),
 		}
 
@@ -209,9 +215,87 @@ func (u *userUseCase) UpdateOne(ctx context.Context, userID string, input *domai
 	}(f)
 
 	user := domain.User{
-		ID:        idUser,
-		Username:  input.Username,
+		ID: idUser,
+		//Username:  input.Username,
 		UpdatedAt: time.Now(),
+	}
+
+	err = u.userRepository.UpdateOne(ctx, &user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userUseCase) UpdateUserInfoOne(ctx context.Context, userID string, input *domain.UpdateUserInfo, file *multipart.FileHeader) error {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	idUser, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	userData, err := u.userRepository.GetByID(ctx, idUser)
+	if err != nil {
+		return err
+	}
+
+	layout := "31/02/2002 16:06:00"
+	parseDateOfBirth, err := time.Parse(layout, input.DateOfBirth)
+	if err != nil {
+		return err
+	}
+
+	if file == nil {
+		user := domain.User{
+			ID:          userData.ID,
+			FullName:    input.FullName,
+			Gender:      input.Gender,
+			Vocation:    input.Vocation,
+			Address:     input.Address,
+			City:        input.City,
+			Region:      input.Region,
+			DateOfBirth: parseDateOfBirth,
+			AvatarURL:   input.AvatarURL,
+			AssetURL:    input.AssetURL,
+			UpdatedAt:   time.Now(),
+		}
+
+		err = u.userRepository.UpdateOne(ctx, &user)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if !helper.IsImage(file.Filename) {
+		return err
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer func(f multipart.File) {
+		err = f.Close()
+		if err != nil {
+			return
+		}
+	}(f)
+
+	user := domain.User{
+		ID:          userData.ID,
+		FullName:    input.FullName,
+		Gender:      input.Gender,
+		Vocation:    input.Vocation,
+		Address:     input.Address,
+		City:        input.City,
+		Region:      input.Region,
+		DateOfBirth: parseDateOfBirth,
+		UpdatedAt:   time.Now(),
 	}
 
 	err = u.userRepository.UpdateOne(ctx, &user)
@@ -374,7 +458,7 @@ func (u *userUseCase) SignUp(ctx context.Context, input *domain.SignupUser) erro
 
 		emailData := handles.EmailData{
 			Code:     code,
-			FullName: newUser.Username,
+			FullName: newUser.FullName,
 			Subject:  "Your account verification code: " + code,
 		}
 
@@ -463,7 +547,7 @@ func (u *userUseCase) LoginGoogle(ctx context.Context, code string) (*domain.Out
 		ID:        primitive.NewObjectID(),
 		Email:     email,
 		Phone:     phone,
-		Username:  fullName,
+		FullName:  fullName,
 		AvatarURL: avatarURL,
 		Provider:  "google",
 		Verified:  verifiedEmail,
@@ -589,7 +673,7 @@ func (u *userUseCase) ForgetPassword(ctx context.Context, email string) error {
 
 		emailData := handles.EmailData{
 			Code:     code,
-			FullName: user.Username,
+			FullName: user.FullName,
 			Subject:  "Khôi phục mật khẩu",
 		}
 
@@ -658,11 +742,6 @@ func (u *userUseCase) UpdatePassword(ctx context.Context, id string, input *doma
 	return u.userRepository.UpdatePassword(ctx, updateUser)
 }
 
-func NewUserUseCase(database *config.Database, contextTimeout time.Duration, userRepository repository.IUserRepository,
-	client *mongo_driven.Client) IUserUseCase {
-	return &userUseCase{database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
-}
-
 func validateUser(input *domain.InputUser) error {
 	if input.PasswordHash == "" {
 		return errors.New("the user's information cannot be empty")
@@ -676,7 +755,7 @@ func validateUser(input *domain.InputUser) error {
 		return errors.New("email Invalid ")
 	}
 
-	if input.Username == "" {
+	if input.FullName == "" {
 		return errors.New("the user's information cannot be empty")
 	}
 

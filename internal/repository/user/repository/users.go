@@ -195,7 +195,7 @@ func (u userRepository) UpsertOne(ctx context.Context, user *domain.User) (*doma
 
 	// Chuẩn bị các giá trị cập nhật
 	update := bson.D{{Key: "$set", Value: bson.M{
-		"full_name":  user.Username,
+		"full_name":  user.FullName,
 		"email":      user.Email,
 		"avatar_url": user.AvatarURL,
 		"phone":      user.Phone,

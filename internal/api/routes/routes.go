@@ -7,7 +7,8 @@ import (
 	"bookify/internal/api/middleware"
 	"bookify/internal/config"
 	"bookify/internal/domain"
-	"bookify/internal/repository/user/repository"
+	event_repository "bookify/internal/repository/events/repository"
+	user_repository "bookify/internal/repository/user/repository"
 	"bookify/internal/usecase"
 	"bookify/pkg/interface/cloudinary/middlewares"
 	"context"
@@ -46,6 +47,7 @@ func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db
 
 	SwaggerRouter(env, timeout, db, router)
 	UserRouter(env, timeout, db, client, userRouter)
+	EventsRouter(env, timeout, db, client, publicRouterV1)
 
 	err := data_seeder.DataSeeds(context.Background(), client)
 	if err != nil {
@@ -97,7 +99,7 @@ func SwaggerRouter(env *config.Database, timeout time.Duration, db *mongo.Databa
 }
 
 func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database, client *mongo.Client, group *gin.RouterGroup) {
-	ur := repository.NewUserRepository(db, domain.CollectionUser)
+	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
 
 	user := &controller.UserController{
 		UserUseCase: usecase.NewUserUseCase(env, timeout, ur, client),
@@ -120,4 +122,23 @@ func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database,
 
 	google := group.Group("/auth")
 	google.GET("/google/callback", user.GoogleLoginWithUser)
+}
+
+func EventsRouter(env *config.Database, timeout time.Duration, db *mongo.Database, client *mongo.Client, group *gin.RouterGroup) {
+	ev := event_repository.NewEventRepository(db, domain.CollectionEvent)
+
+	event := &controller.EventController{
+		EventUseCase: usecase.NewEventUseCase(env, timeout, ev, client),
+		Database:     env,
+	}
+
+	router := group.Group("/events")
+	router.GET("/get/id", event.GetByID)
+	router.GET("/get/start-time", event.GetByStartTime)
+	router.GET("/get/start-time/pagination", event.GetByStartTimePagination)
+	router.GET("/get/all", event.GetAll)
+	router.GET("/get/all/pagination", event.GetAllPagination)
+	router.POST("/create", event.CreateOne)
+	router.PUT("/update", event.UpdateOne)
+	router.POST("/delete", event.DeleteOne)
 }

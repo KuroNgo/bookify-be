@@ -108,8 +108,7 @@ func (u *UserController) VerificationCodeForChangePassword(ctx *gin.Context) {
 	}
 
 	// Set cookie
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("verification_code", verificationCode.VerificationCode, u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, true)
+	ctx.SetCookie("verification_code", verificationCode.VerificationCode, 0, "/", u.Database.ClientServer, false, true)
 
 	// Trả về phản hồi thành công
 	ctx.JSON(http.StatusOK, gin.H{
@@ -153,7 +152,6 @@ func (u *UserController) ChangePassword(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("verification_code", "", -1, "/", u.Database.ClientServer, false, true)
 
 	// Trả về phản hồi thành công
@@ -228,17 +226,15 @@ func (l *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("access_token", user.AccessToken, l.Database.AccessTokenMaxAge*1000, "/", l.Database.ClientServer, false, true)
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("refresh_token", user.RefreshToken, l.Database.AccessTokenMaxAge*1000, "/", l.Database.ClientServer, false, true)
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("logged_in", user.IsLogged, l.Database.AccessTokenMaxAge*1000, "/", l.Database.ClientServer, false, false)
+	ctx.SetCookie("access_token", user.AccessToken, 0, "/", l.Database.ClientServer, false, true)
+	ctx.SetCookie("refresh_token", user.RefreshToken, 0, "/", l.Database.ClientServer, false, true)
+	ctx.SetCookie("is_logged", user.IsLogged, 0, "/", l.Database.ClientServer, false, false)
 
 	// Trả về phản hồi thành công
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   user,
+		"status":    "success",
+		"data":      user,
+		"is_logged": user.IsLogged,
 	})
 }
 
@@ -259,12 +255,9 @@ func (u *UserController) GoogleLoginWithUser(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("access_token", response.AccessToken, 0, "/", "localhost", false, true)
-	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("refresh_token", response.RefreshToken, 0, "/", "localhost", false, true)
-	c.SetSameSite(http.SameSiteNoneMode)
-	c.SetCookie("logged_in", response.IsLogged, 0, "/", "localhost", false, false)
+	c.SetCookie("is_logged", response.IsLogged, 0, "/", "localhost", false, false)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": response.SignedToken,
@@ -299,17 +292,13 @@ func (u *UserController) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("access_token", data.AccessToken, u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, true)
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("refresh_token", data.RefreshToken, u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, true)
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("logged_in", "true", u.Database.AccessTokenMaxAge*60, "/", u.Database.ClientServer, false, false)
+	ctx.SetCookie("access_token", data.AccessToken, 0, "/", u.Database.ClientServer, false, true)
+	ctx.SetCookie("refresh_token", data.RefreshToken, 0, "/", u.Database.ClientServer, false, true)
+	ctx.SetCookie("is_logged", data.IsLogged, 0, "/", u.Database.ClientServer, false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"status":        "success",
-		"access_token":  data.AccessToken,
-		"refresh_token": data.RefreshToken,
+		"status":    "success",
+		"is_logged": data.IsLogged,
 	})
 }
 
@@ -339,12 +328,9 @@ func (u *UserController) LogoutUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("access_token", "", -1, "/", u.Database.ClientServer, false, true)
-	ctx.SetSameSite(http.SameSiteNoneMode)
 	ctx.SetCookie("refresh_token", "", -1, "/", u.Database.ClientServer, false, true)
-	ctx.SetSameSite(http.SameSiteNoneMode)
-	ctx.SetCookie("logged_in", "", -1, "/", u.Database.ClientServer, false, false)
+	ctx.SetCookie("is_logged", "", -1, "/", u.Database.ClientServer, false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "success",
@@ -481,12 +467,24 @@ func (u *UserController) UpdateUser(ctx *gin.Context) {
 	}
 
 	fullName := ctx.Request.FormValue("full_name")
-	input := domain.InputUser{
-		Username: fullName,
+	gender := ctx.Request.FormValue("gender")
+	vocation := ctx.Request.FormValue("vocation")
+	address := ctx.Request.FormValue("address")
+	city := ctx.Request.FormValue("city")
+	region := ctx.Request.FormValue("region")
+	dateOfBirth := ctx.Request.FormValue("data_of_birth")
+	input := domain.UpdateUserInfo{
+		FullName:    fullName,
+		Gender:      gender,
+		Vocation:    vocation,
+		Address:     address,
+		City:        city,
+		Region:      region,
+		DateOfBirth: dateOfBirth,
 	}
 
 	file, _ := ctx.FormFile("file")
-	err := u.UserUseCase.UpdateOne(ctx, fmt.Sprint(currentUser), &input, file)
+	err := u.UserUseCase.UpdateUserInfoOne(ctx, fmt.Sprint(currentUser), &input, file)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",

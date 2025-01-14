@@ -127,7 +127,7 @@ const (
 
 const (
 	RoleAdmin      = "admin"
-	RoleSuperAdmin = "superAdmin"
+	RoleSuperAdmin = "super-admin"
 	RoleUser       = "user"
 	RoleModerator  = "moderator"
 	RoleGuest      = "guest"

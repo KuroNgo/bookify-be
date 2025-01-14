@@ -13,15 +13,23 @@ import (
 
 var user = domain.User{
 	ID:           primitive.NewObjectID(),
-	Username:     "admin",
+	FullName:     "admin",
+	Gender:       "male",
+	Vocation:     "Marketing",
+	Address:      "Thu Duc",
+	City:         "Ho Chi Minh city",
+	Region:       "Viet Nam",
+	DateOfBirth:  time.Date(2002, 2, 6, 16, 5, 0, 0, time.UTC), // Sử dụng time.Time
 	Email:        "admin@admin.com",
 	PasswordHash: "12345",
 	Phone:        "0329245971",
 	Verified:     true,
 	Provider:     "app",
 	Role:         constants.RoleSuperAdmin,
-	CreatedAt:    time.Now(),
-	UpdatedAt:    time.Now(),
+	ShowInterest: false,
+	SocialMedia:  false,
+	CreatedAt:    time.Now().UTC(),
+	UpdatedAt:    time.Now().UTC(),
 }
 
 func SeedUser(ctx context.Context, client *mongo.Client) error {

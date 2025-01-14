@@ -10,6 +10,34 @@ definitions:
     - password
     - password_compare
     type: object
+  domain.EventInput:
+    properties:
+      description:
+        example: A conference to discuss the latest trends in technology.
+        type: string
+      end_time:
+        example: "2024-05-15 17:00:00"
+        type: string
+      location:
+        example: San Francisco, CA
+        type: string
+      name:
+        example: Tech Conference 2024
+        type: string
+      start_time:
+        example: "2024-05-15 09:00:00"
+        type: string
+      user_id:
+        example: 6482cfc5f7e3f4b789123456
+        type: string
+    required:
+    - description
+    - end_time
+    - location
+    - name
+    - start_time
+    - user_id
+    type: object
   domain.ForgetPassword:
     properties:
       email:
@@ -20,7 +48,7 @@ definitions:
       email:
         example: admin@admin.com
         type: string
-      password_hash:
+      password:
         example: "12345"
         type: string
     type: object
@@ -40,6 +68,146 @@ info:
   title: Bookify
   version: "1.0"
 paths:
+  /api/v1/events/create:
+    post:
+      consumes:
+      - application/json
+      description: Add a new event to the system
+      parameters:
+      - description: Event input data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event
+      tags:
+      - Events
+  /api/v1/events/delete-one:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an event by its ID
+      parameters:
+      - description: Event ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event
+      tags:
+      - Events
+  /api/v1/events/get-all/pagination:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all events
+      parameters:
+      - description: Page number, default is 1
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all events with pagination
+      tags:
+      - Events
+  /api/v1/events/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all events
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all events
+      tags:
+      - Events
+  /api/v1/events/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Get details of an event by its ID
+      parameters:
+      - description: Event ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get event by ID
+      tags:
+      - Events
+  /api/v1/events/get/start-time:
+    get:
+      consumes:
+      - application/json
+      description: Get events starting from a specific date
+      parameters:
+      - description: Start date in YYYY-MM-DD format
+        in: query
+        name: startDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get events by start time
+      tags:
+      - Events
+  /api/v1/events/get/start-time/pagination:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated events starting from a specific date
+      parameters:
+      - description: Start date in YYYY-MM-DD format
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - description: Page number, default is 1
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get events by start time with pagination
+      tags:
+      - Events
+  /api/v1/events/update:
+    put:
+      consumes:
+      - application/json
+      description: Update details of an existing event
+      parameters:
+      - description: Event ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Event input data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event
+      tags:
+      - Events
   /api/v1/users/delete:
     delete:
       consumes:
@@ -185,10 +353,6 @@ paths:
         in: formData
         name: avatarUrl
         type: string
-      - description: Image file to upload
-        in: formData
-        name: file
-        type: file
       - description: Phone number of the user
         example: '"+1234567890"'
         in: formData
@@ -208,6 +372,24 @@ paths:
       consumes:
       - application/json
       description: Updates the user's first name, last name, and username
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - CookieAuth: []
+      summary: Update User Information
+      tags:
+      - User
+  /api/v1/users/update/image:
+    put:
+      consumes:
+      - application/json
+      description: Updates the user's first name, last name, and username
+      parameters:
+      - description: Image file to upload
+        in: formData
+        name: file
+        type: file
       produces:
       - application/json
       responses: {}
