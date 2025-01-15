@@ -6,7 +6,7 @@ import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
 	user_repository "bookify/internal/repository/user/repository"
-	"bookify/internal/usecase/user/usecase"
+	user_usecase "bookify/internal/usecase/user/usecase"
 	"bookify/pkg/interface/cloudinary/middlewares"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,7 +17,7 @@ func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database,
 	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
 
 	user := &user_controller.UserController{
-		UserUseCase: usecase.NewUserUseCase(env, timeout, ur, client),
+		UserUseCase: user_usecase.NewUserUseCase(env, timeout, ur, client),
 		Database:    env,
 	}
 

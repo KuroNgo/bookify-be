@@ -7,5 +7,5 @@ import (
 
 type UserController struct {
 	Database    *config.Database
-	UserUseCase usecase.IUserUseCase
+	UserUseCase user_usecase.IUserUseCase
 }
