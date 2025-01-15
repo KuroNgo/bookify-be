@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bookify/internal/domain"
+	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"fmt"
@@ -16,14 +17,12 @@ type IUserRepository interface {
 	GetByEmail(ctx context.Context, email string) (domain.User, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.User, error)
 	GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error)
-
 	UpdateOne(ctx context.Context, user *domain.User) error
 	UpdatePassword(ctx context.Context, user *domain.User) error
 	UpdateVerify(ctx context.Context, user *domain.User) error
 	UpdateVerificationCode(ctx context.Context, user *domain.User) error
 	UpsertOne(ctx context.Context, user *domain.User) (*domain.User, error)
 	UpdateImage(ctx context.Context, user *domain.User) error
-
 	UserExists(ctx context.Context, email string) (bool, error)
 	CreateOne(ctx context.Context, user *domain.User) error
 	DeleteOne(ctx context.Context, userID primitive.ObjectID) error
@@ -238,6 +237,10 @@ func (u userRepository) UpdateImage(ctx context.Context, user *domain.User) erro
 
 func (u userRepository) CreateOne(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
+
+	if err := validate_data.ValidateUser3(user); err != nil {
+		return err
+	}
 
 	exists, err := u.UserExists(ctx, user.Email)
 	if err != nil {

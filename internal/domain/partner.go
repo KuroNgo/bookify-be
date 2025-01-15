@@ -12,3 +12,9 @@ type Partner struct {
 	Email string             `bson:"email" json:"email"`
 	Phone string             `bson:"phone" json:"phone"`
 }
+
+type PartnerInput struct {
+	Name  string `bson:"name" json:"name"`
+	Email string `bson:"email" json:"email"`
+	Phone string `bson:"phone" json:"phone"`
+}

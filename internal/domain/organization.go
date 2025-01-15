@@ -12,3 +12,9 @@ type Organization struct {
 	Email         string             `bson:"email" json:"email"`
 	Phone         string             `bson:"phone" json:"phone"`
 }
+
+type OrganizationInput struct {
+	ContactPerson string `bson:"contact_person" json:"contact_person"`
+	Email         string `bson:"email" json:"email"`
+	Phone         string `bson:"phone" json:"phone"`
+}

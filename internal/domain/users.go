@@ -102,7 +102,19 @@ type ForgetPassword struct {
 }
 
 type OutputUser struct {
-	User User `bson:"user" json:"user"`
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Email       string             `bson:"email" json:"email"`
+	Phone       string             `json:"phone" bson:"phone"`
+	FullName    string             `bson:"full_name" json:"full_name"`
+	Gender      string             `bson:"gender" json:"gender"`
+	Vocation    string             `bson:"vocation" json:"vocation"`
+	Address     string             `bson:"address" json:"address"`
+	City        string             `bson:"city" json:"city"`
+	Region      string             `bson:"region" json:"region"`
+	DateOfBirth time.Time          `bson:"date_of_birth" json:"date_of_birth"`
+	AssetURL    string             `bson:"asset_url"  json:"asset_url"`
+	AvatarURL   string             `bson:"avatar_url"  json:"avatar_url"`
+	Role        string             `bson:"role" json:"role"` // Example: "Admin", "Manager", "Employee"
 }
 
 type OutputLogin struct {
@@ -112,7 +124,7 @@ type OutputLogin struct {
 }
 
 type OutputLoginGoogle struct {
-	RefreshToken string `bson:"refresh_token" json:"refresh_token""`
+	RefreshToken string `bson:"refresh_token" json:"refresh_token"`
 	AccessToken  string `bson:"access_token" json:"access_token"`
 	IsLogged     string `bson:"is_logged" json:"is_logged"`
 	SignedToken  string `bson:"signed_token" json:"signed_token"`

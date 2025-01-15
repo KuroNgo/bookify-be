@@ -14,3 +14,11 @@ type Employee struct {
 	JobTitle       string             `bson:"job_title" json:"job_title"`
 	Email          string             `bson:"email" json:"email"`
 }
+
+type EmployeeInput struct {
+	OrganizationID primitive.ObjectID `bson:"organization_id" json:"organization_id"`
+	FirstName      string             `bson:"first_name" json:"first_name"`
+	LastName       string             `bson:"last_name" json:"last_name"`
+	JobTitle       string             `bson:"job_title" json:"job_title"`
+	Email          string             `bson:"email" json:"email"`
+}
