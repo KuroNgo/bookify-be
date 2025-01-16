@@ -33,6 +33,10 @@ func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventT
 	defer cancel()
 
 	eventTypeID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return domain.EventType{}, err
+	}
+
 	data, err := e.eventTypeRepository.GetByID(ctx, eventTypeID)
 	if err != nil {
 		return domain.EventType{}, err
@@ -58,6 +62,10 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.Event
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
@@ -98,6 +106,10 @@ func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.Event
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
@@ -138,6 +150,10 @@ func (e eventTypeUseCase) DeleteOne(ctx context.Context, id string, currentUser 
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err

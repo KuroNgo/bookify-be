@@ -50,6 +50,15 @@ definitions:
       email:
         type: string
     type: object
+  domain.PartnerInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
   domain.SignIn:
     properties:
       email:
@@ -316,6 +325,93 @@ paths:
       summary: Update an event
       tags:
       - Events
+  /api/v1/partners/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new partner in the system
+      parameters:
+      - description: Partner Input Data
+        in: body
+        name: partnerInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PartnerInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new partner
+      tags:
+      - partners
+  /api/v1/partners/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a partner from the system using the partner ID
+      parameters:
+      - description: Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete a partner by ID
+      tags:
+      - partners
+  /api/v1/partners/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all partners from the system
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a list of all partners
+      tags:
+      - partners
+  /api/v1/partners/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a partner from the system using the partner's ID
+      parameters:
+      - description: Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a partner by ID
+      tags:
+      - partners
+  /api/v1/partners/update:
+    put:
+      consumes:
+      - application/json
+      description: Update the details of a partner using the partner's ID and input
+        data
+      parameters:
+      - description: Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Partner data
+        in: body
+        name: partnerInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PartnerInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update a partner by ID
+      tags:
+      - partners
   /api/v1/users/delete:
     delete:
       consumes:

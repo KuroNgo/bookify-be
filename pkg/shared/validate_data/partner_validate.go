@@ -32,3 +32,25 @@ func ValidatePartner(input *domain.Partner) error {
 
 	return nil
 }
+
+func ValidatePartnerInput(input *domain.PartnerInput) error {
+	if input.Name == "" {
+		return errors.New("the partner's information cannot be empty")
+	}
+
+	if input.Email == "" {
+		return errors.New("the partner's information cannot be empty")
+	}
+	if !helper.EmailValid(input.Email) {
+		return errors.New("email Invalid ")
+	}
+
+	if input.Phone == "" {
+		return errors.New("the partner's information cannot be empty")
+	}
+	if !helper.PhoneValid(input.Phone) {
+		return errors.New("phone Invalid")
+	}
+
+	return nil
+}

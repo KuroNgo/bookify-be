@@ -1,4 +1,4 @@
-package event_type_controller
+package partner_controller
 
 import (
 	"bookify/internal/domain"
@@ -8,14 +8,15 @@ import (
 )
 
 // UpdateOne godoc
-// @Summary Update an event type
-// @Description Updates an existing event type
-// @Tags Event Types
+// @Summary Update a partner by ID
+// @Description Update the details of a partner using the partner's ID and input data
+// @Tags partners
 // @Accept json
 // @Produce json
-// @Param eventType body domain.EventTypeInput true "Event Type Body"
-// @Router /api/v1/event-types/update [put]
-func (e EventController) UpdateOne(ctx *gin.Context) {
+// @Param id query string true "Partner ID"
+// @Param partnerInput body domain.PartnerInput true "Partner data"
+// @Router /api/v1/partners/update [put]
+func (p PartnerController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -26,8 +27,8 @@ func (e EventController) UpdateOne(ctx *gin.Context) {
 	}
 
 	//  Lấy thông tin từ request
-	var eventTypeInput domain.EventTypeInput
-	if err := ctx.ShouldBindJSON(&eventTypeInput); err != nil {
+	var partnerInput domain.PartnerInput
+	if err := ctx.ShouldBindJSON(&partnerInput); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": err.Error()},
@@ -35,7 +36,7 @@ func (e EventController) UpdateOne(ctx *gin.Context) {
 		return
 	}
 
-	err := e.EventTypeUseCase.UpdateOne(ctx, &eventTypeInput, fmt.Sprintf("%s", currentUser))
+	err := p.PartnerUseCase.UpdateOne(ctx, &partnerInput, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
