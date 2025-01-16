@@ -102,19 +102,27 @@ type ForgetPassword struct {
 }
 
 type OutputUser struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Email       string             `bson:"email" json:"email"`
-	Phone       string             `json:"phone" bson:"phone"`
-	FullName    string             `bson:"full_name" json:"full_name"`
-	Gender      string             `bson:"gender" json:"gender"`
-	Vocation    string             `bson:"vocation" json:"vocation"`
-	Address     string             `bson:"address" json:"address"`
-	City        string             `bson:"city" json:"city"`
-	Region      string             `bson:"region" json:"region"`
-	DateOfBirth time.Time          `bson:"date_of_birth" json:"date_of_birth"`
-	AssetURL    string             `bson:"asset_url"  json:"asset_url"`
-	AvatarURL   string             `bson:"avatar_url"  json:"avatar_url"`
-	Role        string             `bson:"role" json:"role"` // Example: "Admin", "Manager", "Employee"
+	ID                             primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Email                          string             `bson:"email" json:"email"`
+	Phone                          string             `json:"phone" bson:"phone"`
+	FullName                       string             `bson:"full_name" json:"full_name"`
+	Gender                         string             `bson:"gender" json:"gender"`
+	Vocation                       string             `bson:"vocation" json:"vocation"`
+	Address                        string             `bson:"address" json:"address"`
+	City                           string             `bson:"city" json:"city"`
+	Region                         string             `bson:"region" json:"region"`
+	DateOfBirth                    time.Time          `bson:"date_of_birth" json:"date_of_birth"`
+	AssetURL                       string             `bson:"asset_url"  json:"asset_url"`
+	AvatarURL                      string             `bson:"avatar_url"  json:"avatar_url"`
+	Role                           string             `bson:"role" json:"role"` // Example: "Admin", "Manager", "Employee"
+	FacebookSc                     string             `bson:"facebook_sc" json:"facebook_sc"`
+	InstagramSc                    string             `bson:"instagram_sc" json:"instagram_sc"`
+	LinkedInSc                     string             `bson:"linked_in_sc" json:"linked_in_sc"`
+	YoutubeSc                      string             `bson:"youtube_sc" json:"youtube_sc"`
+	ShowInterest                   bool               `bson:"show_interest" json:"show_interest"`
+	SocialMedia                    bool               `bson:"social_media" json:"social_media"`
+	EnableAutomaticSharingOfEvents bool               `bson:"enable_automatic_sharing_of_events" json:"enable_automatic_sharing_of_events"`
+	EnableSharingOn                []string           `bson:"enable_sharing_on" json:"enable_sharing_on"`
 }
 
 type OutputLogin struct {

@@ -33,19 +33,12 @@ const docTemplate = `{
                 "summary": "Create a new event type",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Current User Token",
-                        "name": "currentUser",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "description": "Event Type Body",
                         "name": "eventType",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.EventType"
+                            "$ref": "#/definitions/domain.EventTypeInput"
                         }
                     }
                 ],
@@ -66,13 +59,6 @@ const docTemplate = `{
                 ],
                 "summary": "Delete an event type",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Current User Token",
-                        "name": "currentUser",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "Event Type ID",
@@ -170,45 +156,16 @@ const docTemplate = `{
                 "summary": "Update an event type",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Current User Token",
-                        "name": "currentUser",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "description": "Event Type Body",
                         "name": "eventType",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.EventType"
+                            "$ref": "#/definitions/domain.EventTypeInput"
                         }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/api/v1/events/create": {
@@ -827,13 +784,10 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.EventType": {
+        "domain.EventTypeInput": {
             "type": "object",
             "properties": {
-                "event_type_name": {
-                    "type": "string"
-                },
-                "id": {
+                "name": {
                     "type": "string"
                 }
             }

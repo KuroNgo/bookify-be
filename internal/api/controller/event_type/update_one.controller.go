@@ -13,11 +13,7 @@ import (
 // @Tags Event Types
 // @Accept json
 // @Produce json
-// @Param currentUser header string true "Current User Token"
-// @Param eventType body domain.EventType true "Event Type Body"
-// @Success 200 {object} map[string]interface{} "Success"
-// @Failure 400 {object} map[string]interface{} "Bad Request"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Param eventType body domain.EventTypeInput true "Event Type Body"
 // @Router /api/v1/event-types/update [put]
 func (e EventController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
@@ -30,7 +26,7 @@ func (e EventController) UpdateOne(ctx *gin.Context) {
 	}
 
 	//  Lấy thông tin từ request
-	var userInput domain.EventType
+	var userInput domain.EventTypeInput
 	if err := ctx.ShouldBindJSON(&userInput); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",

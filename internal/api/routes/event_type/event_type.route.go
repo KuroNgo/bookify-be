@@ -5,6 +5,7 @@ import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
 	event_type_repository "bookify/internal/repository/event_type/repository"
+	user_repository "bookify/internal/repository/user/repository"
 	event_type_usecase "bookify/internal/usecase/event_type/usecase"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,9 +14,10 @@ import (
 
 func EventTypeRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
 	ev := event_type_repository.NewEventTypeRepository(db, domain.CollectionEventType)
+	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
 
 	event_type := &event_type_controller.EventController{
-		EventTypeUseCase: event_type_usecase.NewEventTypeUseCase(env, timeout, ev),
+		EventTypeUseCase: event_type_usecase.NewEventTypeUseCase(env, timeout, ev, ur),
 		Database:         env,
 	}
 

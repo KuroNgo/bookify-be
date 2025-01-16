@@ -25,7 +25,4 @@ func EventsRouter(env *config.Database, timeout time.Duration, db *mongo.Databas
 	router.GET("/get/start-time/pagination", event.GetByStartTimePagination)
 	router.GET("/get/all", event.GetAll)
 	router.GET("/get/all/pagination", event.GetAllPagination)
-	router.POST("/create", event.CreateOne)
-	router.PUT("/update", event.UpdateOne)
-	router.POST("/delete", event.DeleteOne)
 }

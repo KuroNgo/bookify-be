@@ -12,7 +12,6 @@ import (
 // @Tags Event Types
 // @Accept json
 // @Produce json
-// @Param currentUser header string true "Current User Token"
 // @Param id query string true "Event Type ID"
 // @Router /api/v1/event-types/delete [delete]
 func (e EventController) DeleteOne(ctx *gin.Context) {

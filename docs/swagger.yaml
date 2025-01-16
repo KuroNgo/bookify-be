@@ -40,11 +40,9 @@ definitions:
       venue_id:
         type: string
     type: object
-  domain.EventType:
+  domain.EventTypeInput:
     properties:
-      event_type_name:
-        type: string
-      id:
+      name:
         type: string
     type: object
   domain.ForgetPassword:
@@ -83,17 +81,12 @@ paths:
       - application/json
       description: Creates a new event type for the current user
       parameters:
-      - description: Current User Token
-        in: header
-        name: currentUser
-        required: true
-        type: string
       - description: Event Type Body
         in: body
         name: eventType
         required: true
         schema:
-          $ref: '#/definitions/domain.EventType'
+          $ref: '#/definitions/domain.EventTypeInput'
       produces:
       - application/json
       responses: {}
@@ -106,11 +99,6 @@ paths:
       - application/json
       description: Deletes an event type by ID for the current user
       parameters:
-      - description: Current User Token
-        in: header
-        name: currentUser
-        required: true
-        type: string
       - description: Event Type ID
         in: query
         name: id
@@ -176,35 +164,15 @@ paths:
       - application/json
       description: Updates an existing event type
       parameters:
-      - description: Current User Token
-        in: header
-        name: currentUser
-        required: true
-        type: string
       - description: Event Type Body
         in: body
         name: eventType
         required: true
         schema:
-          $ref: '#/definitions/domain.EventType'
+          $ref: '#/definitions/domain.EventTypeInput'
       produces:
       - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
+      responses: {}
       summary: Update an event type
       tags:
       - Event Types
