@@ -1,1 +1,1 @@
-package intergration
+package intergration_test

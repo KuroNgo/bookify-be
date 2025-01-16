@@ -33,19 +33,12 @@ const docTemplate = `{
                 "summary": "Create a new event type",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Current User Token",
-                        "name": "currentUser",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "description": "Event Type Body",
                         "name": "eventType",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.EventType"
+                            "$ref": "#/definitions/domain.EventTypeInput"
                         }
                     }
                 ],
@@ -66,13 +59,6 @@ const docTemplate = `{
                 ],
                 "summary": "Delete an event type",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Current User Token",
-                        "name": "currentUser",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "Event Type ID",
@@ -170,45 +156,16 @@ const docTemplate = `{
                 "summary": "Update an event type",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Current User Token",
-                        "name": "currentUser",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
                         "description": "Event Type Body",
                         "name": "eventType",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.EventType"
+                            "$ref": "#/definitions/domain.EventTypeInput"
                         }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/api/v1/events/create": {
@@ -412,6 +369,133 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/domain.EventInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/partners/create": {
+            "post": {
+                "description": "Create a new partner in the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "partners"
+                ],
+                "summary": "Create a new partner",
+                "parameters": [
+                    {
+                        "description": "Partner Input Data",
+                        "name": "partnerInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PartnerInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/partners/delete": {
+            "delete": {
+                "description": "Delete a partner from the system using the partner ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "partners"
+                ],
+                "summary": "Delete a partner by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Partner ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/partners/get/all": {
+            "get": {
+                "description": "Retrieve a list of all partners from the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "partners"
+                ],
+                "summary": "Get a list of all partners",
+                "responses": {}
+            }
+        },
+        "/api/v1/partners/get/id": {
+            "get": {
+                "description": "Retrieve a partner from the system using the partner's ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "partners"
+                ],
+                "summary": "Get a partner by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Partner ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/partners/update": {
+            "put": {
+                "description": "Update the details of a partner using the partner's ID and input data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "partners"
+                ],
+                "summary": "Update a partner by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Partner ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Partner data",
+                        "name": "partnerInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PartnerInput"
                         }
                     }
                 ],
@@ -827,13 +911,10 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.EventType": {
+        "domain.EventTypeInput": {
             "type": "object",
             "properties": {
-                "event_type_name": {
-                    "type": "string"
-                },
-                "id": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -842,6 +923,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.PartnerInput": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 }
             }

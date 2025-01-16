@@ -1,4 +1,4 @@
-package unit
+package event_type_unit
 
 import (
 	"bookify/internal/domain"
@@ -13,10 +13,18 @@ import (
 func TestDeleteOneEventType(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
+	// Function to clear the event collection before each test case
+	clearEventTypeCollection := func() {
+		err := database.Collection("event_type").Drop(context.Background())
+		if err != nil {
+			t.Fatalf("Failed to clear partner collection: %v", err)
+		}
+	}
 
-	mockEventType := &domain.EventType{
-		ID:            primitive.NewObjectID(),
-		EventTypeName: "music",
+	clearEventTypeCollection()
+	mockEventType := domain.EventType{
+		ID:   primitive.NewObjectID(),
+		Name: "music",
 	}
 
 	ur := event_type_repository.NewEventTypeRepository(database, "event_type")

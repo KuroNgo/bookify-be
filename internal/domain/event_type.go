@@ -7,6 +7,10 @@ const (
 )
 
 type EventType struct {
-	ID            primitive.ObjectID `bson:"_id" json:"id"`
-	EventTypeName string             `bson:"event_type_name" json:"event_type_name"`
+	ID   primitive.ObjectID `bson:"_id" json:"id"`
+	Name string             `bson:"name" json:"name"`
+}
+
+type EventTypeInput struct {
+	Name string `bson:"name" json:"name"`
 }

@@ -1,4 +1,4 @@
-package unit_test
+package event_type_unit
 
 import (
 	"bookify/internal/domain"
@@ -14,9 +14,17 @@ func TestFindByIDEventType(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
-	mockEventType := &domain.EventType{
-		ID:            primitive.NewObjectID(),
-		EventTypeName: "music",
+	// Function to clear the event collection before each test case
+	clearEventCollection := func() {
+		err := database.Collection("event_type").Drop(context.Background())
+		if err != nil {
+			t.Fatalf("Failed to clear event type collection: %v", err)
+		}
+	}
+	clearEventCollection()
+	mockEventType := domain.EventType{
+		ID:   primitive.NewObjectID(),
+		Name: "event",
 	}
 
 	ur := event_type_repository.NewEventTypeRepository(database, "event_type")
@@ -28,8 +36,8 @@ func TestFindByIDEventType(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
 		_, err = ur.GetByID(context.Background(), primitive.NilObjectID)
-		assert.Nil(t, err)
+		assert.Error(t, err)
 	})
 }

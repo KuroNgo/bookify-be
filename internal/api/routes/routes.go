@@ -5,6 +5,7 @@ import (
 	"bookify/internal/api/middleware"
 	"bookify/internal/api/routes/event"
 	"bookify/internal/api/routes/event_type"
+	partner_route "bookify/internal/api/routes/partner"
 	"bookify/internal/api/routes/user"
 	"bookify/internal/config"
 	"context"
@@ -52,7 +53,8 @@ func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db
 	event.AdminEventsRouter(env, timeout, db, client, privateRouterV1)
 	event_type.EventTypeRouter(env, timeout, db, publicRouterV1)
 	event_type.AdminEventTypeRouter(env, timeout, db, privateRouterV1)
-
+	partner_route.PartnerRouter(env, timeout, db, publicRouterV1)
+	partner_route.AdminPartnerRouter(env, timeout, db, privateRouterV1)
 	err := data_seeder.DataSeeds(context.Background(), client)
 	if err != nil {
 		fmt.Print("data seed is error")

@@ -40,16 +40,23 @@ definitions:
       venue_id:
         type: string
     type: object
-  domain.EventType:
+  domain.EventTypeInput:
     properties:
-      event_type_name:
-        type: string
-      id:
+      name:
         type: string
     type: object
   domain.ForgetPassword:
     properties:
       email:
+        type: string
+    type: object
+  domain.PartnerInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
         type: string
     type: object
   domain.SignIn:
@@ -83,17 +90,12 @@ paths:
       - application/json
       description: Creates a new event type for the current user
       parameters:
-      - description: Current User Token
-        in: header
-        name: currentUser
-        required: true
-        type: string
       - description: Event Type Body
         in: body
         name: eventType
         required: true
         schema:
-          $ref: '#/definitions/domain.EventType'
+          $ref: '#/definitions/domain.EventTypeInput'
       produces:
       - application/json
       responses: {}
@@ -106,11 +108,6 @@ paths:
       - application/json
       description: Deletes an event type by ID for the current user
       parameters:
-      - description: Current User Token
-        in: header
-        name: currentUser
-        required: true
-        type: string
       - description: Event Type ID
         in: query
         name: id
@@ -176,35 +173,15 @@ paths:
       - application/json
       description: Updates an existing event type
       parameters:
-      - description: Current User Token
-        in: header
-        name: currentUser
-        required: true
-        type: string
       - description: Event Type Body
         in: body
         name: eventType
         required: true
         schema:
-          $ref: '#/definitions/domain.EventType'
+          $ref: '#/definitions/domain.EventTypeInput'
       produces:
       - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
+      responses: {}
       summary: Update an event type
       tags:
       - Event Types
@@ -348,6 +325,93 @@ paths:
       summary: Update an event
       tags:
       - Events
+  /api/v1/partners/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new partner in the system
+      parameters:
+      - description: Partner Input Data
+        in: body
+        name: partnerInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PartnerInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new partner
+      tags:
+      - partners
+  /api/v1/partners/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a partner from the system using the partner ID
+      parameters:
+      - description: Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete a partner by ID
+      tags:
+      - partners
+  /api/v1/partners/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all partners from the system
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a list of all partners
+      tags:
+      - partners
+  /api/v1/partners/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a partner from the system using the partner's ID
+      parameters:
+      - description: Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a partner by ID
+      tags:
+      - partners
+  /api/v1/partners/update:
+    put:
+      consumes:
+      - application/json
+      description: Update the details of a partner using the partner's ID and input
+        data
+      parameters:
+      - description: Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Partner data
+        in: body
+        name: partnerInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PartnerInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update a partner by ID
+      tags:
+      - partners
   /api/v1/users/delete:
     delete:
       consumes:

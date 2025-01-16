@@ -6,12 +6,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func ValidateEventType(input *domain.EventType) error {
+func ValidateEventType(input domain.EventType) error {
 	if input.ID == primitive.NilObjectID {
 		return errors.New("the event type's information cannot be empty")
 	}
 
-	if input.EventTypeName == "" {
+	if input.Name == "" {
+		return errors.New("the event type's information cannot be empty")
+	}
+
+	return nil
+}
+
+func ValidateEventTypeInput(input *domain.EventTypeInput) error {
+	if input.Name == "" {
 		return errors.New("the event type's information cannot be empty")
 	}
 

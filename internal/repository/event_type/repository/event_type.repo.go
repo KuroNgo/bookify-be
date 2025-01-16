@@ -14,8 +14,8 @@ import (
 type IEventTypeRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.EventType, error)
 	GetAll(ctx context.Context) ([]domain.EventType, error)
-	CreateOne(ctx context.Context, eventType *domain.EventType) error
-	UpdateOne(ctx context.Context, eventType *domain.EventType) error
+	CreateOne(ctx context.Context, eventType domain.EventType) error
+	UpdateOne(ctx context.Context, eventType domain.EventType) error
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
 	CountExist(ctx context.Context, eventTypeName string) (int64, error)
 }
@@ -28,7 +28,7 @@ type eventTypeRepository struct {
 func (e eventTypeRepository) CountExist(ctx context.Context, eventTypeName string) (int64, error) {
 	eventTypeCollection := e.database.Collection(e.collectionEventType)
 
-	filter := bson.M{"event_type_name": eventTypeName}
+	filter := bson.M{"name": eventTypeName}
 	count, err := eventTypeCollection.CountDocuments(ctx, filter)
 	if err != nil {
 		return 0, err
@@ -43,8 +43,8 @@ func (e eventTypeRepository) GetByID(ctx context.Context, id primitive.ObjectID)
 	filter := bson.M{"_id": id}
 	var eventType domain.EventType
 	if err := eventTypeCollection.FindOne(ctx, filter).Decode(&eventType); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return domain.EventType{}, nil // Không tìm thấy tài liệu, trả về nil
+		if errors.Is(err, mongo.ErrNilDocument) {
+			return domain.EventType{}, nil
 		}
 		return domain.EventType{}, err
 	}
@@ -75,14 +75,15 @@ func (e eventTypeRepository) GetAll(ctx context.Context) ([]domain.EventType, er
 	return eventTypes, nil
 }
 
-func (e eventTypeRepository) CreateOne(ctx context.Context, eventType *domain.EventType) error {
+func (e eventTypeRepository) CreateOne(ctx context.Context, eventType domain.EventType) error {
 	eventTypeCollection := e.database.Collection(e.collectionEventType)
 
 	if err := validate_data.ValidateEventType(eventType); err != nil {
 		return err
 	}
 
-	count, err := eventTypeCollection.CountDocuments(ctx, eventType.EventTypeName)
+	filter := bson.M{"name": eventType.Name}
+	count, err := eventTypeCollection.CountDocuments(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -99,14 +100,15 @@ func (e eventTypeRepository) CreateOne(ctx context.Context, eventType *domain.Ev
 	return nil
 }
 
-func (e eventTypeRepository) UpdateOne(ctx context.Context, eventType *domain.EventType) error {
+func (e eventTypeRepository) UpdateOne(ctx context.Context, eventType domain.EventType) error {
 	eventTypeCollection := e.database.Collection(e.collectionEventType)
 
 	if err := validate_data.ValidateEventType(eventType); err != nil {
 		return err
 	}
 
-	count, err := eventTypeCollection.CountDocuments(ctx, eventType.EventTypeName)
+	filterCount := bson.M{"name": eventType.Name}
+	count, err := eventTypeCollection.CountDocuments(ctx, filterCount)
 	if err != nil {
 		return err
 	}
@@ -117,7 +119,7 @@ func (e eventTypeRepository) UpdateOne(ctx context.Context, eventType *domain.Ev
 
 	filter := bson.M{"_id": eventType.ID}
 	update := bson.M{"$set": bson.M{
-		"event_type_name": eventType.EventTypeName,
+		"name": eventType.Name,
 	}}
 	_, err = eventTypeCollection.UpdateOne(ctx, filter, update)
 	if err != nil {

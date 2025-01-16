@@ -16,8 +16,8 @@ import (
 type IEventTypeRepository interface {
 	GetByID(ctx context.Context, id string) (domain.EventType, error)
 	GetAll(ctx context.Context) ([]domain.EventType, error)
-	CreateOne(ctx context.Context, eventType *domain.EventType, currentUser string) error
-	UpdateOne(ctx context.Context, eventType *domain.EventType, currentUser string) error
+	CreateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error
+	UpdateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
 }
 
@@ -33,6 +33,10 @@ func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventT
 	defer cancel()
 
 	eventTypeID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return domain.EventType{}, err
+	}
+
 	data, err := e.eventTypeRepository.GetByID(ctx, eventTypeID)
 	if err != nil {
 		return domain.EventType{}, err
@@ -53,11 +57,15 @@ func (e eventTypeUseCase) GetAll(ctx context.Context) ([]domain.EventType, error
 	return data, nil
 }
 
-func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.EventType, currentUser string) error {
+func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
@@ -67,11 +75,11 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.Event
 		return errors.New(constants.MsgForbidden)
 	}
 
-	if err = validate_data.ValidateEventType(eventType); err != nil {
+	if err = validate_data.ValidateEventTypeInput(eventType); err != nil {
 		return err
 	}
 
-	count, err := e.eventTypeRepository.CountExist(ctx, eventType.EventTypeName)
+	count, err := e.eventTypeRepository.CountExist(ctx, eventType.Name)
 	if err != nil {
 		return err
 	}
@@ -80,7 +88,12 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.Event
 		return errors.New(constants.MsgAPIConflict)
 	}
 
-	err = e.eventTypeRepository.CreateOne(ctx, eventType)
+	eventTypeInput := domain.EventType{
+		ID:   primitive.NewObjectID(),
+		Name: eventType.Name,
+	}
+
+	err = e.eventTypeRepository.CreateOne(ctx, eventTypeInput)
 	if err != nil {
 		return err
 	}
@@ -88,11 +101,15 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.Event
 	return nil
 }
 
-func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.EventType, currentUser string) error {
+func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
@@ -102,11 +119,11 @@ func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.Event
 		return errors.New(constants.MsgForbidden)
 	}
 
-	if err := validate_data.ValidateEventType(eventType); err != nil {
+	if err := validate_data.ValidateEventTypeInput(eventType); err != nil {
 		return err
 	}
 
-	count, err := e.eventTypeRepository.CountExist(ctx, eventType.EventTypeName)
+	count, err := e.eventTypeRepository.CountExist(ctx, eventType.Name)
 	if err != nil {
 		return err
 	}
@@ -115,7 +132,12 @@ func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.Event
 		return errors.New(constants.MsgAPIConflict)
 	}
 
-	err = e.eventTypeRepository.UpdateOne(ctx, eventType)
+	eventTypeInput := domain.EventType{
+		ID:   primitive.NewObjectID(),
+		Name: eventType.Name,
+	}
+
+	err = e.eventTypeRepository.UpdateOne(ctx, eventTypeInput)
 	if err != nil {
 		return err
 	}
@@ -128,6 +150,10 @@ func (e eventTypeUseCase) DeleteOne(ctx context.Context, id string, currentUser 
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
@@ -150,6 +176,6 @@ func (e eventTypeUseCase) DeleteOne(ctx context.Context, id string, currentUser 
 	return nil
 }
 
-func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventTypeRepository event_type_repository.IEventTypeRepository) IEventTypeRepository {
-	return &eventTypeUseCase{database: database, contextTimeout: contextTimeout, eventTypeRepository: eventTypeRepository}
+func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventTypeRepository event_type_repository.IEventTypeRepository, userRepository user_repository.IUserRepository) IEventTypeRepository {
+	return &eventTypeUseCase{database: database, contextTimeout: contextTimeout, eventTypeRepository: eventTypeRepository, userRepository: userRepository}
 }

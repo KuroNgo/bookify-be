@@ -1,4 +1,4 @@
-package event_type_controller
+package partner_controller
 
 import (
 	"bookify/internal/domain"
@@ -8,14 +8,14 @@ import (
 )
 
 // CreateOne godoc
-// @Summary Create a new event type
-// @Description Creates a new event type for the current user
-// @Tags Event Types
+// @Summary Create a new partner
+// @Description Create a new partner in the system
+// @Tags partners
 // @Accept json
 // @Produce json
-// @Param eventType body domain.EventTypeInput true "Event Type Body"
-// @Router /api/v1/event-types/create [post]
-func (e EventController) CreateOne(ctx *gin.Context) {
+// @Param partnerInput body domain.PartnerInput true "Partner Input Data"
+// @Router /api/v1/partners/create [post]
+func (p PartnerController) CreateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -26,8 +26,8 @@ func (e EventController) CreateOne(ctx *gin.Context) {
 	}
 
 	//  Lấy thông tin từ request
-	var eventTypeInput domain.EventTypeInput
-	if err := ctx.ShouldBindJSON(&eventTypeInput); err != nil {
+	var partnerInput domain.PartnerInput
+	if err := ctx.ShouldBindJSON(&partnerInput); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": err.Error()},
@@ -35,7 +35,7 @@ func (e EventController) CreateOne(ctx *gin.Context) {
 		return
 	}
 
-	err := e.EventTypeUseCase.CreateOne(ctx, &eventTypeInput, fmt.Sprintf("%s", currentUser))
+	err := p.PartnerUseCase.CreateOne(ctx, &partnerInput, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
