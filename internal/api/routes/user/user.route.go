@@ -1,4 +1,4 @@
-package routes
+package user
 
 import (
 	user_controller "bookify/internal/api/controller/user"

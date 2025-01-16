@@ -12,6 +12,199 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/api/v1/event-types/create": {
+            "post": {
+                "description": "Creates a new event type for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Types"
+                ],
+                "summary": "Create a new event type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Current User Token",
+                        "name": "currentUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Event Type Body",
+                        "name": "eventType",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventType"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-types/delete": {
+            "delete": {
+                "description": "Deletes an event type by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Types"
+                ],
+                "summary": "Delete an event type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Current User Token",
+                        "name": "currentUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event Type ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-types/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event types",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Types"
+                ],
+                "summary": "Get all event types",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-types/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event type by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Types"
+                ],
+                "summary": "Get event type by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Type ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-types/update": {
+            "put": {
+                "description": "Updates an existing event type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Types"
+                ],
+                "summary": "Update an event type",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Current User Token",
+                        "name": "currentUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Event Type Body",
+                        "name": "eventType",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventType"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/events/create": {
             "post": {
                 "description": "Add a new event to the system",
@@ -585,38 +778,57 @@
         },
         "domain.EventInput": {
             "type": "object",
-            "required": [
-                "description",
-                "end_time",
-                "location",
-                "name",
-                "start_time",
-                "user_id"
-            ],
             "properties": {
+                "actual_attendee": {
+                    "type": "integer"
+                },
+                "asset_url": {
+                    "type": "string"
+                },
                 "description": {
-                    "type": "string",
-                    "example": "A conference to discuss the latest trends in technology."
+                    "type": "string"
                 },
                 "end_time": {
-                    "type": "string",
-                    "example": "2024-05-15 17:00:00"
+                    "type": "string"
                 },
-                "location": {
-                    "type": "string",
-                    "example": "San Francisco, CA"
+                "estimated_attendee": {
+                    "type": "integer"
                 },
-                "name": {
-                    "type": "string",
-                    "example": "Tech Conference 2024"
+                "event_type_id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "Public, Friend and Group, Invite Only",
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
                 },
                 "start_time": {
-                    "type": "string",
-                    "example": "2024-05-15 09:00:00"
+                    "type": "string"
                 },
-                "user_id": {
-                    "type": "string",
-                    "example": "6482cfc5f7e3f4b789123456"
+                "title": {
+                    "type": "string"
+                },
+                "total_expenditure": {
+                    "type": "number"
+                },
+                "venue_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EventType": {
+            "type": "object",
+            "properties": {
+                "event_type_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
                 }
             }
         },

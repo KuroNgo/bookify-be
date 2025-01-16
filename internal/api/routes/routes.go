@@ -3,6 +3,9 @@ package routes
 import (
 	"bookify/internal/api/data_seeder"
 	"bookify/internal/api/middleware"
+	"bookify/internal/api/routes/event"
+	"bookify/internal/api/routes/event_type"
+	"bookify/internal/api/routes/user"
 	"bookify/internal/config"
 	"context"
 	"fmt"
@@ -14,10 +17,18 @@ import (
 
 func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db *mongo.Database, gin *gin.Engine, cacheTTL time.Duration) {
 	publicRouterV1 := gin.Group("/api/v1")
+	privateRouterV1 := gin.Group("/api/v1")
 	userRouter := gin.Group("/api/v1")
 	router := gin.Group("")
 
 	publicRouterV1.Use(
+		middleware.CORSPublic(),
+		middleware.Recover(),
+		gzip.Gzip(gzip.DefaultCompression,
+			gzip.WithExcludedPaths([]string{",*"})),
+	)
+
+	privateRouterV1.Use(
 		middleware.CORSPrivate(),
 		middleware.Recover(),
 		gzip.Gzip(gzip.DefaultCompression,
@@ -36,8 +47,11 @@ func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db
 	router.OPTIONS("/*path", middleware.OptionMessages)
 
 	SwaggerRouter(env, timeout, db, router)
-	UserRouter(env, timeout, db, client, userRouter)
-	EventsRouter(env, timeout, db, client, publicRouterV1)
+	user.UserRouter(env, timeout, db, client, userRouter)
+	event.EventsRouter(env, timeout, db, client, publicRouterV1)
+	event.AdminEventsRouter(env, timeout, db, client, privateRouterV1)
+	event_type.EventTypeRouter(env, timeout, db, publicRouterV1)
+	event_type.AdminEventTypeRouter(env, timeout, db, privateRouterV1)
 
 	err := data_seeder.DataSeeds(context.Background(), client)
 	if err != nil {

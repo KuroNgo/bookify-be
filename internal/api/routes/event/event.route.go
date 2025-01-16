@@ -1,4 +1,4 @@
-package routes
+package event
 
 import (
 	event_controller "bookify/internal/api/controller/event"

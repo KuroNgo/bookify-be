@@ -10,7 +10,3 @@ type EventType struct {
 	ID            primitive.ObjectID `bson:"_id" json:"id"`
 	EventTypeName string             `bson:"event_type_name" json:"event_type_name"`
 }
-
-type EventTypeInput struct {
-	EventTypeName string `bson:"event_type_name" json:"event_type_name"`
-}
