@@ -3,6 +3,7 @@ package organization_repository
 import (
 	"bookify/internal/domain"
 	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -68,14 +69,14 @@ func (o organizationRepository) GetAll(ctx context.Context) ([]domain.Organizati
 	return organizations, nil
 }
 
-func (o organizationRepository) CreateOne(ctx context.Context, partner *domain.Organization) error {
+func (o organizationRepository) CreateOne(ctx context.Context, organization *domain.Organization) error {
 	organizationCollection := o.database.Collection(o.collectionOrganization)
 
-	//if err := validate_data.ValidateEventType(eventType); err != nil {
-	//	return err
-	//}
+	if err := validate_data.ValidateOrganization(organization); err != nil {
+		return err
+	}
 
-	filter := bson.M{"name": partner.Name}
+	filter := bson.M{"name": organization.Name}
 	count, err := organizationCollection.CountDocuments(ctx, filter)
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func (o organizationRepository) CreateOne(ctx context.Context, partner *domain.O
 		return errors.New(constants.MsgAPIConflict)
 	}
 
-	_, err = organizationCollection.InsertOne(ctx, partner)
+	_, err = organizationCollection.InsertOne(ctx, organization)
 	if err != nil {
 		return err
 	}
@@ -93,19 +94,19 @@ func (o organizationRepository) CreateOne(ctx context.Context, partner *domain.O
 	return nil
 }
 
-func (o organizationRepository) UpdateOne(ctx context.Context, partner *domain.Organization) error {
+func (o organizationRepository) UpdateOne(ctx context.Context, organization *domain.Organization) error {
 	organizationCollection := o.database.Collection(o.collectionOrganization)
 
-	//if err := validate_data.ValidateEventType(eventType); err != nil {
-	//	return err
-	//}
+	if err := validate_data.ValidateOrganization(organization); err != nil {
+		return err
+	}
 
-	filter := bson.M{"name": partner.Name}
+	filter := bson.M{"name": organization.Name}
 	update := bson.M{"$set": bson.M{
-		"name":           partner.Name,
-		"contact_person": partner.ContactPerson,
-		"email":          partner.Email,
-		"phone":          partner.Phone,
+		"name":           organization.Name,
+		"contact_person": organization.ContactPerson,
+		"email":          organization.Email,
+		"phone":          organization.Phone,
 	}}
 	count, err := organizationCollection.CountDocuments(ctx, filter)
 	if err != nil {
