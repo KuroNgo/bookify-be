@@ -50,6 +50,17 @@ definitions:
       email:
         type: string
     type: object
+  domain.OrganizationInput:
+    properties:
+      contact_person:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
   domain.PartnerInput:
     properties:
       email:
@@ -325,6 +336,24 @@ paths:
       summary: Update an event
       tags:
       - Events
+  /api/v1/organization/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new organization for the current user
+      parameters:
+      - description: Organization Input Body
+        in: body
+        name: eventType
+        required: true
+        schema:
+          $ref: '#/definitions/domain.OrganizationInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new organization
+      tags:
+      - Organizations
   /api/v1/partners/create:
     post:
       consumes:
@@ -640,4 +669,68 @@ paths:
       summary: Verify code for password change
       tags:
       - User
+  /organizations:
+    delete:
+      description: Deletes a specific organization by ID. User must be logged in.
+      parameters:
+      - description: Organization ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an organization
+      tags:
+      - Organizations
+  /organizations/get/all:
+    get:
+      description: Retrieve a list of all organizations.
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all organizations
+      tags:
+      - Organizations
+  /organizations/get/id:
+    get:
+      description: Retrieve details of an organization using its ID.
+      parameters:
+      - description: Organization ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get organization by ID
+      tags:
+      - Organizations
+  /organizations/update:
+    put:
+      consumes:
+      - application/json
+      description: Update details of an organization by its ID.
+      parameters:
+      - description: Organization ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Organization data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.OrganizationInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an organization
+      tags:
+      - Organizations
 swagger: "2.0"

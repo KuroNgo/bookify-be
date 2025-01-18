@@ -1,28 +1,28 @@
 package event_type
 
 import (
-	event_type_controller "bookify/internal/api/controller/event_type"
+	eventtypecontroller "bookify/internal/api/controller/event_type"
 	"bookify/internal/config"
 	"bookify/internal/domain"
-	event_type_repository "bookify/internal/repository/event_type/repository"
-	user_repository "bookify/internal/repository/user/repository"
-	event_type_usecase "bookify/internal/usecase/event_type/usecase"
+	eventtyperepository "bookify/internal/repository/event_type/repository"
+	userrepository "bookify/internal/repository/user/repository"
+	eventtypeusecase "bookify/internal/usecase/event_type/usecase"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
 
 func AdminEventTypeRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
-	ev := event_type_repository.NewEventTypeRepository(db, domain.CollectionEventType)
-	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
+	ev := eventtyperepository.NewEventTypeRepository(db, domain.CollectionEventType)
+	ur := userrepository.NewUserRepository(db, domain.CollectionUser)
 
-	event_type := &event_type_controller.EventController{
-		EventTypeUseCase: event_type_usecase.NewEventTypeUseCase(env, timeout, ev, ur),
+	eventType := &eventtypecontroller.EventController{
+		EventTypeUseCase: eventtypeusecase.NewEventTypeUseCase(env, timeout, ev, ur),
 		Database:         env,
 	}
 
 	router := group.Group("/event-types")
-	router.POST("/create", event_type.CreateOne)
-	router.PUT("/update", event_type.UpdateOne)
-	router.POST("/delete", event_type.DeleteOne)
+	router.POST("/create", eventType.CreateOne)
+	router.PUT("/update", eventType.UpdateOne)
+	router.POST("/delete", eventType.DeleteOne)
 }

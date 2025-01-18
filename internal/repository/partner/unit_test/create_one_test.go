@@ -14,7 +14,7 @@ func TestCreateOnePartner(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
-	// Function to clear the event collection before each test case
+	// Function to clear the partner collection before each test case
 	clearPartnerCollection := func() {
 		err := database.Collection("partner").Drop(context.Background())
 		if err != nil {
@@ -22,6 +22,7 @@ func TestCreateOnePartner(t *testing.T) {
 		}
 	}
 
+	// Mock data
 	mockPartner := &domain.Partner{
 		ID:    primitive.NewObjectID(),
 		Name:  "kuro",
@@ -31,17 +32,40 @@ func TestCreateOnePartner(t *testing.T) {
 
 	mockPartnerNil := &domain.Partner{}
 
-	t.Run("success", func(t *testing.T) {
-		clearPartnerCollection() // Clear the collection
-		ur := partner_repository.NewPartnerRepository(database, "partner")
-		err := ur.CreateOne(context.Background(), mockPartner)
-		assert.Nil(t, err)
-	})
+	// Define test cases
+	tests := []struct {
+		name        string
+		input       *domain.Partner
+		expectedErr bool
+		description string
+	}{
+		{
+			name:        "success_create_partner",
+			input:       mockPartner,
+			expectedErr: false,
+			description: "Should successfully create a partner",
+		},
+		{
+			name:        "error_create_partner_with_nil",
+			input:       mockPartnerNil,
+			expectedErr: true,
+			description: "Should return error when creating a partner with nil fields",
+		},
+	}
 
-	t.Run("error", func(t *testing.T) {
-		clearPartnerCollection() // Clear the collection
-		ur := partner_repository.NewPartnerRepository(database, "partner")
-		err := ur.CreateOne(context.Background(), mockPartnerNil)
-		assert.Error(t, err)
-	})
+	// Execute test cases
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			clearPartnerCollection() // Clear the collection before each test
+
+			ur := partner_repository.NewPartnerRepository(database, "partner")
+			err := ur.CreateOne(context.Background(), tt.input)
+
+			if tt.expectedErr {
+				assert.Error(t, err, tt.description)
+			} else {
+				assert.Nil(t, err, tt.description)
+			}
+		})
+	}
 }

@@ -14,7 +14,7 @@ func TestFindByIDPartner(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
-	// Function to clear the event collection before each test case
+	// Function to clear the partner collection before each test case
 	clearPartnerCollection := func() {
 		err := database.Collection("partner").Drop(context.Background())
 		if err != nil {
@@ -33,13 +33,37 @@ func TestFindByIDPartner(t *testing.T) {
 	err := ur.CreateOne(context.Background(), mockPartner)
 	assert.Nil(t, err)
 
-	t.Run("success", func(t *testing.T) {
-		_, err = ur.GetByID(context.Background(), mockPartner.ID)
-		assert.Nil(t, err)
-	})
+	// Define test cases
+	tests := []struct {
+		name        string
+		inputID     primitive.ObjectID
+		expectedErr bool
+		description string
+	}{
+		{
+			name:        "success_find_partner_by_id",
+			inputID:     mockPartner.ID,
+			expectedErr: false,
+			description: "Should successfully find partner by ID",
+		},
+		{
+			name:        "error_find_partner_by_invalid_id",
+			inputID:     primitive.NilObjectID,
+			expectedErr: true,
+			description: "Should return error when finding partner with invalid ID",
+		},
+	}
 
-	t.Run("error", func(t *testing.T) {
-		_, err = ur.GetByID(context.Background(), primitive.NilObjectID)
-		assert.Error(t, err)
-	})
+	// Execute test cases
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ur.GetByID(context.Background(), tt.inputID)
+
+			if tt.expectedErr {
+				assert.Error(t, err, tt.description)
+			} else {
+				assert.Nil(t, err, tt.description)
+			}
+		})
+	}
 }

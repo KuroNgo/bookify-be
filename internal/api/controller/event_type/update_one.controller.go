@@ -34,8 +34,9 @@ func (e EventController) UpdateOne(ctx *gin.Context) {
 		)
 		return
 	}
+	id := ctx.Query("id")
 
-	err := e.EventTypeUseCase.UpdateOne(ctx, &eventTypeInput, fmt.Sprintf("%s", currentUser))
+	err := e.EventTypeUseCase.UpdateOne(ctx, id, &eventTypeInput, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",

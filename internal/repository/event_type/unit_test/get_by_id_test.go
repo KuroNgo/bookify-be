@@ -21,7 +21,9 @@ func TestFindByIDEventType(t *testing.T) {
 			t.Fatalf("Failed to clear event type collection: %v", err)
 		}
 	}
+
 	clearEventCollection()
+
 	mockEventType := domain.EventType{
 		ID:   primitive.NewObjectID(),
 		Name: "event",
@@ -31,13 +33,34 @@ func TestFindByIDEventType(t *testing.T) {
 	err := ur.CreateOne(context.Background(), mockEventType)
 	assert.Nil(t, err)
 
-	t.Run("success", func(t *testing.T) {
-		_, err = ur.GetByID(context.Background(), mockEventType.ID)
-		assert.Nil(t, err)
-	})
+	// Define test cases
+	tests := []struct {
+		name        string
+		inputID     primitive.ObjectID
+		expectedErr bool
+	}{
+		{
+			name:        "success",
+			inputID:     mockEventType.ID,
+			expectedErr: false,
+		},
+		{
+			name:        "error_invalid_id",
+			inputID:     primitive.NilObjectID,
+			expectedErr: true,
+		},
+	}
 
-	t.Run("error", func(t *testing.T) {
-		_, err = ur.GetByID(context.Background(), primitive.NilObjectID)
-		assert.Error(t, err)
-	})
+	// Execute test cases
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ur.GetByID(context.Background(), tt.inputID)
+
+			if tt.expectedErr {
+				assert.Error(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }

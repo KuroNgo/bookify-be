@@ -13,15 +13,17 @@ import (
 func TestDeleteOneEventType(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
+
 	// Function to clear the event collection before each test case
 	clearEventTypeCollection := func() {
 		err := database.Collection("event_type").Drop(context.Background())
 		if err != nil {
-			t.Fatalf("Failed to clear partner collection: %v", err)
+			t.Fatalf("Failed to clear event_type collection: %v", err)
 		}
 	}
 
 	clearEventTypeCollection()
+
 	mockEventType := domain.EventType{
 		ID:   primitive.NewObjectID(),
 		Name: "music",
@@ -31,13 +33,31 @@ func TestDeleteOneEventType(t *testing.T) {
 	err := ur.CreateOne(context.Background(), mockEventType)
 	assert.Nil(t, err)
 
-	t.Run("success", func(t *testing.T) {
-		err = ur.DeleteOne(context.Background(), mockEventType.ID)
-		assert.Nil(t, err)
-	})
+	tests := []struct {
+		name      string
+		inputID   primitive.ObjectID
+		expectErr bool
+	}{
+		{
+			name:      "success",
+			inputID:   mockEventType.ID,
+			expectErr: false,
+		},
+		{
+			name:      "error_invalid_id",
+			inputID:   primitive.NilObjectID,
+			expectErr: true,
+		},
+	}
 
-	t.Run("error", func(t *testing.T) {
-		err = ur.DeleteOne(context.Background(), primitive.NilObjectID)
-		assert.Error(t, err)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ur.DeleteOne(context.Background(), tt.inputID)
+			if tt.expectErr {
+				assert.Error(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }

@@ -69,21 +69,6 @@ const (
 	MsgUserAccountDeletion      = "user account has been deleted successfully"
 )
 
-// Product
-const (
-	MsgProductAdded    = "product has been added successfully"
-	MsgProductUpdated  = "product has been updated"
-	MsgProductDeleted  = "product has been deleted"
-	MsgProductNotFound = "product not found"
-)
-
-// Order
-const (
-	MsgOrderPlaced    = "your order has been placed successfully"
-	MsgOrderCancelled = "your order has been cancelled"
-	MsgOrderNotFound  = "order not found"
-)
-
 // Action media type
 const (
 	MsgActionUploadSuccess     = "file uploaded successfully"
@@ -112,23 +97,10 @@ const (
 	MsgDataProcessingError = "error processing data please contact support"
 )
 
-// Department
 const (
-	MsgDepartmentParentNotFound = "parent department not found"
-	MsgDepartmentNotFound       = "department not found"
-)
-
-// Leave Request
-const (
-	MsgLeaveRequestApprove = "approved"
-	MsgLeaveRequestReject  = "rejected"
-	MsgLeaveRequestPending = "pending"
-)
-
-const (
-	RoleAdmin      = "admin"
-	RoleSuperAdmin = "super-admin"
-	RoleUser       = "user"
 	RoleModerator  = "moderator"
+	RoleSuperAdmin = "super-admin"
+	RoleAdmin      = "admin"
+	RoleUser       = "user"
 	RoleGuest      = "guest"
 )

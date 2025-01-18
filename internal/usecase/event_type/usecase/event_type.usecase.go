@@ -17,7 +17,7 @@ type IEventTypeRepository interface {
 	GetByID(ctx context.Context, id string) (domain.EventType, error)
 	GetAll(ctx context.Context) ([]domain.EventType, error)
 	CreateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error
-	UpdateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error
+	UpdateOne(ctx context.Context, id string, eventType *domain.EventTypeInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
 }
 
@@ -101,7 +101,7 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.Event
 	return nil
 }
 
-func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error {
+func (e eventTypeUseCase) UpdateOne(ctx context.Context, id string, eventType *domain.EventTypeInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
@@ -132,8 +132,13 @@ func (e eventTypeUseCase) UpdateOne(ctx context.Context, eventType *domain.Event
 		return errors.New(constants.MsgAPIConflict)
 	}
 
+	eventTypeId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
 	eventTypeInput := domain.EventType{
-		ID:   primitive.NewObjectID(),
+		ID:   eventTypeId,
 		Name: eventType.Name,
 	}
 
