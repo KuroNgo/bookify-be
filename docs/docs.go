@@ -971,6 +971,131 @@ const docTemplate = `{
                 ],
                 "responses": {}
             }
+        },
+        "/venues": {
+            "get": {
+                "description": "Retrieve a venue by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Get venue by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Venue ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/venues/create": {
+            "post": {
+                "description": "Create a new venue using the provided input data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Create a new venue",
+                "parameters": [
+                    {
+                        "description": "Venue input data",
+                        "name": "venueInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.VenueInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/venues/delete": {
+            "delete": {
+                "description": "Delete a venue by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Delete a venue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Venue ID to delete",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/venues/get/all": {
+            "get": {
+                "description": "Retrieve a list of all venues",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Get all venues",
+                "responses": {}
+            }
+        },
+        "/venues/update": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update the details of a specific venue by providing venue data and the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Update venue details",
+                "parameters": [
+                    {
+                        "description": "Venue data to update",
+                        "name": "venueInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.VenueInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {
@@ -1091,6 +1216,38 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "12345"
+                }
+            }
+        },
+        "domain.VenueInput": {
+            "type": "object",
+            "properties": {
+                "address_line": {
+                    "type": "string"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "from_attend": {
+                    "type": "string"
+                },
+                "link_attend": {
+                    "type": "string"
+                },
+                "online_flat": {
+                    "type": "boolean"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
                 }
             }
         },

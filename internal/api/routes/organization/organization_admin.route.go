@@ -13,7 +13,7 @@ import (
 )
 
 func AdminOrganizationRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
-	or := organization_repository.NeOrganizationRepository(db, domain.CollectionOrganization)
+	or := organization_repository.NewOrganizationRepository(db, domain.CollectionOrganization)
 	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
 
 	organization := &organization_controller.OrganizationController{

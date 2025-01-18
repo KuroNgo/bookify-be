@@ -79,6 +79,27 @@ definitions:
         example: "12345"
         type: string
     type: object
+  domain.VenueInput:
+    properties:
+      address_line:
+        type: string
+      capacity:
+        type: integer
+      city:
+        type: string
+      country:
+        type: string
+      from_attend:
+        type: string
+      link_attend:
+        type: string
+      online_flat:
+        type: boolean
+      postal_code:
+        type: string
+      state:
+        type: string
+    type: object
   domain.VerificationInput:
     properties:
       verification_code:
@@ -733,4 +754,88 @@ paths:
       summary: Update an organization
       tags:
       - Organizations
+  /venues:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a venue by its ID
+      parameters:
+      - description: Venue ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get venue by ID
+      tags:
+      - Venues
+  /venues/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new venue using the provided input data
+      parameters:
+      - description: Venue input data
+        in: body
+        name: venueInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VenueInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new venue
+      tags:
+      - Venues
+  /venues/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a venue by its ID
+      parameters:
+      - description: Venue ID to delete
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete a venue
+      tags:
+      - Venues
+  /venues/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all venues
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all venues
+      tags:
+      - Venues
+  /venues/update:
+    put:
+      consumes:
+      - application/json
+      description: Update the details of a specific venue by providing venue data
+        and the current user
+      parameters:
+      - description: Venue data to update
+        in: body
+        name: venueInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VenueInput'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Update venue details
+      tags:
+      - Venues
 swagger: "2.0"
