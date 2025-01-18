@@ -13,15 +13,16 @@ import (
 func TestUpdateOneVenue(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
-	// Function to clear the event collection before each test case
-	clearEventTypeCollection := func() {
+
+	// Function to clear the venue collection before each test case
+	clearVenueCollection := func() {
 		err := database.Collection("venue").Drop(context.Background())
 		if err != nil {
 			t.Fatalf("Failed to clear venue collection: %v", err)
 		}
 	}
 
-	clearEventTypeCollection()
+	clearVenueCollection()
 	mockVenue := &domain.Venue{
 		ID:          primitive.NewObjectID(),
 		Capacity:    100,
@@ -49,8 +50,15 @@ func TestUpdateOneVenue(t *testing.T) {
 			OnlineFlat:  false,
 		}
 
+		// Update the venue
 		err = ur.UpdateOne(context.Background(), mockVenueUpdate)
 		assert.Nil(t, err)
+
+		// Fetch the updated venue and assert the changes
+		updatedVenue, err := ur.GetByID(context.Background(), mockVenue.ID)
+		assert.Nil(t, err)
+		assert.Equal(t, mockVenueUpdate.Capacity, updatedVenue.Capacity)
+		assert.Equal(t, mockVenueUpdate.AddressLine, updatedVenue.AddressLine)
 	})
 
 	t.Run("error", func(t *testing.T) {

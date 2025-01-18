@@ -10,19 +10,19 @@ import (
 	"testing"
 )
 
-func TestFindByIDPartner(t *testing.T) {
+func TestFindByIDVenue(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
-	// Function to clear the event collection before each test case
-	clearPartnerCollection := func() {
+	// Function to clear the venue collection before each test case
+	clearVenueCollection := func() {
 		err := database.Collection("venue").Drop(context.Background())
 		if err != nil {
 			t.Fatalf("Failed to clear venue collection: %v", err)
 		}
 	}
 
-	clearPartnerCollection()
+	clearVenueCollection()
 	mockVenue := &domain.Venue{
 		ID:          primitive.NewObjectID(),
 		Capacity:    100,

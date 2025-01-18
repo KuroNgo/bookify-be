@@ -14,6 +14,7 @@ func TestFindAllPartner(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
+	// Mock data
 	mockPartner := &domain.Partner{
 		ID:    primitive.NewObjectID(),
 		Name:  "kuro",
@@ -25,8 +26,29 @@ func TestFindAllPartner(t *testing.T) {
 	err := par.CreateOne(context.Background(), mockPartner)
 	assert.Nil(t, err)
 
-	t.Run("success", func(t *testing.T) {
-		_, err = par.GetAll(context.Background())
-		assert.Nil(t, err)
-	})
+	// Define test cases
+	tests := []struct {
+		name        string
+		expectedErr bool
+		description string
+	}{
+		{
+			name:        "success_find_all_partners",
+			expectedErr: false,
+			description: "Should successfully fetch all partners",
+		},
+	}
+
+	// Execute test cases
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := par.GetAll(context.Background())
+
+			if tt.expectedErr {
+				assert.Error(t, err, tt.description)
+			} else {
+				assert.Nil(t, err, tt.description)
+			}
+		})
+	}
 }

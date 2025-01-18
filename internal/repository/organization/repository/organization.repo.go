@@ -25,7 +25,7 @@ type organizationRepository struct {
 	collectionOrganization string
 }
 
-func NeOrganizationRepository(database *mongo.Database, collectionOrganization string) IOrganizationRepository {
+func NewOrganizationRepository(database *mongo.Database, collectionOrganization string) IOrganizationRepository {
 	return &organizationRepository{database: database, collectionOrganization: collectionOrganization}
 }
 
@@ -127,6 +127,10 @@ func (o organizationRepository) UpdateOne(ctx context.Context, organization *dom
 
 func (o organizationRepository) DeleteOne(ctx context.Context, id primitive.ObjectID) error {
 	organizationCollection := o.database.Collection(o.collectionOrganization)
+
+	if id == primitive.NilObjectID {
+		return errors.New(constants.MsgInvalidInput)
+	}
 
 	filter := bson.M{"_id": id}
 	_, err := organizationCollection.DeleteOne(ctx, filter)

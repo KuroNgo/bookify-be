@@ -13,31 +13,42 @@ import (
 func TestCreateOneEventType(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
-	// Function to clear the event collection before each test case
+
 	clearEventTypeCollection := func() {
 		err := database.Collection("event_type").Drop(context.Background())
 		if err != nil {
-			t.Fatalf("Failed to clear partner collection: %v", err)
+			t.Fatalf("Failed to clear event_type collection: %v", err)
 		}
 	}
 
 	clearEventTypeCollection()
-	mockEventType := domain.EventType{
-		ID:   primitive.NewObjectID(),
-		Name: "music",
+
+	tests := []struct {
+		name      string
+		input     domain.EventType
+		expectErr bool
+	}{
+		{
+			name:      "success",
+			input:     domain.EventType{ID: primitive.NewObjectID(), Name: "music"},
+			expectErr: false,
+		},
+		{
+			name:      "error",
+			input:     domain.EventType{},
+			expectErr: true,
+		},
 	}
 
-	mockEventTypeNil := domain.EventType{}
-
-	t.Run("success", func(t *testing.T) {
-		ur := event_type_repository.NewEventTypeRepository(database, "event_type")
-		err := ur.CreateOne(context.Background(), mockEventType)
-		assert.Nil(t, err)
-	})
-
-	t.Run("error", func(t *testing.T) {
-		ur := event_type_repository.NewEventTypeRepository(database, "event_type")
-		err := ur.CreateOne(context.Background(), mockEventTypeNil)
-		assert.Error(t, err)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ur := event_type_repository.NewEventTypeRepository(database, "event_type")
+			err := ur.CreateOne(context.Background(), tt.input)
+			if tt.expectErr {
+				assert.Error(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
