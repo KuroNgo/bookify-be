@@ -15,6 +15,8 @@ type Venue struct {
 	Country     string             `bson:"country" json:"country"`
 	PostalCode  string             `bson:"postal_code" json:"postal_code"`
 	OnlineFlat  bool               `bson:"online_flat" json:"online_flat"`
+	LinkAttend  string             `bson:"link_attend" json:"link_attend"`
+	FromAttend  string             `bson:"from_attend" json:"from_attend"`
 }
 
 type VenueInput struct {
@@ -25,4 +27,6 @@ type VenueInput struct {
 	Country     string `bson:"country" json:"country"`
 	PostalCode  string `bson:"postal_code" json:"postal_code"`
 	OnlineFlat  bool   `bson:"online_flat" json:"online_flat"`
+	LinkAttend  string `bson:"link_attend" json:"link_attend"`
+	FromAttend  string `bson:"from_attend" json:"from_attend"`
 }
