@@ -17,7 +17,7 @@ type IPartnerUseCase interface {
 	GetByID(ctx context.Context, id string) (domain.Partner, error)
 	GetAll(ctx context.Context) ([]domain.Partner, error)
 	CreateOne(ctx context.Context, partner *domain.PartnerInput, currentUser string) error
-	UpdateOne(ctx context.Context, partner *domain.PartnerInput, currentUser string) error
+	UpdateOne(ctx context.Context, id string, partner *domain.PartnerInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
 }
 
@@ -106,7 +106,7 @@ func (p partnerUseCase) CreateOne(ctx context.Context, partner *domain.PartnerIn
 	return nil
 }
 
-func (p partnerUseCase) UpdateOne(ctx context.Context, partner *domain.PartnerInput, currentUser string) error {
+func (p partnerUseCase) UpdateOne(ctx context.Context, id string, partner *domain.PartnerInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, p.contextTimeout)
 	defer cancel()
 
@@ -137,8 +137,13 @@ func (p partnerUseCase) UpdateOne(ctx context.Context, partner *domain.PartnerIn
 		return errors.New(constants.MsgAPIConflict)
 	}
 
+	partnerID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
 	partnerInput := &domain.Partner{
-		ID:    primitive.NewObjectID(),
+		ID:    partnerID,
 		Name:  partner.Name,
 		Email: partner.Email,
 		Phone: partner.Phone,

@@ -35,8 +35,9 @@ func (p PartnerController) UpdateOne(ctx *gin.Context) {
 		)
 		return
 	}
+	id := ctx.Query("id")
 
-	err := p.PartnerUseCase.UpdateOne(ctx, &partnerInput, fmt.Sprintf("%s", currentUser))
+	err := p.PartnerUseCase.UpdateOne(ctx, id, &partnerInput, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
