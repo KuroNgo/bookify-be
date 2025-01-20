@@ -2,32 +2,34 @@ package validate_data
 
 import (
 	"bookify/internal/domain"
+	"bookify/pkg/shared/constants"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func ValidateVenue(input *domain.Venue) error {
 	if input.ID == primitive.NilObjectID {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.AddressLine == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.City == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
+
 	if input.State == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Country == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.PostalCode == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	return nil
@@ -35,22 +37,23 @@ func ValidateVenue(input *domain.Venue) error {
 
 func ValidateVenueInput(input *domain.VenueInput) error {
 	if input.AddressLine == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.City == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
+
 	if input.State == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Country == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.PostalCode == "" {
-		return errors.New("the venue's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	return nil

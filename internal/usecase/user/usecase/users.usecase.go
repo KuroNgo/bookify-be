@@ -523,7 +523,7 @@ func (u *userUseCase) SignUp(ctx context.Context, input *domain.SignupUser) erro
 			Subject:  "Your account verification code: " + code,
 		}
 
-		err = handles.SendEmail(&emailData, newUser.Email, "sign_up.html")
+		err = handles.SendEmail(&emailData, newUser.Email, "sign_up.user.html")
 		if err != nil {
 			return nil, err
 		}

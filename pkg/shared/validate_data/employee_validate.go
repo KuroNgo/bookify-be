@@ -2,6 +2,7 @@ package validate_data
 
 import (
 	"bookify/internal/domain"
+	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/helper"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -9,56 +10,56 @@ import (
 
 func ValidateEmployee(input *domain.Employee) error {
 	if input.ID == primitive.NilObjectID {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.OrganizationID == primitive.NilObjectID {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Email == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 	if !helper.EmailValid(input.Email) {
-		return errors.New("email Invalid ")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.FirstName == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.LastName == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.JobTitle == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 	return nil
 }
 
 func ValidateEmployeeInput(input *domain.EmployeeInput) error {
 	if input.OrganizationID == primitive.NilObjectID {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Email == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 	if !helper.EmailValid(input.Email) {
-		return errors.New("email Invalid ")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.FirstName == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.LastName == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.JobTitle == "" {
-		return errors.New("the employee's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 	return nil
 }
