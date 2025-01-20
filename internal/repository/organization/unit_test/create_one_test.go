@@ -3,7 +3,7 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
-	organization_repository "bookify/internal/repository/organization/repository"
+	organizationrepository "bookify/internal/repository/organization/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -59,7 +59,7 @@ func TestCreateOneOrganization(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clearOrganizationCollection() // Clear the collection before each test
 
-			ur := organization_repository.NewOrganizationRepository(database, "organization")
+			ur := organizationrepository.NewOrganizationRepository(database, "organization")
 			err := ur.CreateOne(context.Background(), tt.input)
 
 			if tt.expectedErr {

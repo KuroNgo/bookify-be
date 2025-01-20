@@ -3,7 +3,7 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
-	partner_repository "bookify/internal/repository/partner/repository"
+	partnerrepository "bookify/internal/repository/partner/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -58,7 +58,7 @@ func TestCreateOnePartner(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clearPartnerCollection() // Clear the collection before each test
 
-			ur := partner_repository.NewPartnerRepository(database, "partner")
+			ur := partnerrepository.NewPartnerRepository(database, "partner")
 			err := ur.CreateOne(context.Background(), tt.input)
 
 			if tt.expectedErr {

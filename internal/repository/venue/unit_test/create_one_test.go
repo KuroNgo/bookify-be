@@ -3,7 +3,7 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
-	venue_repository "bookify/internal/repository/venue/repository"
+	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -59,7 +59,7 @@ func TestCreateOneVenue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clearVenueCollection() // Clear the collection before each test
-			ur := venue_repository.NewVenueRepository(database, "venue")
+			ur := venuerepository.NewVenueRepository(database, "venue")
 			err := ur.CreateOne(context.Background(), tt.venue)
 
 			if tt.expectedErr {

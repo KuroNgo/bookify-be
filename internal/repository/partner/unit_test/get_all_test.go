@@ -3,7 +3,7 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
-	partner_repository "bookify/internal/repository/partner/repository"
+	partnerrepository "bookify/internal/repository/partner/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +22,7 @@ func TestFindAllPartner(t *testing.T) {
 		Phone: "0329245971",
 	}
 
-	par := partner_repository.NewPartnerRepository(database, "partner")
+	par := partnerrepository.NewPartnerRepository(database, "partner")
 	err := par.CreateOne(context.Background(), mockPartner)
 	assert.Nil(t, err)
 

@@ -3,7 +3,7 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
-	organization_repository "bookify/internal/repository/organization/repository"
+	organizationrepository "bookify/internal/repository/organization/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,7 +33,7 @@ func TestDeleteOneOrganization(t *testing.T) {
 		Phone:         "0329245971",
 	}
 
-	ur := organization_repository.NewOrganizationRepository(database, "organization")
+	ur := organizationrepository.NewOrganizationRepository(database, "organization")
 	err := ur.CreateOne(context.Background(), mockOrganization)
 	assert.Nil(t, err)
 

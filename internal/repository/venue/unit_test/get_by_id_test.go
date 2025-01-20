@@ -3,7 +3,7 @@ package unit_test
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
-	venue_repository "bookify/internal/repository/venue/repository"
+	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,7 +33,7 @@ func TestFindByIDVenue(t *testing.T) {
 		PostalCode:  "10001",
 		OnlineFlat:  false,
 	}
-	ur := venue_repository.NewVenueRepository(database, "venue")
+	ur := venuerepository.NewVenueRepository(database, "venue")
 	err := ur.CreateOne(context.Background(), mockVenue)
 	assert.Nil(t, err)
 
