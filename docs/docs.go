@@ -1422,8 +1422,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "This is a server for Kuro API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

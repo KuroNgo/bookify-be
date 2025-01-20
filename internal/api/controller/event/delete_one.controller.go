@@ -25,7 +25,6 @@ func (e *EventController) DeleteOne(ctx *gin.Context) {
 	}
 
 	id := ctx.Query("id")
-
 	err := e.EventUseCase.DeleteOne(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
