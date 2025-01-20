@@ -2,6 +2,7 @@ package validate_data
 
 import (
 	"bookify/internal/domain"
+	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/helper"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -9,25 +10,27 @@ import (
 
 func ValidatePartner(input *domain.Partner) error {
 	if input.ID == primitive.NilObjectID {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Name == "" {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Email == "" {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
+
 	if !helper.EmailValid(input.Email) {
-		return errors.New("email Invalid ")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Phone == "" {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
+
 	if !helper.PhoneValid(input.Phone) {
-		return errors.New("phone Invalid")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	return nil
@@ -35,21 +38,23 @@ func ValidatePartner(input *domain.Partner) error {
 
 func ValidatePartnerInput(input *domain.PartnerInput) error {
 	if input.Name == "" {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Email == "" {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
+
 	if !helper.EmailValid(input.Email) {
-		return errors.New("email Invalid ")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	if input.Phone == "" {
-		return errors.New("the partner's information cannot be empty")
+		return errors.New(constants.MsgInvalidInput)
 	}
+
 	if !helper.PhoneValid(input.Phone) {
-		return errors.New("phone Invalid")
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	return nil

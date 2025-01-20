@@ -2,6 +2,8 @@ package event_repository
 
 import (
 	"bookify/internal/domain"
+	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -49,6 +51,10 @@ func (e eventRepository) GetByID(ctx context.Context, id primitive.ObjectID) (do
 func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time) ([]domain.Event, error) {
 	collectionEvent := e.database.Collection(e.collectionEvent)
 
+	if startTime.IsZero() {
+		return nil, errors.New(constants.MsgInvalidInput)
+	}
+
 	filter := bson.M{"start_time": startTime}
 	cursor, err := collectionEvent.Find(ctx, filter)
 	if err != nil {
@@ -72,10 +78,16 @@ func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time
 func (e eventRepository) GetByStartTimePagination(ctx context.Context, startTime time.Time, page string) ([]domain.Event, int64, int, error) {
 	collectionEvent := e.database.Collection(e.collectionEvent)
 
-	filter := bson.M{"start_time": startTime}
+	if startTime.IsZero() {
+		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
+	}
+
 	pageNumber, err := strconv.Atoi(page)
+	if pageNumber < 1 {
+		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
+	}
 	if err != nil {
-		return nil, 0, 0, errors.New("invalid page number")
+		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
 	}
 	perPage := 5
 	skip := (pageNumber - 1) * perPage
@@ -94,6 +106,7 @@ func (e eventRepository) GetByStartTimePagination(ctx context.Context, startTime
 		cal = cal1 + 1
 	}
 
+	filter := bson.M{"start_time": startTime}
 	cursor, err := collectionEvent.Find(ctx, filter, findOptions)
 	if err != nil {
 		return nil, 0, 0, err
@@ -139,6 +152,9 @@ func (e eventRepository) GetAllPagination(ctx context.Context, page string) ([]d
 	collectionEvent := e.database.Collection(e.collectionEvent)
 
 	pageNumber, err := strconv.Atoi(page)
+	if pageNumber <= 1 {
+		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
+	}
 	if err != nil {
 		return nil, 0, 0, errors.New("invalid page number")
 	}
@@ -180,6 +196,10 @@ func (e eventRepository) GetAllPagination(ctx context.Context, page string) ([]d
 func (e eventRepository) CreateOne(ctx context.Context, event *domain.Event) error {
 	collectionEvent := e.database.Collection(e.collectionEvent)
 
+	if err := validate_data.ValidateEvent(event); err != nil {
+		return err
+	}
+
 	_, err := collectionEvent.InsertOne(ctx, event)
 	if err != nil {
 		return err
@@ -190,6 +210,10 @@ func (e eventRepository) CreateOne(ctx context.Context, event *domain.Event) err
 
 func (e eventRepository) UpdateOne(ctx context.Context, event *domain.Event) error {
 	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	if err := validate_data.ValidateEvent(event); err != nil {
+		return err
+	}
 
 	filter := bson.M{"_id": event.ID}
 	update := bson.M{"$set": bson.M{
@@ -217,6 +241,10 @@ func (e eventRepository) UpdateOne(ctx context.Context, event *domain.Event) err
 
 func (e eventRepository) DeleteOne(ctx context.Context, eventID primitive.ObjectID) error {
 	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	if eventID == primitive.NilObjectID {
+		return errors.New(constants.MsgInvalidInput)
+	}
 
 	filter := bson.M{"_id": eventID}
 	_, err := collectionEvent.DeleteOne(ctx, filter)

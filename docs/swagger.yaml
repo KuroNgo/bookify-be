@@ -10,6 +10,19 @@ definitions:
     - password
     - password_compare
     type: object
+  domain.EmployeeInput:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      job_title:
+        type: string
+      last_name:
+        type: string
+      organization_id:
+        type: string
+    type: object
   domain.EventInput:
     properties:
       actual_attendee:
@@ -116,6 +129,92 @@ info:
   title: Bookify
   version: "1.0"
 paths:
+  /api/v1/employees/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new employee record for a specific organization
+      parameters:
+      - description: Employee details
+        in: body
+        name: employee
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EmployeeInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new employee
+      tags:
+      - Employees
+  /api/v1/employees/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an employee record by ID
+      parameters:
+      - description: Employee ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an employee
+      tags:
+      - Employees
+  /api/v1/employees/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all employee records
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all employees
+      tags:
+      - Employees
+  /api/v1/employees/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an employee record by its ID
+      parameters:
+      - description: Employee ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get an employee by ID
+      tags:
+      - Employees
+  /api/v1/employees/update:
+    put:
+      consumes:
+      - application/json
+      description: Update an employee record by ID
+      parameters:
+      - description: Employee ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Updated employee details
+        in: body
+        name: employee
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EmployeeInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an employee
+      tags:
+      - Employees
   /api/v1/event-types/create:
     post:
       consumes:
