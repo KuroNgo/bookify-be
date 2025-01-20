@@ -6,6 +6,7 @@ import (
 	employee_repository "bookify/internal/repository/employee/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -77,10 +78,10 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 		return errors.New(constants.MsgForbidden)
 	}
 
-	//if err = validate_data.ValidatePartnerInput(venue); err != nil {
-	//	return err
-	//}
-	//
+	if err = validate_data.ValidateEmployeeInput(employee); err != nil {
+		return err
+	}
+
 	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
 	//if err != nil {
 	//	return err
@@ -92,7 +93,7 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 
 	employeeInput := &domain.Employee{
 		ID:             primitive.NewObjectID(),
-		OrganizationID: primitive.NewObjectID(),
+		OrganizationID: employee.OrganizationID,
 		FirstName:      employee.FirstName,
 		LastName:       employee.LastName,
 		JobTitle:       employee.JobTitle,
@@ -128,11 +129,11 @@ func (e employeeUseCase) UpdateOne(ctx context.Context, id string, employee *dom
 		return errors.New(constants.MsgForbidden)
 	}
 
-	//if err = validate_data.ValidatePartnerInput(venue); err != nil {
-	//	return err
-	//}
-	//
-	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
+	if err = validate_data.ValidateEmployeeInput(employee); err != nil {
+		return err
+	}
+
+	//count, err := e.employeeRepository.CountExist(ctx, partner.Name)
 	//if err != nil {
 	//	return err
 	//}
@@ -143,7 +144,7 @@ func (e employeeUseCase) UpdateOne(ctx context.Context, id string, employee *dom
 
 	employeeInput := &domain.Employee{
 		ID:             primitive.NewObjectID(),
-		OrganizationID: primitive.NewObjectID(),
+		OrganizationID: employee.OrganizationID,
 		FirstName:      employee.FirstName,
 		LastName:       employee.LastName,
 		JobTitle:       employee.JobTitle,
