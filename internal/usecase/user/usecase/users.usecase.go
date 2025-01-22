@@ -24,20 +24,21 @@ import (
 )
 
 type IUserUseCase interface {
-	FetchMany(ctx context.Context) ([]domain.OutputUser, error)
-	GetByEmail(ctx context.Context, email string) (domain.OutputUser, error)
-	GetByIDForCheckCookie(ctx context.Context, accessToken string) (*domain.OutputUser, error)
-	GetByID(ctx context.Context, idUser string) (*domain.OutputUser, error)
-	GetByVerificationCode(ctx context.Context, verificationCode string) (domain.OutputUser, error)
+	FetchMany(ctx context.Context) ([]domain.User, error)
+	GetByEmail(ctx context.Context, email string) (domain.User, error)
+	GetByIDForCheckCookie(ctx context.Context, accessToken string) (domain.User, error)
+	GetByID(ctx context.Context, idUser string) (domain.User, error)
+	GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error)
 
 	UpdateOne(ctx context.Context, userID string, input *domain.InputUser, file *multipart.FileHeader) error
 	UpdateUserInfoOne(ctx context.Context, userID string, input *domain.UpdateUserInfo, file *multipart.FileHeader) error
 	UpdateVerify(ctx context.Context, id string, input *domain.InputUser) error
 	UpdateImage(ctx context.Context, id string, file *multipart.FileHeader) error
+	UpdateSocialMedia(ctx context.Context, userID string, userSocial *domain.UpdateSocialMedia) error
 
 	SignUp(ctx context.Context, input *domain.SignupUser) error
 	LoginUser(ctx context.Context, signIn *domain.SignIn) (domain.OutputLogin, error)
-	LoginGoogle(ctx context.Context, code string) (*domain.OutputUser, *domain.OutputLoginGoogle, error)
+	LoginGoogle(ctx context.Context, code string) (*domain.User, *domain.OutputLoginGoogle, error)
 	DeleteOne(ctx context.Context, idUser string) error
 	RefreshToken(ctx context.Context, refreshToken string) (*domain.OutputLogin, error)
 
@@ -58,7 +59,7 @@ func NewUserUseCase(database *config.Database, contextTimeout time.Duration, use
 	return &userUseCase{database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
 }
 
-func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.OutputUser, error) {
+func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -67,10 +68,10 @@ func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.OutputUser, error
 		return nil, err
 	}
 
-	var outputs []domain.OutputUser
-	outputs = make([]domain.OutputUser, 0, len(userData))
+	var outputs []domain.User
+	outputs = make([]domain.User, 0, len(userData))
 	for _, user := range userData {
-		output := domain.OutputUser{
+		output := domain.User{
 			ID:          user.ID,
 			Email:       user.Email,
 			Phone:       user.Phone,
@@ -92,16 +93,16 @@ func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.OutputUser, error
 	return outputs, nil
 }
 
-func (u *userUseCase) GetByEmail(ctx context.Context, email string) (domain.OutputUser, error) {
+func (u *userUseCase) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
 	userData, err := u.userRepository.GetByEmail(ctx, email)
 	if err != nil {
-		return domain.OutputUser{}, err
+		return domain.User{}, err
 	}
 
-	output := domain.OutputUser{
+	output := domain.User{
 		ID:          userData.ID,
 		Email:       userData.Email,
 		Phone:       userData.Phone,
@@ -120,84 +121,52 @@ func (u *userUseCase) GetByEmail(ctx context.Context, email string) (domain.Outp
 	return output, nil
 }
 
-func (u *userUseCase) GetByIDForCheckCookie(ctx context.Context, accessToken string) (*domain.OutputUser, error) {
+func (u *userUseCase) GetByIDForCheckCookie(ctx context.Context, accessToken string) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
 	sub, err := token.ValidateToken(accessToken, u.database.AccessTokenPublicKey)
 	if err != nil {
-		return nil, err
+		return domain.User{}, err
 	}
 
 	userID, err := primitive.ObjectIDFromHex(fmt.Sprint(sub))
 	if err != nil {
-		return nil, err
+		return domain.User{}, err
 	}
 
 	userData, err := u.userRepository.GetByID(ctx, userID)
 	if err != nil {
-		return nil, err
+		return domain.User{}, err
 	}
 
-	output := &domain.OutputUser{
-		ID:          userData.ID,
-		Email:       userData.Email,
-		Phone:       userData.Phone,
-		FullName:    userData.FullName,
-		Gender:      userData.Gender,
-		Vocation:    userData.Vocation,
-		Address:     userData.Address,
-		City:        userData.City,
-		Region:      userData.Region,
-		DateOfBirth: userData.DateOfBirth,
-		AssetURL:    userData.AssetURL,
-		AvatarURL:   userData.AvatarURL,
-		Role:        userData.Role,
-	}
-
-	return output, nil
+	return userData, nil
 }
 
-func (u *userUseCase) GetByID(ctx context.Context, idUser string) (*domain.OutputUser, error) {
+func (u *userUseCase) GetByID(ctx context.Context, idUser string) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
 	userID, err := primitive.ObjectIDFromHex(idUser)
 	if err != nil {
-		return nil, err
+		return domain.User{}, err
 	}
 
 	userData, err := u.userRepository.GetByID(ctx, userID)
 	if err != nil {
-		return nil, err
+		return domain.User{}, err
 	}
 
-	output := &domain.OutputUser{
-		ID:          userData.ID,
-		Email:       userData.Email,
-		Phone:       userData.Phone,
-		FullName:    userData.FullName,
-		Gender:      userData.Gender,
-		Vocation:    userData.Vocation,
-		Address:     userData.Address,
-		City:        userData.City,
-		Region:      userData.Region,
-		DateOfBirth: userData.DateOfBirth,
-		AssetURL:    userData.AssetURL,
-		AvatarURL:   userData.AvatarURL,
-		Role:        userData.Role,
-	}
-
-	return output, nil
+	return userData, nil
 }
 
-func (u *userUseCase) GetByVerificationCode(ctx context.Context, verificationCode string) (domain.OutputUser, error) {
+func (u *userUseCase) GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
 	user, err := u.userRepository.GetByVerificationCode(ctx, verificationCode)
 	if err != nil {
-		return domain.OutputUser{}, err
+		return domain.User{}, err
 	}
 
 	updUser := domain.User{
@@ -209,10 +178,10 @@ func (u *userUseCase) GetByVerificationCode(ctx context.Context, verificationCod
 	// Update User in Database
 	err = u.userRepository.UpdateVerificationCode(ctx, &updUser)
 	if err != nil {
-		return domain.OutputUser{}, err
+		return domain.User{}, err
 	}
 
-	response := domain.OutputUser{
+	response := domain.User{
 		ID:          user.ID,
 		Email:       user.Email,
 		Phone:       user.Phone,
@@ -282,6 +251,38 @@ func (u *userUseCase) UpdateOne(ctx context.Context, userID string, input *domai
 	}
 
 	err = u.userRepository.UpdateOne(ctx, &user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userUseCase) UpdateSocialMedia(ctx context.Context, userID string, userSocial *domain.UpdateSocialMedia) error {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	idUser, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	userData, err := u.userRepository.GetByID(ctx, idUser)
+	if err != nil {
+		return err
+	}
+
+	user := domain.User{
+		ID:                             userData.ID,
+		FacebookSc:                     userSocial.FacebookSc,
+		InstagramSc:                    userSocial.InstagramSc,
+		LinkedInSc:                     userSocial.LinkedInSc,
+		YoutubeSc:                      userSocial.YoutubeSc,
+		EnableAutomaticSharingOfEvents: userSocial.EnableAutomaticSharingOfEvents,
+		EnableSharingOn:                userSocial.EnableSharingOn,
+	}
+
+	err = u.userRepository.UpdateSocialMedia(ctx, &user)
 	if err != nil {
 		return err
 	}
@@ -486,13 +487,33 @@ func (u *userUseCase) SignUp(ctx context.Context, input *domain.SignupUser) erro
 		}
 
 		newUser := &domain.User{
-			ID:           primitive.NewObjectID(),
-			Email:        input.Email,
-			PasswordHash: hashedPassword,
-			Verified:     false,
-			Provider:     "inside",
-			CreatedAt:    time.Now(),
-			UpdatedAt:    time.Now(),
+			ID:                             primitive.NewObjectID(),
+			Email:                          input.Email,
+			PasswordHash:                   hashedPassword,
+			FullName:                       "",
+			Gender:                         "",
+			Phone:                          input.Phone,
+			Address:                        "",
+			City:                           "",
+			Region:                         "",
+			Vocation:                       "",
+			DateOfBirth:                    time.Now(),
+			AssetURL:                       "",
+			AvatarURL:                      "",
+			Verified:                       false,
+			VerificationCode:               "",
+			Provider:                       "inside",
+			Role:                           "User",
+			FacebookSc:                     "",
+			InstagramSc:                    "",
+			LinkedInSc:                     "",
+			YoutubeSc:                      "",
+			ShowInterest:                   false,
+			SocialMedia:                    false,
+			EnableAutomaticSharingOfEvents: false,
+			EnableSharingOn:                []string{},
+			CreatedAt:                      time.Now(),
+			UpdatedAt:                      time.Now(),
 		}
 
 		err = u.userRepository.CreateOne(sessionCtx, newUser)
@@ -573,7 +594,7 @@ func (u *userUseCase) LoginUser(ctx context.Context, signIn *domain.SignIn) (dom
 	return response, nil
 }
 
-func (u *userUseCase) LoginGoogle(ctx context.Context, code string) (*domain.OutputUser, *domain.OutputLoginGoogle, error) {
+func (u *userUseCase) LoginGoogle(ctx context.Context, code string) (*domain.User, *domain.OutputLoginGoogle, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
@@ -638,7 +659,7 @@ func (u *userUseCase) LoginGoogle(ctx context.Context, code string) (*domain.Out
 		return nil, nil, err
 	}
 
-	output := &domain.OutputUser{
+	output := &domain.User{
 		ID:          user.ID,
 		Email:       user.Email,
 		Phone:       user.Phone,

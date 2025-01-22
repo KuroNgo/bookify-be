@@ -26,6 +26,7 @@ func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database,
 	router.POST("/signup", user.SignUp)
 	router.PATCH("/update", middlewares.FileUploadMiddleware(), middleware.DeserializeUser(), user.UpdateUser)
 	router.PATCH("/update/image", middleware.DeserializeUser(), user.UpdateImage)
+	router.PATCH("/update/social", middleware.DeserializeUser(), user.UpdateSocialUser)
 	router.PATCH("/verify", user.VerificationCode)
 	router.PATCH("/verify/password", user.VerificationCodeForChangePassword)
 	router.PATCH("/password/forget", user.ChangePassword)

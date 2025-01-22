@@ -944,6 +944,33 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/users/update/social": {
+            "patch": {
+                "description": "Allows the logged-in user to update their social media links",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update social media links of the current user",
+                "parameters": [
+                    {
+                        "description": "Social media update payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateSocialMedia"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/users/verify": {
             "patch": {
                 "security": [
@@ -1336,6 +1363,9 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1363,6 +1393,32 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "12345"
+                }
+            }
+        },
+        "domain.UpdateSocialMedia": {
+            "type": "object",
+            "properties": {
+                "facebook_sc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instagram_sc": {
+                    "type": "string"
+                },
+                "linked_in_sc": {
+                    "type": "string"
+                },
+                "show_interest": {
+                    "type": "boolean"
+                },
+                "social_media": {
+                    "type": "boolean"
+                },
+                "youtube_sc": {
+                    "type": "string"
                 }
             }
         },
@@ -1422,8 +1478,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "This is a server for Kuro API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
+	//LeftDelim:        "{{",
+	//RightDelim:       "}}",
 }
 
 func init() {
