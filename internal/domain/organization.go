@@ -8,6 +8,7 @@ const (
 
 type Organization struct {
 	ID            primitive.ObjectID `bson:"_id" json:"id"`
+	UserID        primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Name          string             `bson:"name" json:"name"`
 	ContactPerson string             `bson:"contact_person" json:"contact_person"`
 	Email         string             `bson:"email" json:"email"`
@@ -15,8 +16,9 @@ type Organization struct {
 }
 
 type OrganizationInput struct {
-	Name          string `bson:"name" json:"name"`
-	ContactPerson string `bson:"contact_person" json:"contact_person"`
-	Email         string `bson:"email" json:"email"`
-	Phone         string `bson:"phone" json:"phone"`
+	Name          string             `bson:"name" json:"name"`
+	UserID        primitive.ObjectID `bson:"user_id" json:"user_id"`
+	ContactPerson string             `bson:"contact_person" json:"contact_person"`
+	Email         string             `bson:"email" json:"email"`
+	Phone         string             `bson:"phone" json:"phone"`
 }

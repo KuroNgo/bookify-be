@@ -1,6 +1,7 @@
 package event_controller
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -14,19 +15,32 @@ import (
 // @Param startDate query string true "Start date in YYYY-MM-DD format"
 // @Router /api/v1/events/get/start-time [get]
 func (e *EventController) GetByStartTime(ctx *gin.Context) {
-	startDate := ctx.Query("startDate")
+	startDate := ctx.Query("startTime")
+	if startDate == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing startDate parameter"})
+		return
+	}
 
+	//Xử lý nếu startDate là JSON
+	var startDateData map[string]string
+	if err := json.Unmarshal([]byte(startDate), &startDateData); err == nil {
+		startDate = startDateData["startTime"]
+	}
+
+	// Gọi UseCase để xử lý logic
 	data, err := e.EventUseCase.GetByStartTime(ctx, startDate)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",
-			"message": "Failed to get user data: " + err.Error(),
+			"message": "Failed to get events: " + err.Error(),
 		})
 		return
 	}
 
+	// Trả về kết quả
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   data,
+		"status":  "success",
+		"message": "Events retrieved successfully",
+		"data":    data,
 	})
 }

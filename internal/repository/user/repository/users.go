@@ -17,12 +17,15 @@ type IUserRepository interface {
 	GetByEmail(ctx context.Context, email string) (domain.User, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.User, error)
 	GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error)
+
 	UpdateOne(ctx context.Context, user *domain.User) error
+	UpdateSocialMedia(ctx context.Context, userSocial *domain.User) error
 	UpdatePassword(ctx context.Context, user *domain.User) error
 	UpdateVerify(ctx context.Context, user *domain.User) error
 	UpdateVerificationCode(ctx context.Context, user *domain.User) error
 	UpsertOne(ctx context.Context, user *domain.User) (*domain.User, error)
 	UpdateImage(ctx context.Context, user *domain.User) error
+
 	UserExists(ctx context.Context, email string) (bool, error)
 	CreateOne(ctx context.Context, user *domain.User) error
 	DeleteOne(ctx context.Context, userID primitive.ObjectID) error
@@ -131,6 +134,27 @@ func (u userRepository) UpdateOne(ctx context.Context, user *domain.User) error 
 	update := bson.M{"$set": user}
 
 	_, err = collectionUser.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return errors.New(err.Error() + "error in the updating user into database")
+	}
+
+	return nil
+}
+
+func (u userRepository) UpdateSocialMedia(ctx context.Context, userSocial *domain.User) error {
+	collectionUser := u.database.Collection(u.collectionUser)
+
+	filter := bson.M{"_id": userSocial.ID}
+	update := bson.M{"$set": bson.M{
+		"facebook_sc":                        userSocial.FacebookSc,
+		"instagram_sc":                       userSocial.InstagramSc,
+		"linked_in_sc":                       userSocial.LinkedInSc,
+		"youtube_sc":                         userSocial.YoutubeSc,
+		"enable_automatic_sharing_of_events": userSocial.EnableAutomaticSharingOfEvents,
+		"enable_sharing_on":                  userSocial.EnableSharingOn,
+	}}
+
+	_, err := collectionUser.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return errors.New(err.Error() + "error in the updating user into database")
 	}

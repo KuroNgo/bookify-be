@@ -28,8 +28,8 @@ var user = domain.User{
 	Role:         constants.RoleSuperAdmin,
 	ShowInterest: false,
 	SocialMedia:  false,
-	CreatedAt:    time.Now().UTC(),
-	UpdatedAt:    time.Now().UTC(),
+	CreatedAt:    time.Now(),
+	UpdatedAt:    time.Now(),
 }
 
 func SeedUser(ctx context.Context, client *mongo.Client) error {

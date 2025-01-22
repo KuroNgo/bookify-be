@@ -69,8 +69,7 @@ func (e eventUseCase) GetByStartTime(ctx context.Context, startTime string) ([]d
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
-	layout := "20/1/2025"
-	parseStartTime, err := time.Parse(layout, startTime)
+	parseStartTime, err := time.Parse(time.RFC3339, startTime)
 	if err != nil {
 		return nil, errors.New(constants.MsgInvalidInput)
 	}

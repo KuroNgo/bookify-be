@@ -73,6 +73,8 @@ definitions:
         type: string
       phone:
         type: string
+      user_id:
+        type: string
     type: object
   domain.PartnerInput:
     properties:
@@ -90,6 +92,23 @@ definitions:
         type: string
       password:
         example: "12345"
+        type: string
+    type: object
+  domain.UpdateSocialMedia:
+    properties:
+      facebook_sc:
+        type: string
+      id:
+        type: string
+      instagram_sc:
+        type: string
+      linked_in_sc:
+        type: string
+      show_interest:
+        type: boolean
+      social_media:
+        type: boolean
+      youtube_sc:
         type: string
     type: object
   domain.VenueInput:
@@ -749,6 +768,24 @@ paths:
       security:
       - CookieAuth: []
       summary: Update User Information
+      tags:
+      - User
+  /api/v1/users/update/social:
+    patch:
+      consumes:
+      - application/json
+      description: Allows the logged-in user to update their social media links
+      parameters:
+      - description: Social media update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateSocialMedia'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update social media links of the current user
       tags:
       - User
   /api/v1/users/verify:
