@@ -656,6 +656,84 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/user/update/profile": {
+            "patch": {
+                "description": "Update the profile information of the currently logged-in user",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Full name of the user",
+                        "name": "full_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Gender of the user",
+                        "name": "gender",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Vocation or profession",
+                        "name": "vocation",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Address of the user",
+                        "name": "address",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "City of residence",
+                        "name": "city",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Region or state",
+                        "name": "region",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date of birth in YYYY-MM-DD format",
+                        "name": "date_of_birth",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show interests in profile (true/false)",
+                        "name": "show_interest",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Enable social media sharing (true/false)",
+                        "name": "social_media",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Profile picture file",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/users/delete": {
             "delete": {
                 "security": [
@@ -939,6 +1017,38 @@ const docTemplate = `{
                         "description": "Image file to upload",
                         "name": "file",
                         "in": "formData"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/users/update/profile/non-image": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update profile user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update profile user",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "UpdateUserProfileNotImage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserSettings"
+                        }
                     }
                 ],
                 "responses": {}
@@ -1399,6 +1509,15 @@ const docTemplate = `{
         "domain.UpdateSocialMedia": {
             "type": "object",
             "properties": {
+                "enable_automatic_sharing_of_events": {
+                    "type": "boolean"
+                },
+                "enable_sharing_on": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "facebook_sc": {
                     "type": "string"
                 },
@@ -1411,13 +1530,45 @@ const docTemplate = `{
                 "linked_in_sc": {
                     "type": "string"
                 },
+                "youtube_sc": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateUserSettings": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "date_of_birth": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
                 "show_interest": {
                     "type": "boolean"
                 },
                 "social_media": {
                     "type": "boolean"
                 },
-                "youtube_sc": {
+                "vocation": {
                     "type": "string"
                 }
             }

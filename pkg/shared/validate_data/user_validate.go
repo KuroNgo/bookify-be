@@ -59,3 +59,35 @@ func ValidateUser3(input *domain.User) error {
 
 	return nil
 }
+
+func ValidateUser4(input *domain.UpdateUserSettings) error {
+	if input.Gender == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if input.Vocation == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if input.Address == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if input.City == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if input.Region == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if input.DateOfBirth == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if input.FullName == "" {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	return nil
+}
