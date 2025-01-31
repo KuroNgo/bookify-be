@@ -20,6 +20,8 @@ type IUserRepository interface {
 
 	UpdateOne(ctx context.Context, user *domain.User) error
 	UpdateSocialMedia(ctx context.Context, userSocial *domain.User) error
+	UpdateProfile(ctx context.Context, userProfile *domain.User) error
+	UpdateProfileNotImage(ctx context.Context, userProfile *domain.User) error
 	UpdatePassword(ctx context.Context, user *domain.User) error
 	UpdateVerify(ctx context.Context, user *domain.User) error
 	UpdateVerificationCode(ctx context.Context, user *domain.User) error
@@ -152,6 +154,56 @@ func (u userRepository) UpdateSocialMedia(ctx context.Context, userSocial *domai
 		"youtube_sc":                         userSocial.YoutubeSc,
 		"enable_automatic_sharing_of_events": userSocial.EnableAutomaticSharingOfEvents,
 		"enable_sharing_on":                  userSocial.EnableSharingOn,
+	}}
+
+	_, err := collectionUser.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return errors.New(err.Error() + "error in the updating user into database")
+	}
+
+	return nil
+}
+
+func (u userRepository) UpdateProfile(ctx context.Context, userProfile *domain.User) error {
+	collectionUser := u.database.Collection(u.collectionUser)
+
+	filter := bson.M{"_id": userProfile.ID}
+	update := bson.M{"$set": bson.M{
+		"gender":        userProfile.Gender,
+		"vocation":      userProfile.Vocation,
+		"address":       userProfile.Address,
+		"city":          userProfile.City,
+		"region":        userProfile.Region,
+		"date_of_birth": userProfile.DateOfBirth,
+		"full_name":     userProfile.FullName,
+		"avatar_url":    userProfile.AvatarURL,
+		"asset_url":     userProfile.AssetURL,
+		"show_interest": userProfile.ShowInterest,
+		"social_media":  userProfile.SocialMedia,
+	}}
+
+	_, err := collectionUser.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return errors.New(err.Error() + "error in the updating user into database")
+	}
+
+	return nil
+}
+
+func (u userRepository) UpdateProfileNotImage(ctx context.Context, userProfile *domain.User) error {
+	collectionUser := u.database.Collection(u.collectionUser)
+
+	filter := bson.M{"_id": userProfile.ID}
+	update := bson.M{"$set": bson.M{
+		"gender":        userProfile.Gender,
+		"vocation":      userProfile.Vocation,
+		"address":       userProfile.Address,
+		"city":          userProfile.City,
+		"region":        userProfile.Region,
+		"date_of_birth": userProfile.DateOfBirth,
+		"full_name":     userProfile.FullName,
+		"show_interest": userProfile.ShowInterest,
+		"social_media":  userProfile.SocialMedia,
 	}}
 
 	_, err := collectionUser.UpdateOne(ctx, filter, update)

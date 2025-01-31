@@ -115,14 +115,13 @@ type UpdateSocialMedia struct {
 type UpdateUserSettings struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Gender       string             `bson:"gender" json:"gender"`
+	Phone        string             `json:"phone" bson:"phone"`
 	Vocation     string             `bson:"vocation" json:"vocation"`
 	Address      string             `bson:"address" json:"address"`
 	City         string             `bson:"city" json:"city"`
 	Region       string             `bson:"region" json:"region"`
 	DateOfBirth  string             `bson:"date_of_birth" json:"date_of_birth"`
 	FullName     string             `bson:"full_name" json:"full_name"`
-	AvatarURL    string             `bson:"avatar_url"  json:"avatar_url"`
-	AssetURL     string             `bson:"asset_url"  json:"asset_url"`
 	ShowInterest bool               `bson:"show_interest" json:"show_interest"`
 	SocialMedia  bool               `bson:"social_media" json:"social_media"`
 }

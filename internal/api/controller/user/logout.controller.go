@@ -1,9 +1,7 @@
 package user_controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -15,23 +13,23 @@ import (
 // @Produce  json
 // @Router /api/v1/users/logout [get]
 func (u *UserController) LogoutUser(ctx *gin.Context) {
-	currentUser, exists := ctx.Get("currentUser")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"status":  "fail",
-			"message": "You are not logged in!",
-		})
-		return
-	}
-
-	user, err := u.UserUseCase.GetByID(ctx, fmt.Sprint(currentUser))
-	if err != nil || user.ID == primitive.NilObjectID {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"status":  "Unauthorized",
-			"message": "You are not authorized to perform this action!",
-		})
-		return
-	}
+	//_, exists := ctx.Get("currentUser")
+	//if !exists {
+	//	ctx.JSON(http.StatusUnauthorized, gin.H{
+	//		"status":  "fail",
+	//		"message": "You are not logged in!",
+	//	})
+	//	return
+	//}
+	//
+	//user, err := u.UserUseCase.GetByID(ctx, fmt.Sprint(currentUser))
+	//if err != nil || user.ID == primitive.NilObjectID {
+	//	ctx.JSON(http.StatusUnauthorized, gin.H{
+	//		"status":  "Unauthorized",
+	//		"message": "You are not authorized to perform this action!",
+	//	})
+	//	return
+	//}
 
 	ctx.SetCookie("access_token", "", -1, "/", u.Database.ClientServer, false, true)
 	ctx.SetCookie("refresh_token", "", -1, "/", u.Database.ClientServer, false, true)

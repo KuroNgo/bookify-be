@@ -96,6 +96,12 @@ definitions:
     type: object
   domain.UpdateSocialMedia:
     properties:
+      enable_automatic_sharing_of_events:
+        type: boolean
+      enable_sharing_on:
+        items:
+          type: string
+        type: array
       facebook_sc:
         type: string
       id:
@@ -104,11 +110,32 @@ definitions:
         type: string
       linked_in_sc:
         type: string
+      youtube_sc:
+        type: string
+    type: object
+  domain.UpdateUserSettings:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      date_of_birth:
+        type: string
+      full_name:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+      region:
+        type: string
       show_interest:
         type: boolean
       social_media:
         type: boolean
-      youtube_sc:
+      vocation:
         type: string
     type: object
   domain.VenueInput:
@@ -580,6 +607,58 @@ paths:
       summary: Update a partner by ID
       tags:
       - partners
+  /api/v1/user/update/profile:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update the profile information of the currently logged-in user
+      parameters:
+      - description: Full name of the user
+        in: formData
+        name: full_name
+        type: string
+      - description: Gender of the user
+        in: formData
+        name: gender
+        type: string
+      - description: Vocation or profession
+        in: formData
+        name: vocation
+        type: string
+      - description: Address of the user
+        in: formData
+        name: address
+        type: string
+      - description: City of residence
+        in: formData
+        name: city
+        type: string
+      - description: Region or state
+        in: formData
+        name: region
+        type: string
+      - description: Date of birth in YYYY-MM-DD format
+        in: formData
+        name: date_of_birth
+        type: string
+      - description: Show interests in profile (true/false)
+        in: formData
+        name: show_interest
+        type: boolean
+      - description: Enable social media sharing (true/false)
+        in: formData
+        name: social_media
+        type: boolean
+      - description: Profile picture file
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      summary: Update user profile
+      tags:
+      - User
   /api/v1/users/delete:
     delete:
       consumes:
@@ -768,6 +847,26 @@ paths:
       security:
       - CookieAuth: []
       summary: Update User Information
+      tags:
+      - User
+  /api/v1/users/update/profile/non-image:
+    patch:
+      consumes:
+      - application/json
+      description: Update profile user
+      parameters:
+      - description: User data
+        in: body
+        name: UpdateUserProfileNotImage
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserSettings'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Update profile user
       tags:
       - User
   /api/v1/users/update/social:

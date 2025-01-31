@@ -27,6 +27,8 @@ func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database,
 	router.PATCH("/update", middlewares.FileUploadMiddleware(), middleware.DeserializeUser(), user.UpdateUser)
 	router.PATCH("/update/image", middleware.DeserializeUser(), user.UpdateImage)
 	router.PATCH("/update/social", middleware.DeserializeUser(), user.UpdateSocialUser)
+	router.PATCH("/update/profile", middleware.DeserializeUser(), user.UpdateUserProfile)
+	router.PATCH("/update/profile/non-image", middleware.DeserializeUser(), user.UpdateUserProfileNotImage)
 	router.PATCH("/verify", user.VerificationCode)
 	router.PATCH("/verify/password", user.VerificationCodeForChangePassword)
 	router.PATCH("/password/forget", user.ChangePassword)
@@ -34,7 +36,7 @@ func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database,
 	router.GET("/get/info", user.GetMe)
 	router.GET("/get/refresh", user.RefreshToken)
 	router.DELETE("/current/delete", middleware.DeserializeUser(), user.DeleteCurrentUser)
-	router.GET("/logout", middleware.DeserializeUser(), user.LogoutUser)
+	router.GET("/logout", user.LogoutUser)
 
 	google := group.Group("/auth")
 	google.GET("/google/callback", user.GoogleLoginWithUser)

@@ -6,6 +6,7 @@ import (
 	"bookify/internal/repository/user/repository"
 	"bookify/pkg/interface/cloudinary/utils/images"
 	google_oauth2 "bookify/pkg/interface/oauth2/google"
+	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/helper"
 	"bookify/pkg/shared/mail/handles"
 	"bookify/pkg/shared/password"
@@ -35,6 +36,8 @@ type IUserUseCase interface {
 	UpdateVerify(ctx context.Context, id string, input *domain.InputUser) error
 	UpdateImage(ctx context.Context, id string, file *multipart.FileHeader) error
 	UpdateSocialMedia(ctx context.Context, userID string, userSocial *domain.UpdateSocialMedia) error
+	UpdateProfile(ctx context.Context, userID string, userProfile *domain.UpdateUserSettings, file *multipart.FileHeader) (string, error)
+	UpdateProfileNotImage(ctx context.Context, userID string, userProfile *domain.UpdateUserSettings) error
 
 	SignUp(ctx context.Context, input *domain.SignupUser) error
 	LoginUser(ctx context.Context, signIn *domain.SignIn) (domain.OutputLogin, error)
@@ -283,6 +286,152 @@ func (u *userUseCase) UpdateSocialMedia(ctx context.Context, userID string, user
 	}
 
 	err = u.userRepository.UpdateSocialMedia(ctx, &user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userUseCase) UpdateProfile(ctx context.Context, userID string, userProfile *domain.UpdateUserSettings, file *multipart.FileHeader) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if err := validate_data.ValidateUser4(userProfile); err != nil {
+		return "", err
+	}
+
+	idUser, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return "", err
+	}
+
+	userData, err := u.userRepository.GetByID(ctx, idUser)
+	if err != nil {
+		return "", err
+	}
+
+	if file == nil {
+		parseDateOfBirth, err := time.Parse(time.RFC3339, userProfile.DateOfBirth)
+		if err != nil {
+			return "", errors.New(constants.MsgInvalidInput)
+		}
+
+		user := domain.User{
+			ID:           userData.ID,
+			Gender:       userProfile.Gender,
+			Vocation:     userProfile.Vocation,
+			Address:      userProfile.Address,
+			City:         userProfile.City,
+			Region:       userProfile.Region,
+			DateOfBirth:  parseDateOfBirth,
+			FullName:     userProfile.FullName,
+			ShowInterest: userProfile.ShowInterest,
+			SocialMedia:  userProfile.SocialMedia,
+		}
+
+		err = u.userRepository.UpdateProfile(ctx, &user)
+		if err != nil {
+			return "", err
+		}
+
+		return "", nil
+	}
+
+	if !helper.IsImage(file.Filename) {
+		return "", err
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+	defer func(f multipart.File) {
+		err = f.Close()
+		if err != nil {
+			return
+		}
+	}(f)
+
+	imageURL, err := images.UploadImageToCloudinary(f, file.Filename, u.database.CloudinaryUploadFolderUser, u.database)
+	if err != nil {
+		return "", err
+	}
+
+	// Đảm bảo xóa ảnh trên Cloudinary nếu xảy ra lỗi sau khi tải lên thành công
+	defer func() {
+		if err != nil {
+			_, _ = images.DeleteToCloudinary(imageURL.AssetID, u.database)
+		}
+	}()
+
+	parseDateOfBirth, err := time.Parse(time.RFC3339, userProfile.DateOfBirth)
+	if err != nil {
+		return "", errors.New(constants.MsgInvalidInput)
+	}
+
+	user := domain.User{
+		ID:           userData.ID,
+		Gender:       userProfile.Gender,
+		Vocation:     userProfile.Vocation,
+		Address:      userProfile.Address,
+		City:         userProfile.City,
+		Region:       userProfile.Region,
+		DateOfBirth:  parseDateOfBirth,
+		FullName:     userProfile.FullName,
+		AvatarURL:    imageURL.ImageURL,
+		AssetURL:     imageURL.AssetID,
+		ShowInterest: userProfile.ShowInterest,
+		SocialMedia:  userProfile.SocialMedia,
+	}
+
+	err = u.userRepository.UpdateProfile(ctx, &user)
+	if err != nil {
+		return "", err
+	}
+
+	return imageURL.ImageURL, nil
+}
+
+func (u *userUseCase) UpdateProfileNotImage(ctx context.Context, userID string, userProfile *domain.UpdateUserSettings) error {
+	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
+	defer cancel()
+
+	if err := validate_data.ValidateUser4(userProfile); err != nil {
+		return err
+
+	}
+
+	idUser, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	userData, err := u.userRepository.GetByID(ctx, idUser)
+	if err != nil {
+		return err
+
+	}
+
+	parseDateOfBirth, err := time.Parse(time.RFC3339, userProfile.DateOfBirth)
+	if err != nil {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	user := domain.User{
+		ID:           userData.ID,
+		Gender:       userProfile.Gender,
+		Vocation:     userProfile.Vocation,
+		Address:      userProfile.Address,
+		City:         userProfile.City,
+		Region:       userProfile.Region,
+		DateOfBirth:  parseDateOfBirth,
+		FullName:     userProfile.FullName,
+		ShowInterest: userProfile.ShowInterest,
+		SocialMedia:  userProfile.SocialMedia,
+	}
+
+	err = u.userRepository.UpdateProfileNotImage(ctx, &user)
 	if err != nil {
 		return err
 	}
