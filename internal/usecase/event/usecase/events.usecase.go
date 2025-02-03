@@ -25,6 +25,7 @@ type IEventUseCase interface {
 	GetAll(ctx context.Context) ([]domain.Event, error)
 	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
 	CreateOne(ctx context.Context, event *domain.EventInput) error
+	CreateOneAsync(ctx context.Context, event *domain.EventInput, venue *domain.VenueInput) error
 	UpdateOne(ctx context.Context, id string, event *domain.EventInput) error
 	DeleteOne(ctx context.Context, eventID string) error
 }
@@ -199,6 +200,77 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 	}
 
 	return nil
+}
+
+func (e eventUseCase) CreateOneAsync(ctx context.Context, event *domain.EventInput, venue *domain.VenueInput) error {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	// Validate event and venue inputs
+	if err := validate_data.ValidateEventInput(event); err != nil {
+		return err
+	}
+
+	if err := validate_data.ValidateVenueInput(venue); err != nil {
+		return err
+	}
+
+	// Start MongoDB session for transaction
+	session, err := e.client.StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	callback := func(sessionCtx mongo_driven.SessionContext) (interface{}, error) {
+		// Create venue
+		venueInput := &domain.Venue{
+			ID:          primitive.NewObjectID(),
+			Capacity:    venue.Capacity,
+			AddressLine: venue.AddressLine,
+			City:        venue.City,
+			//State:       venue.State,
+			Country: venue.Country,
+			//PostalCode:  venue.PostalCode,
+			OnlineFlat: venue.OnlineFlat,
+			LinkAttend: venue.LinkAttend,
+			FromAttend: venue.FromAttend,
+		}
+		if err := e.venueRepository.CreateOne(sessionCtx, venueInput); err != nil {
+			return nil, err
+		}
+
+		// Create event
+		eventInput := &domain.Event{
+			ID:                primitive.NewObjectID(),
+			EventTypeID:       event.EventTypeID,
+			VenueID:           venueInput.ID,
+			OrganizationID:    event.OrganizationID,
+			Title:             event.Title,
+			Description:       event.Description,
+			ImageURL:          event.ImageURL,
+			AssetURL:          event.AssetURL,
+			StartTime:         event.StartTime,
+			EndTime:           event.EndTime,
+			Mode:              event.Mode,
+			EstimatedAttendee: event.EstimatedAttendee,
+			ActualAttendee:    event.ActualAttendee,
+			TotalExpenditure:  event.TotalExpenditure,
+		}
+		if err := e.eventRepository.CreateOne(sessionCtx, eventInput); err != nil {
+			return nil, err
+		}
+
+		return nil, nil // Successfully created event and venue
+	}
+
+	// Run transaction
+	_, err = session.WithTransaction(ctx, callback)
+	if err != nil {
+		return err
+	}
+
+	return nil // Transaction successful, no need to commit explicitly
 }
 
 func (e eventUseCase) UpdateOne(ctx context.Context, id string, event *domain.EventInput) error {

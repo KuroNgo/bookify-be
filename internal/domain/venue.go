@@ -11,9 +11,7 @@ type Venue struct {
 	Capacity    int32              `bson:"capacity" json:"capacity"`
 	AddressLine string             `bson:"address_line" json:"address_line"`
 	City        string             `bson:"city" json:"city"`
-	State       string             `bson:"state" json:"state"`
 	Country     string             `bson:"country" json:"country"`
-	PostalCode  string             `bson:"postal_code" json:"postal_code"`
 	OnlineFlat  bool               `bson:"online_flat" json:"online_flat"`
 	LinkAttend  string             `bson:"link_attend" json:"link_attend"`
 	FromAttend  string             `bson:"from_attend" json:"from_attend"`
@@ -23,9 +21,7 @@ type VenueInput struct {
 	Capacity    int32  `bson:"capacity" json:"capacity"`
 	AddressLine string `bson:"address_line" json:"address_line"`
 	City        string `bson:"city" json:"city"`
-	State       string `bson:"state" json:"state"`
 	Country     string `bson:"country" json:"country"`
-	PostalCode  string `bson:"postal_code" json:"postal_code"`
 	OnlineFlat  bool   `bson:"online_flat" json:"online_flat"`
 	LinkAttend  string `bson:"link_attend" json:"link_attend"`
 	FromAttend  string `bson:"from_attend" json:"from_attend"`
