@@ -401,7 +401,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a paginated list of all events
+      description: Get a paginated list of all event
       parameters:
       - description: Page number, default is 1
         in: query
@@ -410,18 +410,18 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: Get all events with pagination
+      summary: Get all event with pagination
       tags:
       - Events
   /api/v1/events/get/all:
     get:
       consumes:
       - application/json
-      description: Get a list of all events
+      description: Get a list of all event
       produces:
       - application/json
       responses: {}
-      summary: Get all events
+      summary: Get all event
       tags:
       - Events
   /api/v1/events/get/id:
@@ -445,7 +445,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get events starting from a specific date
+      description: Get event starting from a specific date
       parameters:
       - description: Start date in YYYY-MM-DD format
         in: query
@@ -455,14 +455,14 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: Get events by start time
+      summary: Get event by start time
       tags:
       - Events
   /api/v1/events/get/start-time/pagination:
     get:
       consumes:
       - application/json
-      description: Get paginated events starting from a specific date
+      description: Get paginated event starting from a specific date
       parameters:
       - description: Start date in YYYY-MM-DD format
         in: query
@@ -476,7 +476,7 @@ paths:
       produces:
       - application/json
       responses: {}
-      summary: Get events by start time with pagination
+      summary: Get event by start time with pagination
       tags:
       - Events
   /api/v1/events/update:

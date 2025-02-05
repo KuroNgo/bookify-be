@@ -1,10 +1,10 @@
-package unit_test
+package unit
 
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
+	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
 	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestGetByIDEvent(t *testing.T) {
+func TestGetByStartTimEvent(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
@@ -112,17 +112,17 @@ func TestGetByIDEvent(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		name      string
-		inputID   primitive.ObjectID
+		startTime time.Time
 		expectErr bool
 	}{
 		{
 			name:      "success",
-			inputID:   mockEventInput.ID,
+			startTime: mockEventInput.StartTime,
 			expectErr: false,
 		},
 		{
-			name:      "error_invalid_id",
-			inputID:   primitive.NilObjectID,
+			name:      "error_invalid_start_time",
+			startTime: time.Time{},
 			expectErr: true,
 		},
 	}
@@ -130,7 +130,7 @@ func TestGetByIDEvent(t *testing.T) {
 	// Execute test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err = ev.GetByID(context.Background(), tt.inputID)
+			_, err = ev.GetByStartTime(context.Background(), tt.startTime)
 
 			if tt.expectErr {
 				assert.Error(t, err)

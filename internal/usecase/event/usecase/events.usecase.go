@@ -3,8 +3,8 @@ package usecase
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
+	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organization_repository "bookify/internal/repository/organization/repository"
 	user_repository "bookify/internal/repository/user/repository"
 	venue_repository "bookify/internal/repository/venue/repository"
@@ -25,7 +25,7 @@ type IEventUseCase interface {
 	GetAll(ctx context.Context) ([]domain.Event, error)
 	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
 	CreateOne(ctx context.Context, event *domain.EventInput) error
-	CreateOneAsync(ctx context.Context, event *domain.EventInput, venue *domain.VenueInput) error
+	CreateOneAsync(ctx context.Context, event *domain.EventInput) error
 	UpdateOne(ctx context.Context, id string, event *domain.EventInput) error
 	DeleteOne(ctx context.Context, eventID string) error
 }
@@ -70,12 +70,16 @@ func (e eventUseCase) GetByStartTime(ctx context.Context, startTime string) ([]d
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// Parse thời gian từ chuỗi (ISO 8601)
 	parseStartTime, err := time.Parse(time.RFC3339, startTime)
 	if err != nil {
 		return nil, errors.New(constants.MsgInvalidInput)
 	}
 
-	data, err := e.eventRepository.GetByStartTime(ctx, parseStartTime)
+	// Chuyển về đầu ngày (00:00:00 UTC)
+	startOfDay := time.Date(parseStartTime.Year(), parseStartTime.Month(), parseStartTime.Day(), 0, 0, 0, 0, time.UTC)
+
+	data, err := e.eventRepository.GetByStartTime(ctx, startOfDay)
 	if err != nil {
 		return nil, err
 	}
@@ -153,15 +157,17 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 	}
 
 	// Check exist data
-	eventTypeData, err := e.eventTypeRepository.GetByID(ctx, event.EventTypeID)
+	eventTypeData, err := e.eventTypeRepository.GetByName(ctx, event.EventTypeName)
 	if err != nil {
 		return err
 	}
-	if eventTypeData.ID == primitive.NilObjectID {
-		return errors.New(constants.MsgInvalidInput)
+
+	organizationID, err := primitive.ObjectIDFromHex(event.OrganizationID)
+	if err != nil {
+		return err
 	}
 
-	organizationData, err := e.organizationRepository.GetByID(ctx, event.OrganizationID)
+	organizationData, err := e.organizationRepository.GetByID(ctx, organizationID)
 	if err != nil {
 		return err
 	}
@@ -169,25 +175,35 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 		return errors.New(constants.MsgInvalidInput)
 	}
 
-	venueData, err := e.venueRepository.GetByID(ctx, event.VenueID)
+	//venueData, err := e.venueRepository.GetByID(ctx, event.VenueID)
+	//if err != nil {
+	//	return err
+	//}
+	//if venueData.ID == primitive.NilObjectID {
+	//	return errors.New(constants.MsgInvalidInput)
+	//}
+
+	parseStartTime, err := time.Parse(time.RFC3339, event.StartTime)
 	if err != nil {
-		return err
+		return errors.New(constants.MsgInvalidInput)
 	}
-	if venueData.ID == primitive.NilObjectID {
+
+	parseEndTime, err := time.Parse(time.RFC3339, event.EndTime)
+	if err != nil {
 		return errors.New(constants.MsgInvalidInput)
 	}
 
 	eventInput := &domain.Event{
 		ID:                primitive.NewObjectID(),
-		EventTypeID:       event.EventTypeID,
-		VenueID:           event.VenueID,
-		OrganizationID:    event.OrganizationID,
+		EventTypeID:       eventTypeData.ID,
+		OrganizationID:    organizationID,
 		Title:             event.Title,
+		ShortDescription:  event.ShortDescription,
 		Description:       event.Description,
 		ImageURL:          event.ImageURL,
 		AssetURL:          event.AssetURL,
-		StartTime:         event.StartTime,
-		EndTime:           event.EndTime,
+		StartTime:         parseStartTime,
+		EndTime:           parseEndTime,
 		Mode:              event.Mode,
 		EstimatedAttendee: event.EstimatedAttendee,
 		ActualAttendee:    event.ActualAttendee,
@@ -202,16 +218,12 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 	return nil
 }
 
-func (e eventUseCase) CreateOneAsync(ctx context.Context, event *domain.EventInput, venue *domain.VenueInput) error {
+func (e eventUseCase) CreateOneAsync(ctx context.Context, event *domain.EventInput) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
 	// Validate event and venue inputs
 	if err := validate_data.ValidateEventInput(event); err != nil {
-		return err
-	}
-
-	if err := validate_data.ValidateVenueInput(venue); err != nil {
 		return err
 	}
 
@@ -226,36 +238,56 @@ func (e eventUseCase) CreateOneAsync(ctx context.Context, event *domain.EventInp
 		// Create venue
 		venueInput := &domain.Venue{
 			ID:          primitive.NewObjectID(),
-			Capacity:    venue.Capacity,
-			AddressLine: venue.AddressLine,
-			City:        venue.City,
-			//State:       venue.State,
-			Country: venue.Country,
-			//PostalCode:  venue.PostalCode,
-			OnlineFlat: venue.OnlineFlat,
-			LinkAttend: venue.LinkAttend,
-			FromAttend: venue.FromAttend,
+			Capacity:    event.Capacity,
+			AddressLine: event.AddressLine,
+			City:        event.City,
+			Country:     event.Country,
+			EventMode:   event.EventMode,
+			LinkAttend:  event.LinkAttend,
+			FromAttend:  event.FromAttend,
 		}
-		if err := e.venueRepository.CreateOne(sessionCtx, venueInput); err != nil {
+		if err = e.venueRepository.CreateOne(sessionCtx, venueInput); err != nil {
 			return nil, err
+		}
+
+		organizationID, err := primitive.ObjectIDFromHex(event.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+
+		parseStartTime, err := time.Parse(time.RFC3339, event.StartTime)
+		if err != nil {
+			return nil, errors.New(constants.MsgInvalidInput)
+		}
+
+		parseEndTime, err := time.Parse(time.RFC3339, event.EndTime)
+		if err != nil {
+			return nil, errors.New(constants.MsgInvalidInput)
+		}
+
+		eventTypeData, err := e.eventTypeRepository.GetByName(ctx, event.EventTypeName)
+		if err != nil {
+			return nil, errors.New(constants.MsgInvalidInput)
 		}
 
 		// Create event
 		eventInput := &domain.Event{
 			ID:                primitive.NewObjectID(),
-			EventTypeID:       event.EventTypeID,
+			EventTypeID:       eventTypeData.ID,
 			VenueID:           venueInput.ID,
-			OrganizationID:    event.OrganizationID,
+			OrganizationID:    organizationID,
 			Title:             event.Title,
+			ShortDescription:  event.ShortDescription,
 			Description:       event.Description,
 			ImageURL:          event.ImageURL,
 			AssetURL:          event.AssetURL,
-			StartTime:         event.StartTime,
-			EndTime:           event.EndTime,
+			StartTime:         parseStartTime,
+			EndTime:           parseEndTime,
 			Mode:              event.Mode,
 			EstimatedAttendee: event.EstimatedAttendee,
 			ActualAttendee:    event.ActualAttendee,
 			TotalExpenditure:  event.TotalExpenditure,
+			Tags:              event.Tags,
 		}
 		if err := e.eventRepository.CreateOne(sessionCtx, eventInput); err != nil {
 			return nil, err
@@ -282,21 +314,41 @@ func (e eventUseCase) UpdateOne(ctx context.Context, id string, event *domain.Ev
 		return err
 	}
 
+	eventTypeData, err := e.eventTypeRepository.GetByName(ctx, event.EventTypeName)
+	if err != nil {
+		return err
+	}
+
+	organizationID, err := primitive.ObjectIDFromHex(event.OrganizationID)
+	if err != nil {
+		return err
+	}
+
+	parseStartTime, err := time.Parse(time.RFC3339, event.StartTime)
+	if err != nil {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	parseEndTime, err := time.Parse(time.RFC3339, event.EndTime)
+	if err != nil {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
 	eventInput := &domain.Event{
 		ID:                eventID,
-		EventTypeID:       event.EventTypeID,
-		VenueID:           event.VenueID,
-		OrganizationID:    event.OrganizationID,
+		EventTypeID:       eventTypeData.ID,
+		OrganizationID:    organizationID,
 		Title:             event.Title,
 		Description:       event.Description,
 		ImageURL:          event.ImageURL,
 		AssetURL:          event.AssetURL,
-		StartTime:         event.StartTime,
-		EndTime:           event.EndTime,
+		StartTime:         parseStartTime,
+		EndTime:           parseEndTime,
 		Mode:              event.Mode,
 		EstimatedAttendee: event.EstimatedAttendee,
 		ActualAttendee:    event.ActualAttendee,
 		TotalExpenditure:  event.TotalExpenditure,
+		Tags:              event.Tags,
 	}
 
 	err = e.eventRepository.UpdateOne(ctx, eventInput)

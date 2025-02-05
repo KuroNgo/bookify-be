@@ -14,8 +14,8 @@ import (
 // @Accept json
 // @Produce json
 // @Param id query string true "Organization ID"
-// @Param body body domain.OrganizationInput true "Organization data"
-// @Router /organizations/update [put]
+// @Param body domain.OrganizationInput true "Organization data"
+// @Router /api/v1/organizations/update [put]
 func (o OrganizationController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

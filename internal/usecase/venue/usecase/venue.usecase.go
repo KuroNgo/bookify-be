@@ -99,7 +99,7 @@ func (v venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, c
 		//State:       venue.State,
 		Country: venue.Country,
 		//PostalCode:  venue.PostalCode,
-		OnlineFlat: venue.OnlineFlat,
+		EventMode:  venue.EventMode,
 		LinkAttend: venue.LinkAttend,
 		FromAttend: venue.FromAttend,
 	}
@@ -156,7 +156,7 @@ func (v venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.Ve
 		//State:       venue.State,
 		Country: venue.Country,
 		//PostalCode:  venue.PostalCode,
-		OnlineFlat: venue.OnlineFlat,
+		EventMode:  venue.EventMode,
 		LinkAttend: venue.LinkAttend,
 		FromAttend: venue.FromAttend,
 	}

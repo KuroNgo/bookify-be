@@ -15,6 +15,7 @@ import (
 
 type IEventTypeRepository interface {
 	GetByID(ctx context.Context, id string) (domain.EventType, error)
+	GetByName(ctx context.Context, name string) (domain.EventType, error)
 	GetAll(ctx context.Context) ([]domain.EventType, error)
 	CreateOne(ctx context.Context, eventType *domain.EventTypeInput, currentUser string) error
 	UpdateOne(ctx context.Context, id string, eventType *domain.EventTypeInput, currentUser string) error
@@ -26,6 +27,22 @@ type eventTypeUseCase struct {
 	contextTimeout      time.Duration
 	eventTypeRepository event_type_repository.IEventTypeRepository
 	userRepository      user_repository.IUserRepository
+}
+
+func (e eventTypeUseCase) GetByName(ctx context.Context, name string) (domain.EventType, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	if name == "" {
+		return domain.EventType{}, errors.New(constants.MsgInvalidInput)
+	}
+
+	data, err := e.eventTypeRepository.GetByName(ctx, name)
+	if err != nil {
+		return domain.EventType{}, err
+	}
+
+	return data, nil
 }
 
 func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventType, error) {

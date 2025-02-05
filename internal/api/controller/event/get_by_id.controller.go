@@ -12,7 +12,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param id query string true "Event ID"
-// @Router /api/v1/events/get/id [get]
+// @Router /api/v1/event/get/id [get]
 func (e *EventController) GetByID(ctx *gin.Context) {
 	id := ctx.Query("id")
 

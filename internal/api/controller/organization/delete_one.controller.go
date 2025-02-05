@@ -12,7 +12,7 @@ import (
 // @Tags Organizations
 // @Produce json
 // @Param id query string true "Organization ID"
-// @Router /organizations [delete]
+// @Router /api/v1/organizations/delete [delete]
 // @Security ApiKeyAuth
 func (o OrganizationController) DeleteOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")

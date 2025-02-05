@@ -14,7 +14,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param eventType body domain.OrganizationInput true "Organization Input Body"
-// @Router /api/v1/organization/create [post]
+// @Router /api/v1/organizations/create [post]
 func (o OrganizationController) CreateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

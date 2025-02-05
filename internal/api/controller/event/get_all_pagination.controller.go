@@ -6,13 +6,13 @@ import (
 )
 
 // GetAllPagination
-// @Summary Get all events with pagination
-// @Description Get a paginated list of all events
+// @Summary Get all event with pagination
+// @Description Get a paginated list of all event
 // @Tags Events
 // @Accept json
 // @Produce json
 // @Param page query string false "Page number, default is 1"
-// @Router /api/v1/events/get-all/pagination [get]
+// @Router /api/v1/event/get-all/pagination [get]
 func (e *EventController) GetAllPagination(ctx *gin.Context) {
 	page := ctx.DefaultQuery("page", "1")
 	data, pageOutput, currentPage, err := e.EventUseCase.GetAllPagination(ctx, page)

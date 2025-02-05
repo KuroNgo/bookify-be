@@ -3,8 +3,8 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
+	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
 	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestUpdateOneEvent(t *testing.T) {
+func TestGetAllPaginationEvent(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
@@ -109,55 +109,33 @@ func TestUpdateOneEvent(t *testing.T) {
 	ev := event_repository.NewEventRepository(database, "event")
 	err = ev.CreateOne(context.Background(), mockEventInput)
 
-	mockEventUpdateInput := &domain.Event{
-		ID:                primitive.NewObjectID(),
-		EventTypeID:       mockEventType.ID,
-		VenueID:           mockVenue.ID,
-		OrganizationID:    mockOrganization.ID,
-		Title:             "Music Concert 2026",
-		Description:       "A live music concert featuring popular artists.",
-		ImageURL:          "https://example.com/image.jpg",
-		AssetURL:          "https://example.com/asset.mp4",
-		StartTime:         time.Date(2025, time.March, 10, 19, 0, 0, 0, time.UTC),
-		EndTime:           time.Date(2025, time.March, 10, 22, 0, 0, 0, time.UTC),
-		Mode:              "Public",
-		EstimatedAttendee: 500,
-		ActualAttendee:    450,
-		TotalExpenditure:  15000.50,
-	}
-
-	mockEventUpdateInputNil := &domain.Event{}
-
 	// Define test cases
 	tests := []struct {
-		name        string
-		input       *domain.Event
-		expectedErr bool
-		description string
+		name      string
+		inputID   string
+		expectErr bool
 	}{
 		{
-			name:        "success_update_event",
-			input:       mockEventUpdateInput,
-			expectedErr: false,
-			description: "Should successfully update a event",
+			name:      "success",
+			inputID:   "2",
+			expectErr: false,
 		},
 		{
-			name:        "error_update_event_with_nil",
-			input:       mockEventUpdateInputNil,
-			expectedErr: true,
-			description: "Should return error when updating a event with nil fields",
+			name:      "error_invalid_id",
+			inputID:   "0",
+			expectErr: true,
 		},
 	}
 
 	// Execute test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err = ev.UpdateOne(context.Background(), tt.input)
+			_, _, _, err = ev.GetAllPagination(context.Background(), tt.inputID)
 
-			if tt.expectedErr {
-				assert.Error(t, err, tt.description)
+			if tt.expectErr {
+				assert.Error(t, err)
 			} else {
-				assert.Nil(t, err, tt.description)
+				assert.Nil(t, err)
 			}
 		})
 	}

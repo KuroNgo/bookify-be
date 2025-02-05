@@ -7,13 +7,13 @@ import (
 )
 
 // GetByStartTime
-// @Summary Get events by start time
-// @Description Get events starting from a specific date
+// @Summary Get event by start time
+// @Description Get event starting from a specific date
 // @Tags Events
 // @Accept json
 // @Produce json
 // @Param startDate query string true "Start date in YYYY-MM-DD format"
-// @Router /api/v1/events/get/start-time [get]
+// @Router /api/v1/event/get/start-time [get]
 func (e *EventController) GetByStartTime(ctx *gin.Context) {
 	startDate := ctx.Query("startTime")
 	if startDate == "" {
@@ -32,7 +32,7 @@ func (e *EventController) GetByStartTime(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",
-			"message": "Failed to get events: " + err.Error(),
+			"message": "Failed to get event: " + err.Error(),
 		})
 		return
 	}

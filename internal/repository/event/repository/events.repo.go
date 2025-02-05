@@ -55,7 +55,18 @@ func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time
 		return nil, errors.New(constants.MsgInvalidInput)
 	}
 
-	filter := bson.M{"start_time": startTime}
+	// Tạo khoảng thời gian trong ngày
+	startOfDay := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Nanosecond) // 23:59:59.999999999
+
+	// Tạo bộ lọc MongoDB để tìm trong khoảng thời gian
+	filter := bson.M{
+		"start_time": bson.M{
+			"$gte": startOfDay, // Lớn hơn hoặc bằng 00:00:00
+			"$lt":  endOfDay,   // Nhỏ hơn 23:59:59
+		},
+	}
+
 	cursor, err := collectionEvent.Find(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -68,7 +79,6 @@ func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time
 		if err = cursor.Decode(&event); err != nil {
 			return nil, err
 		}
-
 		events = append(events, event)
 	}
 

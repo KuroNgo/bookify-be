@@ -13,8 +13,9 @@ import (
 	"time"
 )
 
-type IOrganizationRepository interface {
+type IOrganizationUseCase interface {
 	GetByID(ctx context.Context, id string) (domain.Organization, error)
+	GetByUserID(ctx context.Context, userId string) (domain.Organization, error)
 	GetAll(ctx context.Context) ([]domain.Organization, error)
 	CreateOne(ctx context.Context, organization *domain.OrganizationInput, currentUser string) error
 	UpdateOne(ctx context.Context, id string, organization *domain.OrganizationInput, currentUser string) error
@@ -26,6 +27,23 @@ type organizationUseCase struct {
 	contextTimeout         time.Duration
 	organizationRepository organizationrepository.IOrganizationRepository
 	userRepository         userrepository.IUserRepository
+}
+
+func (o organizationUseCase) GetByUserID(ctx context.Context, userId string) (domain.Organization, error) {
+	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
+	defer cancel()
+
+	userID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return domain.Organization{}, err
+	}
+
+	data, err := o.organizationRepository.GetByUserID(ctx, userID)
+	if err != nil {
+		return domain.Organization{}, err
+	}
+
+	return data, nil
 }
 
 func (o organizationUseCase) GetByID(ctx context.Context, id string) (domain.Organization, error) {
@@ -193,7 +211,7 @@ func (o organizationUseCase) DeleteOne(ctx context.Context, id string, currentUs
 	return nil
 }
 
-func NewOrganizationUseCase(database *config.Database, contextTimeout time.Duration, organizationRepository organizationrepository.IOrganizationRepository, userRepository userrepository.IUserRepository) IOrganizationRepository {
+func NewOrganizationUseCase(database *config.Database, contextTimeout time.Duration, organizationRepository organizationrepository.IOrganizationRepository, userRepository userrepository.IUserRepository) IOrganizationUseCase {
 	return &organizationUseCase{database: database, contextTimeout: contextTimeout, organizationRepository: organizationRepository, userRepository: userRepository}
 }
 

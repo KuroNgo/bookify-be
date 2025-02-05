@@ -3,8 +3,8 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
+	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
 	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestGetByStartTimEvent(t *testing.T) {
+func TestGetByStartTimePaginationEvent(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
@@ -113,16 +113,25 @@ func TestGetByStartTimEvent(t *testing.T) {
 	tests := []struct {
 		name      string
 		startTime time.Time
+		page      string
 		expectErr bool
 	}{
 		{
 			name:      "success",
 			startTime: mockEventInput.StartTime,
+			page:      "1",
 			expectErr: false,
 		},
 		{
 			name:      "error_invalid_start_time",
 			startTime: time.Time{},
+			page:      "1",
+			expectErr: true,
+		},
+		{
+			name:      "error_invalid_page",
+			startTime: mockEventInput.StartTime,
+			page:      "0",
 			expectErr: true,
 		},
 	}
@@ -130,7 +139,7 @@ func TestGetByStartTimEvent(t *testing.T) {
 	// Execute test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err = ev.GetByStartTime(context.Background(), tt.startTime)
+			_, _, _, err = ev.GetByStartTimePagination(context.Background(), tt.startTime, tt.page)
 
 			if tt.expectErr {
 				assert.Error(t, err)

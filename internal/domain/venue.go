@@ -12,7 +12,7 @@ type Venue struct {
 	AddressLine string             `bson:"address_line" json:"address_line"`
 	City        string             `bson:"city" json:"city"`
 	Country     string             `bson:"country" json:"country"`
-	OnlineFlat  bool               `bson:"online_flat" json:"online_flat"`
+	EventMode   string             `bson:"event_mode" json:"event_mode"`
 	LinkAttend  string             `bson:"link_attend" json:"link_attend"`
 	FromAttend  string             `bson:"from_attend" json:"from_attend"`
 }
@@ -22,7 +22,7 @@ type VenueInput struct {
 	AddressLine string `bson:"address_line" json:"address_line"`
 	City        string `bson:"city" json:"city"`
 	Country     string `bson:"country" json:"country"`
-	OnlineFlat  bool   `bson:"online_flat" json:"online_flat"`
+	EventMode   string `bson:"event_mode" json:"event_mode"`
 	LinkAttend  string `bson:"link_attend" json:"link_attend"`
 	FromAttend  string `bson:"from_attend" json:"from_attend"`
 }

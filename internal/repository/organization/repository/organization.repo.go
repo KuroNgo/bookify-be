@@ -13,6 +13,7 @@ import (
 
 type IOrganizationRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.Organization, error)
+	GetByUserID(ctx context.Context, userId primitive.ObjectID) (domain.Organization, error)
 	GetAll(ctx context.Context) ([]domain.Organization, error)
 	CreateOne(ctx context.Context, partner *domain.Organization) error
 	UpdateOne(ctx context.Context, partner *domain.Organization) error
@@ -35,6 +36,21 @@ func (o organizationRepository) GetByID(ctx context.Context, id primitive.Object
 	filter := bson.M{"_id": id}
 	var organization domain.Organization
 	if err := organizationCollection.FindOne(ctx, filter).Decode(&organization); err != nil {
+		return domain.Organization{}, err
+	}
+
+	return organization, nil
+}
+
+func (o organizationRepository) GetByUserID(ctx context.Context, userId primitive.ObjectID) (domain.Organization, error) {
+	organizationCollection := o.database.Collection(o.collectionOrganization)
+
+	filter := bson.M{"user_id": userId}
+	var organization domain.Organization
+	if err := organizationCollection.FindOne(ctx, filter).Decode(&organization); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Organization{}, err
+		}
 		return domain.Organization{}, err
 	}
 

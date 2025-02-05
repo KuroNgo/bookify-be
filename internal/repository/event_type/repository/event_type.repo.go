@@ -13,6 +13,7 @@ import (
 
 type IEventTypeRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.EventType, error)
+	GetByName(ctx context.Context, name string) (domain.EventType, error)
 	GetAll(ctx context.Context) ([]domain.EventType, error)
 	CreateOne(ctx context.Context, eventType domain.EventType) error
 	UpdateOne(ctx context.Context, eventType domain.EventType) error
@@ -23,6 +24,21 @@ type IEventTypeRepository interface {
 type eventTypeRepository struct {
 	database            *mongo.Database
 	collectionEventType string
+}
+
+func (e eventTypeRepository) GetByName(ctx context.Context, name string) (domain.EventType, error) {
+	eventTypeCollection := e.database.Collection(e.collectionEventType)
+
+	filter := bson.M{"name": name}
+	var eventType domain.EventType
+	if err := eventTypeCollection.FindOne(ctx, filter).Decode(&eventType); err != nil {
+		if errors.Is(err, mongo.ErrNilDocument) {
+			return domain.EventType{}, nil
+		}
+		return domain.EventType{}, err
+	}
+
+	return eventType, nil
 }
 
 func (e eventTypeRepository) CountExist(ctx context.Context, eventTypeName string) (int64, error) {

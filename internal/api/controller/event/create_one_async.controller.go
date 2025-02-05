@@ -14,8 +14,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param event body domain.EventInput true "Event input data"
-// @Param venue body domain.VenueInput true "Venue input data"
-// @Router /api/v1/events/create/async [post]
+// @Router /api/v1/event/create/async [post]
 func (e *EventController) CreateOneAsync(ctx *gin.Context) {
 	_, exist := ctx.Get("currentUser")
 	if !exist {
@@ -36,17 +35,7 @@ func (e *EventController) CreateOneAsync(ctx *gin.Context) {
 		return
 	}
 
-	//  Lấy thông tin từ request
-	var venueInput domain.VenueInput
-	if err := ctx.ShouldBindJSON(&venueInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": err.Error()},
-		)
-		return
-	}
-
-	err := e.EventUseCase.CreateOneAsync(ctx, &eventInput, &venueInput)
+	err := e.EventUseCase.CreateOneAsync(ctx, &eventInput)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",

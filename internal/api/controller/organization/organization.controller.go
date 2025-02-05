@@ -8,17 +8,18 @@ import (
 
 type OrganizationController struct {
 	Database            *config.Database
-	OrganizationUseCase organization_usecase.IOrganizationRepository
+	OrganizationUseCase organization_usecase.IOrganizationUseCase
 }
 
 type IOrganizationController interface {
 	GetByID(ctx *gin.Context)
+	GetByUserID(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 	CreateOne(ctx *gin.Context)
 	UpdateOne(ctx *gin.Context)
 	DeleteOne(ctx *gin.Context)
 }
 
-func NewOrganization(Database *config.Database, OrganizationUseCase organization_usecase.IOrganizationRepository) IOrganizationController {
+func NewOrganization(Database *config.Database, OrganizationUseCase organization_usecase.IOrganizationUseCase) IOrganizationController {
 	return &OrganizationController{Database: Database, OrganizationUseCase: OrganizationUseCase}
 }
