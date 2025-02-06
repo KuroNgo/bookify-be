@@ -22,6 +22,7 @@ type IEventRepository interface {
 	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
 	CreateOne(ctx context.Context, event *domain.Event) error
 	UpdateOne(ctx context.Context, event *domain.Event) error
+	UpdateImage(ctx context.Context, event *domain.Event) error
 	DeleteOne(ctx context.Context, eventID primitive.ObjectID) error
 	CheckEventExist(ctx context.Context, id primitive.ObjectID) (bool, error)
 	CountEventExist(ctx context.Context, name string, userID primitive.ObjectID, timeStart time.Time, timeEnd time.Time) (int64, error)
@@ -57,13 +58,13 @@ func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time
 
 	// Tạo khoảng thời gian trong ngày
 	startOfDay := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, time.UTC)
-	endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Nanosecond) // 23:59:59.999999999
+	//endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Nanosecond) // 23:59:59.999999999
 
 	// Tạo bộ lọc MongoDB để tìm trong khoảng thời gian
 	filter := bson.M{
 		"start_time": bson.M{
 			"$gte": startOfDay, // Lớn hơn hoặc bằng 00:00:00
-			"$lt":  endOfDay,   // Nhỏ hơn 23:59:59
+			//"$lt":  endOfDay,   // Nhỏ hơn 23:59:59
 		},
 	}
 
@@ -240,6 +241,22 @@ func (e eventRepository) UpdateOne(ctx context.Context, event *domain.Event) err
 		"estimated_attendee": event.EstimatedAttendee,
 		"actual_attendee":    event.ActualAttendee,
 		"total_expenditure":  event.TotalExpenditure,
+	}}
+	_, err := collectionEvent.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e eventRepository) UpdateImage(ctx context.Context, event *domain.Event) error {
+	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	filter := bson.M{"_id": event.ID}
+	update := bson.M{"$set": bson.M{
+		"image_url": event.ImageURL,
+		"asset_url": event.AssetURL,
 	}}
 	_, err := collectionEvent.UpdateOne(ctx, filter, update)
 	if err != nil {

@@ -8,12 +8,15 @@ import (
 	organization_repository "bookify/internal/repository/organization/repository"
 	user_repository "bookify/internal/repository/user/repository"
 	venue_repository "bookify/internal/repository/venue/repository"
+	"bookify/pkg/interface/cloudinary/utils/images"
 	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/helper"
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	mongo_driven "go.mongodb.org/mongo-driver/mongo"
+	"mime/multipart"
 	"strconv"
 	"time"
 )
@@ -27,6 +30,7 @@ type IEventUseCase interface {
 	CreateOne(ctx context.Context, event *domain.EventInput) error
 	CreateOneAsync(ctx context.Context, event *domain.EventInput) error
 	UpdateOne(ctx context.Context, id string, event *domain.EventInput) error
+	UpdateImage(ctx context.Context, id string, file *multipart.FileHeader) error
 	DeleteOne(ctx context.Context, eventID string) error
 }
 
@@ -357,6 +361,71 @@ func (e eventUseCase) UpdateOne(ctx context.Context, id string, event *domain.Ev
 	}
 
 	return nil
+}
+
+func (e eventUseCase) UpdateImage(ctx context.Context, id string, file *multipart.FileHeader) error {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	eventID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	session, err := e.client.StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	callback := func(sessionCtx mongo_driven.SessionContext) (interface{}, error) {
+		if file == nil {
+			return nil, errors.New("images not nil")
+		}
+		// Kiểm tra xem file có phải là hình ảnh không
+		if !helper.IsImage(file.Filename) {
+			return nil, err
+		}
+
+		f, err := file.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+
+		imageURL, err := images.UploadImageToCloudinary(f, file.Filename, e.database.CloudinaryUploadFolderUser, e.database)
+		if err != nil {
+			return nil, err
+		}
+
+		// Đảm bảo xóa ảnh trên Cloudinary nếu xảy ra lỗi sau khi tải lên thành công
+		defer func() {
+			if err != nil {
+				_, _ = images.DeleteToCloudinary(imageURL.AssetID, e.database)
+			}
+		}()
+
+		eventInput := &domain.Event{
+			ID:       eventID,
+			ImageURL: imageURL.ImageURL,
+			AssetURL: imageURL.AssetID,
+		}
+
+		err = e.eventRepository.UpdateImage(ctx, eventInput)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	}
+
+	// Run the transaction
+	_, err = session.WithTransaction(ctx, callback)
+	if err != nil {
+		return err
+	}
+
+	return session.CommitTransaction(ctx)
 }
 
 func (e eventUseCase) DeleteOne(ctx context.Context, eventID string) error {

@@ -31,5 +31,6 @@ func AdminEventsRouter(env *config.Database, timeout time.Duration, db *mongo.Da
 	router.POST("/create", event.CreateOne)
 	router.POST("/create/async", event.CreateOneAsync)
 	router.PUT("/update", event.UpdateOne)
+	router.PATCH("/update/image", event.UpdateImage)
 	router.POST("/delete", event.DeleteOne)
 }
