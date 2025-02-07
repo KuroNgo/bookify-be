@@ -74,7 +74,7 @@ func TestFindAllEventType(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Len(t, events, tt.expectedSize, "Unexpected number of events")
+				assert.Len(t, events, tt.expectedSize, "Unexpected number of event")
 			}
 		})
 	}

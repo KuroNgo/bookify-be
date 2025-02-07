@@ -105,10 +105,10 @@ func (v venueRepository) UpdateOne(ctx context.Context, venue *domain.Venue) err
 		"capacity":     venue.Capacity,
 		"address_line": venue.AddressLine,
 		"city":         venue.City,
-		"state":        venue.State,
-		"country":      venue.Country,
-		"postal_code":  venue.PostalCode,
-		"online_flat":  venue.OnlineFlat,
+		//"state":        venue.State,
+		"country": venue.Country,
+		//"postal_code":  venue.PostalCode,
+		"event_mode": venue.EventMode,
 	}}
 	_, err := venueCollection.UpdateOne(ctx, filter, update)
 	if err != nil {

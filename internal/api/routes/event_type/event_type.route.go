@@ -23,5 +23,6 @@ func EventTypeRouter(env *config.Database, timeout time.Duration, db *mongo.Data
 
 	router := group.Group("/event-types")
 	router.GET("/get/id", eventType.GetByID)
+	router.GET("/get/name", eventType.GetByName)
 	router.GET("/get/all", eventType.GetAll)
 }

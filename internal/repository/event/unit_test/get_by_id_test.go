@@ -1,10 +1,10 @@
-package unit
+package unit_test
 
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
+	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
 	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestCreateOneEvent(t *testing.T) {
+func TestGetByIDEvent(t *testing.T) {
 	client, database := infrastructor.SetupTestDatabase(t)
 	defer infrastructor.TearDownTestDatabase(client, t)
 
@@ -105,39 +105,37 @@ func TestCreateOneEvent(t *testing.T) {
 		ActualAttendee:    450,
 		TotalExpenditure:  15000.50,
 	}
-	mockEventInputNil := &domain.Event{}
+
+	ev := event_repository.NewEventRepository(database, "event")
+	err = ev.CreateOne(context.Background(), mockEventInput)
 
 	// Define test cases
 	tests := []struct {
-		name        string
-		input       *domain.Event
-		expectedErr bool
-		description string
+		name      string
+		inputID   primitive.ObjectID
+		expectErr bool
 	}{
 		{
-			name:        "success_create_event",
-			input:       mockEventInput,
-			expectedErr: false,
-			description: "Should successfully create a event",
+			name:      "success",
+			inputID:   mockEventInput.ID,
+			expectErr: false,
 		},
 		{
-			name:        "error_create_event_with_nil",
-			input:       mockEventInputNil,
-			expectedErr: true,
-			description: "Should return error when creating a event with nil fields",
+			name:      "error_invalid_id",
+			inputID:   primitive.NilObjectID,
+			expectErr: true,
 		},
 	}
 
 	// Execute test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ev := event_repository.NewEventRepository(database, "event")
-			err = ev.CreateOne(context.Background(), tt.input)
+			_, err = ev.GetByID(context.Background(), tt.inputID)
 
-			if tt.expectedErr {
-				assert.Error(t, err, tt.description)
+			if tt.expectErr {
+				assert.Error(t, err)
 			} else {
-				assert.Nil(t, err, tt.description)
+				assert.Nil(t, err)
 			}
 		})
 	}

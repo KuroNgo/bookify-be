@@ -32,25 +32,25 @@ var user = domain.User{
 	UpdatedAt:    time.Now(),
 }
 
-func SeedUser(ctx context.Context, client *mongo.Client) error {
+func SeedUser(ctx context.Context, client *mongo.Client) (error, primitive.ObjectID) {
 	collectionUser := client.Database("bookify").Collection("user")
 
 	count, err := collectionUser.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		return err
+		return err, primitive.NilObjectID
 	}
 
 	user.PasswordHash, err = password.HashPassword(user.PasswordHash)
 	if err != nil {
-		return err
+		return err, primitive.NilObjectID
 	}
 
 	if count == 0 {
 		_, err = collectionUser.InsertOne(ctx, user)
 		if err != nil {
-			return err
+			return err, primitive.NilObjectID
 		}
 	}
 
-	return nil
+	return nil, user.ID
 }

@@ -38,7 +38,7 @@ type userRepository struct {
 	collectionUser string
 }
 
-func (u userRepository) FetchMany(ctx context.Context) ([]domain.User, error) {
+func (u *userRepository) FetchMany(ctx context.Context) ([]domain.User, error) {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{}
@@ -72,7 +72,7 @@ func (u userRepository) FetchMany(ctx context.Context) ([]domain.User, error) {
 	return users, nil
 }
 
-func (u userRepository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
+func (u *userRepository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"email": email}
@@ -84,7 +84,7 @@ func (u userRepository) GetByEmail(ctx context.Context, email string) (domain.Us
 	return user, nil
 }
 
-func (u userRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
+func (u *userRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.User, error) {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": id}
@@ -98,7 +98,7 @@ func (u userRepository) GetByID(ctx context.Context, id primitive.ObjectID) (dom
 	return user, nil
 }
 
-func (u userRepository) GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error) {
+func (u *userRepository) GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error) {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"verification_code": verificationCode}
@@ -110,17 +110,22 @@ func (u userRepository) GetByVerificationCode(ctx context.Context, verificationC
 	return user, nil
 }
 
-func (u userRepository) UserExists(ctx context.Context, email string) (bool, error) {
+func (u *userRepository) UserExists(ctx context.Context, email string) (bool, error) {
 	collectionUser := u.database.Collection(u.collectionUser)
 	filter := bson.M{"email": email}
-	count, err := collectionUser.CountDocuments(ctx, filter)
+
+	var result bson.M
+	err := collectionUser.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		return false, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, nil // Không tìm thấy user
+		}
+		return false, err // Lỗi khác
 	}
-	return count > 0, nil
+	return true, nil // Tìm thấy user
 }
 
-func (u userRepository) UpdateOne(ctx context.Context, user *domain.User) error {
+func (u *userRepository) UpdateOne(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	exists, err := u.UserExists(ctx, user.Email)
@@ -143,7 +148,7 @@ func (u userRepository) UpdateOne(ctx context.Context, user *domain.User) error 
 	return nil
 }
 
-func (u userRepository) UpdateSocialMedia(ctx context.Context, userSocial *domain.User) error {
+func (u *userRepository) UpdateSocialMedia(ctx context.Context, userSocial *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": userSocial.ID}
@@ -164,7 +169,7 @@ func (u userRepository) UpdateSocialMedia(ctx context.Context, userSocial *domai
 	return nil
 }
 
-func (u userRepository) UpdateProfile(ctx context.Context, userProfile *domain.User) error {
+func (u *userRepository) UpdateProfile(ctx context.Context, userProfile *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": userProfile.ID}
@@ -190,7 +195,7 @@ func (u userRepository) UpdateProfile(ctx context.Context, userProfile *domain.U
 	return nil
 }
 
-func (u userRepository) UpdateProfileNotImage(ctx context.Context, userProfile *domain.User) error {
+func (u *userRepository) UpdateProfileNotImage(ctx context.Context, userProfile *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": userProfile.ID}
@@ -214,7 +219,7 @@ func (u userRepository) UpdateProfileNotImage(ctx context.Context, userProfile *
 	return nil
 }
 
-func (u userRepository) UpdatePassword(ctx context.Context, user *domain.User) error {
+func (u *userRepository) UpdatePassword(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": user.ID}
@@ -228,7 +233,7 @@ func (u userRepository) UpdatePassword(ctx context.Context, user *domain.User) e
 	return nil
 }
 
-func (u userRepository) UpdateVerify(ctx context.Context, user *domain.User) error {
+func (u *userRepository) UpdateVerify(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": user.ID}
@@ -245,7 +250,7 @@ func (u userRepository) UpdateVerify(ctx context.Context, user *domain.User) err
 	return nil
 }
 
-func (u userRepository) UpdateVerificationCode(ctx context.Context, user *domain.User) error {
+func (u *userRepository) UpdateVerificationCode(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": user.ID}
@@ -263,7 +268,7 @@ func (u userRepository) UpdateVerificationCode(ctx context.Context, user *domain
 	return nil
 }
 
-func (u userRepository) UpsertOne(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (u *userRepository) UpsertOne(ctx context.Context, user *domain.User) (*domain.User, error) {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"email": user.Email}
@@ -294,7 +299,7 @@ func (u userRepository) UpsertOne(ctx context.Context, user *domain.User) (*doma
 	return updatedUser, nil
 }
 
-func (u userRepository) UpdateImage(ctx context.Context, user *domain.User) error {
+func (u *userRepository) UpdateImage(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": user.ID}
@@ -311,23 +316,26 @@ func (u userRepository) UpdateImage(ctx context.Context, user *domain.User) erro
 	return nil
 }
 
-func (u userRepository) CreateOne(ctx context.Context, user *domain.User) error {
+func (u *userRepository) CreateOne(ctx context.Context, user *domain.User) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
+	// Validate dữ liệu
 	if err := validate_data.ValidateUser3(user); err != nil {
 		return err
 	}
 
-	exists, err := u.UserExists(ctx, user.Email)
-	if err != nil {
-		return err
-	}
+	// Tạo bộ lọc để kiểm tra user có tồn tại không
+	filter := bson.M{"email": user.Email}
 
-	if exists {
+	// Kiểm tra số lượng user có email trùng
+	count, _ := collectionUser.CountDocuments(ctx, filter)
+	// Nếu đã tồn tại user -> báo lỗi
+	if count > 0 {
 		return errors.New("user is confirmed to exist")
 	}
 
-	_, err = collectionUser.InsertOne(ctx, user)
+	// Chèn user vào database
+	_, err := collectionUser.InsertOne(ctx, user)
 	if err != nil {
 		return fmt.Errorf("error inserting user into the database: %w", err)
 	}
@@ -335,7 +343,7 @@ func (u userRepository) CreateOne(ctx context.Context, user *domain.User) error 
 	return nil
 }
 
-func (u userRepository) DeleteOne(ctx context.Context, userID primitive.ObjectID) error {
+func (u *userRepository) DeleteOne(ctx context.Context, userID primitive.ObjectID) error {
 	collectionUser := u.database.Collection(u.collectionUser)
 
 	filter := bson.M{"_id": userID}

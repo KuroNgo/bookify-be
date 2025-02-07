@@ -1,21 +1,21 @@
 package event_controller
 
 import (
-	"bookify/internal/domain"
 	"bookify/pkg/shared/constants"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-// CreateOne
-// @Summary Create a new event
-// @Description Add a new event to the system
+// UpdateImage
+// @Summary Update an event
+// @Description Update details of an existing event
 // @Tags Events
 // @Accept json
 // @Produce json
-// @Param event body domain.EventInput true "Event input data"
-// @Router /api/v1/event/create [post]
-func (e *EventController) CreateOne(ctx *gin.Context) {
+// @Param id query string true "Event ID"
+// @Param file formData file false "Image file to upload"
+// @Router /api/v1/event/update/image [patch]
+func (e *EventController) UpdateImage(ctx *gin.Context) {
 	_, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -26,16 +26,10 @@ func (e *EventController) CreateOne(ctx *gin.Context) {
 	}
 
 	//  Lấy thông tin từ request
-	var eventInput domain.EventInput
-	if err := ctx.ShouldBindJSON(&eventInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": err.Error()},
-		)
-		return
-	}
+	id := ctx.Query("id")
+	file, _ := ctx.FormFile("file")
 
-	err := e.EventUseCase.CreateOne(ctx, &eventInput)
+	err := e.EventUseCase.UpdateImage(ctx, id, file)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",

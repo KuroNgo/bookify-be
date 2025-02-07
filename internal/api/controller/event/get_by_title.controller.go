@@ -5,18 +5,17 @@ import (
 	"net/http"
 )
 
-// GetByID
-// @Summary Get event by ID
-// @Description Get details of an event by its ID
+// GetByTitle
+// @Summary Get event by title
+// @Description Get details of an event by title
 // @Tags Events
 // @Accept json
 // @Produce json
-// @Param id query string true "Event ID"
-// @Router /api/v1/event/get/id [get]
-func (e *EventController) GetByID(ctx *gin.Context) {
-	id := ctx.Query("id")
+// @Router /api/v1/event/get/title [get]
+func (e *EventController) GetByTitle(ctx *gin.Context) {
+	title := ctx.Query("title")
 
-	data, err := e.EventUseCase.GetByID(ctx, id)
+	data, err := e.EventUseCase.GetByTitle(ctx, title)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",

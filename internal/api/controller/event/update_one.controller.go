@@ -15,7 +15,7 @@ import (
 // @Produce json
 // @Param id query string true "Event ID"
 // @Param event body domain.EventInput true "Event input data"
-// @Router /api/v1/events/update [put]
+// @Router /api/v1/event/update [put]
 func (e *EventController) UpdateOne(ctx *gin.Context) {
 	_, exist := ctx.Get("currentUser")
 	if !exist {

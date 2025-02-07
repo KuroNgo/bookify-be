@@ -6,6 +6,7 @@ import (
 	userrepository "bookify/internal/repository/user/repository"
 	venue_repository "bookify/internal/repository/venue/repository"
 	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -77,9 +78,9 @@ func (v venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, c
 		return errors.New(constants.MsgForbidden)
 	}
 
-	//if err = validate_data.ValidatePartnerInput(venue); err != nil {
-	//	return err
-	//}
+	if err = validate_data.ValidateVenueInput(venue); err != nil {
+		return err
+	}
 	//
 	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
 	//if err != nil {
@@ -95,12 +96,12 @@ func (v venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, c
 		Capacity:    venue.Capacity,
 		AddressLine: venue.AddressLine,
 		City:        venue.City,
-		State:       venue.State,
-		Country:     venue.Country,
-		PostalCode:  venue.PostalCode,
-		OnlineFlat:  venue.OnlineFlat,
-		LinkAttend:  venue.LinkAttend,
-		FromAttend:  venue.FromAttend,
+		//State:       venue.State,
+		Country: venue.Country,
+		//PostalCode:  venue.PostalCode,
+		EventMode:  venue.EventMode,
+		LinkAttend: venue.LinkAttend,
+		FromAttend: venue.FromAttend,
 	}
 
 	err = v.venueRepository.CreateOne(ctx, venueInput)
@@ -129,9 +130,9 @@ func (v venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.Ve
 		return errors.New(constants.MsgForbidden)
 	}
 
-	//if err = validate_data.ValidatePartnerInput(partner); err != nil {
-	//	return err
-	//}
+	if err = validate_data.ValidateVenueInput(venue); err != nil {
+		return err
+	}
 	//
 	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
 	//if err != nil {
@@ -152,12 +153,12 @@ func (v venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.Ve
 		Capacity:    venue.Capacity,
 		AddressLine: venue.AddressLine,
 		City:        venue.City,
-		State:       venue.State,
-		Country:     venue.Country,
-		PostalCode:  venue.PostalCode,
-		OnlineFlat:  venue.OnlineFlat,
-		LinkAttend:  venue.LinkAttend,
-		FromAttend:  venue.FromAttend,
+		//State:       venue.State,
+		Country: venue.Country,
+		//PostalCode:  venue.PostalCode,
+		EventMode:  venue.EventMode,
+		LinkAttend: venue.LinkAttend,
+		FromAttend: venue.FromAttend,
 	}
 
 	err = v.venueRepository.UpdateOne(ctx, venueInput)

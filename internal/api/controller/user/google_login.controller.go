@@ -24,10 +24,11 @@ func (u *UserController) GoogleLoginWithUser(c *gin.Context) {
 
 	c.SetCookie("access_token", response.AccessToken, 0, "/", "localhost", false, true)
 	c.SetCookie("refresh_token", response.RefreshToken, 0, "/", "localhost", false, true)
-	c.SetCookie("is_logged", response.IsLogged, 0, "/", "localhost", false, false)
+	//c.SetCookie("is_logged", response.IsLogged, 0, "/", "localhost", false, false)
 
 	c.JSON(http.StatusOK, gin.H{
-		"token": response.SignedToken,
-		"user":  userData,
+		"token":     response.SignedToken,
+		"is_logged": response.IsLogged,
+		"user":      userData,
 	})
 }

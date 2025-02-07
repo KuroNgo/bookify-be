@@ -16,12 +16,16 @@ import (
 
 type IEventRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.Event, error)
+	GetByTitle(ctx context.Context, title string) (domain.Event, error)
+	GetByOrganizationID(ctx context.Context, organizationID primitive.ObjectID) (domain.Event, error)
+	GetByOrganizationIDAndStartTime(ctx context.Context, organizationID primitive.ObjectID, startTime time.Time) ([]domain.Event, error)
 	GetByStartTime(ctx context.Context, startTime time.Time) ([]domain.Event, error)
 	GetByStartTimePagination(ctx context.Context, startTime time.Time, page string) ([]domain.Event, int64, int, error)
 	GetAll(ctx context.Context) ([]domain.Event, error)
 	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
 	CreateOne(ctx context.Context, event *domain.Event) error
 	UpdateOne(ctx context.Context, event *domain.Event) error
+	UpdateImage(ctx context.Context, event *domain.Event) error
 	DeleteOne(ctx context.Context, eventID primitive.ObjectID) error
 	CheckEventExist(ctx context.Context, id primitive.ObjectID) (bool, error)
 	CountEventExist(ctx context.Context, name string, userID primitive.ObjectID, timeStart time.Time, timeEnd time.Time) (int64, error)
@@ -48,14 +52,50 @@ func (e eventRepository) GetByID(ctx context.Context, id primitive.ObjectID) (do
 	return event, nil
 }
 
-func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time) ([]domain.Event, error) {
+func (e eventRepository) GetByTitle(ctx context.Context, title string) (domain.Event, error) {
+	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	filter := bson.M{"title": title}
+	var event domain.Event
+	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
+		return domain.Event{}, err
+	}
+
+	return event, nil
+}
+
+func (e eventRepository) GetByOrganizationID(ctx context.Context, organizationID primitive.ObjectID) (domain.Event, error) {
+	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	filter := bson.M{"organization_id": organizationID}
+	var event domain.Event
+	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
+		return domain.Event{}, err
+	}
+
+	return event, nil
+}
+
+func (e eventRepository) GetByOrganizationIDAndStartTime(ctx context.Context, organizationID primitive.ObjectID, startTime time.Time) ([]domain.Event, error) {
 	collectionEvent := e.database.Collection(e.collectionEvent)
 
 	if startTime.IsZero() {
 		return nil, errors.New(constants.MsgInvalidInput)
 	}
 
-	filter := bson.M{"start_time": startTime}
+	// Tạo khoảng thời gian trong ngày
+	startOfDay := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, time.UTC)
+	//endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Nanosecond) // 23:59:59.999999999
+
+	// Tạo bộ lọc MongoDB để tìm trong khoảng thời gian
+	filter := bson.M{
+		"organization_id": organizationID,
+		"start_time": bson.M{
+			"$gte": startOfDay, // Lớn hơn hoặc bằng 00:00:00
+			//"$lt":  endOfDay,   // Nhỏ hơn 23:59:59
+		},
+	}
+
 	cursor, err := collectionEvent.Find(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -68,7 +108,43 @@ func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time
 		if err = cursor.Decode(&event); err != nil {
 			return nil, err
 		}
+		events = append(events, event)
+	}
 
+	return events, nil
+}
+
+func (e eventRepository) GetByStartTime(ctx context.Context, startTime time.Time) ([]domain.Event, error) {
+	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	if startTime.IsZero() {
+		return nil, errors.New(constants.MsgInvalidInput)
+	}
+
+	// Tạo khoảng thời gian trong ngày
+	startOfDay := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, time.UTC)
+	//endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Nanosecond) // 23:59:59.999999999
+
+	// Tạo bộ lọc MongoDB để tìm trong khoảng thời gian
+	filter := bson.M{
+		"start_time": bson.M{
+			"$gte": startOfDay, // Lớn hơn hoặc bằng 00:00:00
+			//"$lt":  endOfDay,   // Nhỏ hơn 23:59:59
+		},
+	}
+
+	cursor, err := collectionEvent.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var events []domain.Event
+	for cursor.Next(ctx) {
+		var event domain.Event
+		if err = cursor.Decode(&event); err != nil {
+			return nil, err
+		}
 		events = append(events, event)
 	}
 
@@ -230,6 +306,22 @@ func (e eventRepository) UpdateOne(ctx context.Context, event *domain.Event) err
 		"estimated_attendee": event.EstimatedAttendee,
 		"actual_attendee":    event.ActualAttendee,
 		"total_expenditure":  event.TotalExpenditure,
+	}}
+	_, err := collectionEvent.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e eventRepository) UpdateImage(ctx context.Context, event *domain.Event) error {
+	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	filter := bson.M{"_id": event.ID}
+	update := bson.M{"$set": bson.M{
+		"image_url": event.ImageURL,
+		"asset_url": event.AssetURL,
 	}}
 	_, err := collectionEvent.UpdateOne(ctx, filter, update)
 	if err != nil {

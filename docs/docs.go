@@ -295,7 +295,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/create": {
+        "/api/v1/event/create": {
             "post": {
                 "description": "Add a new event to the system",
                 "consumes": [
@@ -322,7 +322,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/delete-one": {
+        "/api/v1/event/delete-one": {
             "delete": {
                 "description": "Delete an event by its ID",
                 "consumes": [
@@ -347,9 +347,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/get-all/pagination": {
+        "/api/v1/event/get-all/pagination": {
             "get": {
-                "description": "Get a paginated list of all events",
+                "description": "Get a paginated list of all event",
                 "consumes": [
                     "application/json"
                 ],
@@ -359,7 +359,7 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get all events with pagination",
+                "summary": "Get all event with pagination",
                 "parameters": [
                     {
                         "type": "string",
@@ -371,9 +371,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/get/all": {
+        "/api/v1/event/get/all": {
             "get": {
-                "description": "Get a list of all events",
+                "description": "Get a list of all event",
                 "consumes": [
                     "application/json"
                 ],
@@ -383,11 +383,11 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get all events",
+                "summary": "Get all event",
                 "responses": {}
             }
         },
-        "/api/v1/events/get/id": {
+        "/api/v1/event/get/id": {
             "get": {
                 "description": "Get details of an event by its ID",
                 "consumes": [
@@ -412,9 +412,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/get/start-time": {
+        "/api/v1/event/get/start-time": {
             "get": {
-                "description": "Get events starting from a specific date",
+                "description": "Get event starting from a specific date",
                 "consumes": [
                     "application/json"
                 ],
@@ -424,7 +424,7 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get events by start time",
+                "summary": "Get event by start time",
                 "parameters": [
                     {
                         "type": "string",
@@ -437,9 +437,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/get/start-time/pagination": {
+        "/api/v1/event/get/start-time/pagination": {
             "get": {
-                "description": "Get paginated events starting from a specific date",
+                "description": "Get paginated event starting from a specific date",
                 "consumes": [
                     "application/json"
                 ],
@@ -449,7 +449,7 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get events by start time with pagination",
+                "summary": "Get event by start time with pagination",
                 "parameters": [
                     {
                         "type": "string",
@@ -468,7 +468,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/events/update": {
+        "/api/v1/event/update": {
             "put": {
                 "description": "Update details of an existing event",
                 "consumes": [

@@ -3,8 +3,8 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor"
+	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
 	venuerepository "bookify/internal/repository/venue/repository"
 	"context"

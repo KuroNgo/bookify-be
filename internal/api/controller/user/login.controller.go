@@ -38,11 +38,12 @@ func (l *UserController) LoginUser(ctx *gin.Context) {
 
 	ctx.SetCookie("access_token", user.AccessToken, 0, "/", l.Database.ClientServer, false, true)
 	ctx.SetCookie("refresh_token", user.RefreshToken, 0, "/", l.Database.ClientServer, false, true)
-	ctx.SetCookie("is_logged", user.IsLogged, 0, "/", l.Database.ClientServer, false, false)
+	//ctx.SetCookie("is_logged", user.IsLogged, 0, "/", l.Database.ClientServer, false, false)
 
 	// Trả về phản hồi thành công
 	ctx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   user,
+		"status":    "success",
+		"is_logged": user.IsLogged,
+		"data":      user,
 	})
 }

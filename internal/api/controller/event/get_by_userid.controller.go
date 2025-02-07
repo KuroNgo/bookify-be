@@ -2,20 +2,20 @@ package event_controller
 
 import (
 	"bookify/pkg/shared/constants"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-// DeleteOne
-// @Summary Delete an event
-// @Description Delete an event by its ID
+// GetByUserID
+// @Summary Get event by UserID
+// @Description Get details of an event by its User ID
 // @Tags Events
 // @Accept json
 // @Produce json
-// @Param id query string true "Event ID"
-// @Router /api/v1/event/delete-one [delete]
-func (e *EventController) DeleteOne(ctx *gin.Context) {
-	_, exist := ctx.Get("currentUser")
+// @Router /api/v1/event/get/user_id [get]
+func (e *EventController) GetByUserID(ctx *gin.Context) {
+	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"status":  "error",
@@ -24,8 +24,7 @@ func (e *EventController) DeleteOne(ctx *gin.Context) {
 		return
 	}
 
-	id := ctx.Query("id")
-	err := e.EventUseCase.DeleteOne(ctx, id)
+	data, err := e.EventUseCase.GetByUserID(ctx, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",
@@ -36,5 +35,6 @@ func (e *EventController) DeleteOne(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "success",
+		"data":   data,
 	})
 }

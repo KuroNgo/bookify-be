@@ -10,7 +10,7 @@ import (
 // @Description Retrieve a list of all organizations.
 // @Tags Organizations
 // @Produce json
-// @Router /organizations/get/all [get]
+// @Router /api/v1/organizations/get/all [get]
 func (o OrganizationController) GetAll(ctx *gin.Context) {
 	data, err := o.OrganizationUseCase.GetAll(ctx)
 	if err != nil {

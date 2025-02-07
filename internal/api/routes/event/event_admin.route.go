@@ -4,8 +4,8 @@ import (
 	event_controller "bookify/internal/api/controller/event"
 	"bookify/internal/config"
 	"bookify/internal/domain"
+	event_repository "bookify/internal/repository/event/repository"
 	eventtyperepository "bookify/internal/repository/event_type/repository"
-	event_repository "bookify/internal/repository/events/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
 	user_repository "bookify/internal/repository/user/repository"
 	venue_repository "bookify/internal/repository/venue/repository"
@@ -29,6 +29,8 @@ func AdminEventsRouter(env *config.Database, timeout time.Duration, db *mongo.Da
 
 	router := group.Group("/events")
 	router.POST("/create", event.CreateOne)
+	router.POST("/create/async", event.CreateOneAsync)
 	router.PUT("/update", event.UpdateOne)
+	router.PATCH("/update/image", event.UpdateImage)
 	router.POST("/delete", event.DeleteOne)
 }

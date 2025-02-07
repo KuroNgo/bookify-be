@@ -2,6 +2,7 @@ package organization_route
 
 import (
 	organizationcontroller "bookify/internal/api/controller/organization"
+	"bookify/internal/api/middleware"
 	"bookify/internal/config"
 	"bookify/internal/domain"
 	organizationrepository "bookify/internal/repository/organization/repository"
@@ -23,5 +24,6 @@ func OrganizationRouter(env *config.Database, timeout time.Duration, db *mongo.D
 
 	router := group.Group("/organization")
 	router.GET("/get/id", organization.GetByID)
+	router.GET("/get/user_id", middleware.DeserializeUser(), organization.GetByUserID)
 	router.GET("/get/all", organization.GetAll)
 }

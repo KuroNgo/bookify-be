@@ -90,12 +90,12 @@ type UpdateUserInfo struct {
 }
 
 type VerificationInput struct {
-	VerificationCode string `json:"verification_code" binding:"required"`
+	VerificationCode string `json:"verification_code"`
 }
 
 type ChangePasswordInput struct {
-	Password        string `json:"password" binding:"required"`
-	PasswordCompare string `json:"password_compare" binding:"required"`
+	Password        string `json:"password"`
+	PasswordCompare string `json:"password_compare"`
 }
 
 type ForgetPassword struct {
