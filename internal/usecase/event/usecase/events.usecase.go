@@ -23,6 +23,9 @@ import (
 
 type IEventUseCase interface {
 	GetByID(ctx context.Context, id string) (domain.Event, error)
+	GetByTitle(ctx context.Context, title string) (domain.Event, error)
+	GetByUserID(ctx context.Context, currentUser string) (domain.Event, error)
+	GetByOrganizationIDAndStartTime(ctx context.Context, currentUser string, startTime string) ([]domain.Event, error)
 	GetByStartTime(ctx context.Context, startTime string) ([]domain.Event, error)
 	GetByStartTimePagination(ctx context.Context, startTime string, page string) ([]domain.Event, int64, int, error)
 	GetAll(ctx context.Context) ([]domain.Event, error)
@@ -65,6 +68,75 @@ func (e eventUseCase) GetByID(ctx context.Context, id string) (domain.Event, err
 	data, err := e.eventRepository.GetByID(ctx, eventID)
 	if err != nil {
 		return domain.Event{}, err
+	}
+
+	return data, nil
+}
+
+func (e eventUseCase) GetByTitle(ctx context.Context, title string) (domain.Event, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	if title == "" {
+		return domain.Event{}, errors.New(constants.MsgInvalidInput)
+	}
+
+	data, err := e.eventRepository.GetByTitle(ctx, title)
+	if err != nil {
+		return domain.Event{}, err
+	}
+
+	return data, nil
+}
+
+func (e eventUseCase) GetByUserID(ctx context.Context, currentUser string) (domain.Event, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	currentUserID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return domain.Event{}, err
+	}
+
+	organizationID, err := e.organizationRepository.GetByUserID(ctx, currentUserID)
+	if err != nil {
+		return domain.Event{}, err
+	}
+
+	data, err := e.eventRepository.GetByOrganizationID(ctx, organizationID.ID)
+	if err != nil {
+		return domain.Event{}, err
+	}
+
+	return data, nil
+}
+
+func (e eventUseCase) GetByOrganizationIDAndStartTime(ctx context.Context, currentUser string, startTime string) ([]domain.Event, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	currentUserID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return nil, err
+	}
+
+	organizationID, err := e.organizationRepository.GetByUserID(ctx, currentUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse thời gian từ chuỗi (ISO 8601)
+	parseStartTime, err := time.Parse(time.RFC3339, startTime)
+	if err != nil {
+		return nil, errors.New(constants.MsgInvalidInput)
+	}
+
+	// Chuyển về đầu ngày (00:00:00 UTC)
+	startOfDay := time.Date(parseStartTime.Year(), parseStartTime.Month(), parseStartTime.Day(), 0, 0, 0, 0, time.UTC)
+
+	data, err := e.eventRepository.GetByOrganizationIDAndStartTime(ctx, organizationID.ID, startOfDay)
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil

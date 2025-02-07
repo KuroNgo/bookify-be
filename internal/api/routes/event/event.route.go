@@ -2,6 +2,7 @@ package event
 
 import (
 	event_controller "bookify/internal/api/controller/event"
+	"bookify/internal/api/middleware"
 	"bookify/internal/config"
 	"bookify/internal/domain"
 	event_repository "bookify/internal/repository/event/repository"
@@ -29,6 +30,9 @@ func EventsRouter(env *config.Database, timeout time.Duration, db *mongo.Databas
 
 	router := group.Group("/events")
 	router.GET("/get/id", event.GetByID)
+	router.GET("/get/title", event.GetByTitle)
+	router.GET("/get/user_id", middleware.DeserializeUser(), event.GetByUserID)
+	router.GET("/get/user-id/start-time", middleware.DeserializeUser(), event.GetByUserIDAndStartTime)
 	router.GET("/get/start-time", event.GetByStartTime)
 	router.GET("/get/start-time/pagination", event.GetByStartTimePagination)
 	router.GET("/get/all", event.GetAll)

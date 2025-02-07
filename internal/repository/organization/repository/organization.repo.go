@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IOrganizationRepository interface {
@@ -34,8 +35,10 @@ func (o organizationRepository) GetByID(ctx context.Context, id primitive.Object
 	organizationCollection := o.database.Collection(o.collectionOrganization)
 
 	filter := bson.M{"_id": id}
+	projection := bson.M{"user_id": 0}
+
 	var organization domain.Organization
-	if err := organizationCollection.FindOne(ctx, filter).Decode(&organization); err != nil {
+	if err := organizationCollection.FindOne(ctx, filter, options.FindOne().SetProjection(projection)).Decode(&organization); err != nil {
 		return domain.Organization{}, err
 	}
 
@@ -46,8 +49,10 @@ func (o organizationRepository) GetByUserID(ctx context.Context, userId primitiv
 	organizationCollection := o.database.Collection(o.collectionOrganization)
 
 	filter := bson.M{"user_id": userId}
+	projection := bson.M{"user_id": 0}
+
 	var organization domain.Organization
-	if err := organizationCollection.FindOne(ctx, filter).Decode(&organization); err != nil {
+	if err := organizationCollection.FindOne(ctx, filter, options.FindOne().SetProjection(projection)).Decode(&organization); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.Organization{}, err
 		}
@@ -61,7 +66,9 @@ func (o organizationRepository) GetAll(ctx context.Context) ([]domain.Organizati
 	organizationCollection := o.database.Collection(o.collectionOrganization)
 
 	filter := bson.M{}
-	cursor, err := organizationCollection.Find(ctx, filter)
+	projection := bson.M{"user_id": 0}
+
+	cursor, err := organizationCollection.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return nil, err
 	}
