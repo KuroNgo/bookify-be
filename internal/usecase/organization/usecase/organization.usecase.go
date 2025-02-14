@@ -9,6 +9,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -27,11 +28,60 @@ type organizationUseCase struct {
 	contextTimeout         time.Duration
 	organizationRepository organizationrepository.IOrganizationRepository
 	userRepository         userrepository.IUserRepository
+	cache                  *ristretto.Cache[string, domain.Organization]
+	caches                 *ristretto.Cache[string, []domain.Organization]
+}
+
+// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCache() (*ristretto.Cache[string, domain.Organization], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Organization]{
+		NumCounters: 1e7,     // number of keys to track frequency of (10M)
+		MaxCost:     1 << 30, // maximum cost of cache (1GB)
+		BufferItems: 64,      // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCaches Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCaches() (*ristretto.Cache[string, []domain.Organization], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Organization]{
+		NumCounters: 1e7,     // number of keys to track frequency of (10M)
+		MaxCost:     1 << 30, // maximum cost of cache (1GB)
+		BufferItems: 64,      // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+func NewOrganizationUseCase(database *config.Database, contextTimeout time.Duration, organizationRepository organizationrepository.IOrganizationRepository, userRepository userrepository.IUserRepository) IOrganizationUseCase {
+	cache, err := NewCache()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCaches()
+	if err != nil {
+		panic(err)
+	}
+	return &organizationUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, organizationRepository: organizationRepository, userRepository: userRepository}
 }
 
 func (o organizationUseCase) GetByUserID(ctx context.Context, userId string) (domain.Organization, error) {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := o.cache.Get(userId)
+	if found {
+		return value, nil
+	}
 
 	userID, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
@@ -43,12 +93,22 @@ func (o organizationUseCase) GetByUserID(ctx context.Context, userId string) (do
 		return domain.Organization{}, err
 	}
 
+	o.cache.Set(userId, data, 1)
+	// wait for value to pass through buffers
+	o.cache.Wait()
+
 	return data, nil
 }
 
 func (o organizationUseCase) GetByID(ctx context.Context, id string) (domain.Organization, error) {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := o.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	organizationId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -60,6 +120,10 @@ func (o organizationUseCase) GetByID(ctx context.Context, id string) (domain.Org
 		return domain.Organization{}, err
 	}
 
+	o.cache.Set(id, data, 1)
+	// wait for value to pass through buffers
+	o.cache.Wait()
+
 	return data, nil
 }
 
@@ -67,10 +131,20 @@ func (o organizationUseCase) GetAll(ctx context.Context) ([]domain.Organization,
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := o.caches.Get("organizations")
+	if found {
+		return value, nil
+	}
+
 	data, err := o.organizationRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	o.caches.Set("organizations", data, 1)
+	// wait for value to pass through buffers
+	o.cache.Wait()
 
 	return data, nil
 }
@@ -120,6 +194,8 @@ func (o organizationUseCase) CreateOne(ctx context.Context, organization *domain
 	if err != nil {
 		return err
 	}
+
+	o.caches.Clear()
 
 	return nil
 }
@@ -175,6 +251,9 @@ func (o organizationUseCase) UpdateOne(ctx context.Context, id string, organizat
 		return err
 	}
 
+	o.caches.Clear()
+	o.cache.Clear()
+
 	return nil
 }
 
@@ -208,11 +287,10 @@ func (o organizationUseCase) DeleteOne(ctx context.Context, id string, currentUs
 		return err
 	}
 
-	return nil
-}
+	o.caches.Clear()
+	o.cache.Clear()
 
-func NewOrganizationUseCase(database *config.Database, contextTimeout time.Duration, organizationRepository organizationrepository.IOrganizationRepository, userRepository userrepository.IUserRepository) IOrganizationUseCase {
-	return &organizationUseCase{database: database, contextTimeout: contextTimeout, organizationRepository: organizationRepository, userRepository: userRepository}
+	return nil
 }
 
 // Đối với organization, việc tạo organization sẽ do user đã đăng ký gói pre plan (tức hệ thống sẽ dựa trên
