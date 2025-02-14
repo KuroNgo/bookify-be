@@ -3,8 +3,8 @@ package event_type_usecase
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
-	event_type_repository "bookify/internal/repository/event_type/repository"
-	user_repository "bookify/internal/repository/user/repository"
+	eventtyperepository "bookify/internal/repository/event_type/repository"
+	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/validate_data"
 	"context"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type IEventTypeRepository interface {
+type IEventTypeUseCase interface {
 	GetByID(ctx context.Context, id string) (domain.EventType, error)
 	GetByName(ctx context.Context, name string) (domain.EventType, error)
 	GetAll(ctx context.Context) ([]domain.EventType, error)
@@ -25,8 +25,12 @@ type IEventTypeRepository interface {
 type eventTypeUseCase struct {
 	database            *config.Database
 	contextTimeout      time.Duration
-	eventTypeRepository event_type_repository.IEventTypeRepository
-	userRepository      user_repository.IUserRepository
+	eventTypeRepository eventtyperepository.IEventTypeRepository
+	userRepository      userrepository.IUserRepository
+}
+
+func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventTypeRepository eventtyperepository.IEventTypeRepository, userRepository userrepository.IUserRepository) IEventTypeUseCase {
+	return &eventTypeUseCase{database: database, contextTimeout: contextTimeout, eventTypeRepository: eventTypeRepository, userRepository: userRepository}
 }
 
 func (e eventTypeUseCase) GetByName(ctx context.Context, name string) (domain.EventType, error) {
@@ -196,8 +200,4 @@ func (e eventTypeUseCase) DeleteOne(ctx context.Context, id string, currentUser 
 	}
 
 	return nil
-}
-
-func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventTypeRepository event_type_repository.IEventTypeRepository, userRepository user_repository.IUserRepository) IEventTypeRepository {
-	return &eventTypeUseCase{database: database, contextTimeout: contextTimeout, eventTypeRepository: eventTypeRepository, userRepository: userRepository}
 }

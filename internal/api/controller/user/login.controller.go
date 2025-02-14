@@ -44,6 +44,5 @@ func (l *UserController) LoginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":    "success",
 		"is_logged": user.IsLogged,
-		"data":      user,
 	})
 }

@@ -8,7 +8,7 @@ import (
 
 type EventController struct {
 	Database         *config.Database
-	EventTypeUseCase event_type_usecase.IEventTypeRepository
+	EventTypeUseCase event_type_usecase.IEventTypeUseCase
 }
 
 type IEventTypeUseCase interface {
@@ -19,6 +19,6 @@ type IEventTypeUseCase interface {
 	DeleteOne(ctx *gin.Context)
 }
 
-func NewEvent(Database *config.Database, EventTypeUseCase event_type_usecase.IEventTypeRepository) IEventTypeUseCase {
+func NewEvent(Database *config.Database, EventTypeUseCase event_type_usecase.IEventTypeUseCase) IEventTypeUseCase {
 	return &EventController{Database: Database, EventTypeUseCase: EventTypeUseCase}
 }

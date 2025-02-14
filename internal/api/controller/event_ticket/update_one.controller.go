@@ -1,4 +1,4 @@
-package organization_controller
+package event_ticket_controller
 
 import (
 	"bookify/internal/domain"
@@ -8,15 +8,14 @@ import (
 )
 
 // UpdateOne godoc
-// @Summary Update an organization
-// @Description Update details of an organization by its ID.
-// @Tags Organizations
+// @Summary Update an event ticket
+// @Description Updates an existing event ticket
+// @Tags Event Ticket
 // @Accept json
 // @Produce json
-// @Param id query string true "Organization ID"
-// @Param OrganizationInput body domain.OrganizationInput true "Organization data"
-// @Router /api/v1/organizations/update [put]
-func (o OrganizationController) UpdateOne(ctx *gin.Context) {
+// @Param eventTicket body domain.EventTicket true "Event Ticket Body"
+// @Router /api/v1/event-tickets/update [put]
+func (e *EventTicketController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -27,8 +26,8 @@ func (o OrganizationController) UpdateOne(ctx *gin.Context) {
 	}
 
 	//  Lấy thông tin từ request
-	var organizationInput domain.OrganizationInput
-	if err := ctx.ShouldBindJSON(&organizationInput); err != nil {
+	var eventTicketInput domain.EventTicketInput
+	if err := ctx.ShouldBindJSON(&eventTicketInput); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": err.Error()},
@@ -37,7 +36,7 @@ func (o OrganizationController) UpdateOne(ctx *gin.Context) {
 	}
 	id := ctx.Query("id")
 
-	err := o.OrganizationUseCase.UpdateOne(ctx, id, &organizationInput, fmt.Sprintf("%s", currentUser))
+	err := e.EventTicketUseCase.UpdateOne(ctx, id, &eventTicketInput, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",

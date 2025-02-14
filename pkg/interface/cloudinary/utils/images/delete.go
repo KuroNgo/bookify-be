@@ -14,8 +14,12 @@ func DeleteToCloudinary(assetID string, env *config.Database) (string, error) {
 		return "", err
 	}
 
+	invalidate := true
 	deleteParams := uploader.DestroyParams{
-		PublicID: assetID,
+		PublicID:     assetID,
+		Type:         "upload",
+		ResourceType: "image",
+		Invalidate:   &invalidate,
 	}
 
 	result, err := cld.Upload.Destroy(ctx, deleteParams)

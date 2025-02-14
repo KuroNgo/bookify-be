@@ -6,9 +6,6 @@ definitions:
         type: string
       password_compare:
         type: string
-    required:
-    - password
-    - password_compare
     type: object
   domain.EmployeeInput:
     properties:
@@ -27,7 +24,15 @@ definitions:
     properties:
       actual_attendee:
         type: integer
+      address_line:
+        type: string
       asset_url:
+        type: string
+      capacity:
+        type: integer
+      city:
+        type: string
+      country:
         type: string
       description:
         type: string
@@ -35,22 +40,47 @@ definitions:
         type: string
       estimated_attendee:
         type: integer
-      event_type_id:
+      event_mode:
+        type: string
+      event_type_name:
+        type: string
+      from_attend:
         type: string
       image_url:
+        type: string
+      link_attend:
         type: string
       mode:
         description: Public, Friend and Group, Invite Only
         type: string
       organization_id:
         type: string
+      short_description:
+        type: string
       start_time:
         type: string
+      tags:
+        items:
+          type: string
+        type: array
       title:
         type: string
       total_expenditure:
         type: number
-      venue_id:
+    type: object
+  domain.EventTicket:
+    properties:
+      event_id:
+        type: string
+      id:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: number
+      status:
+        description: Trạng thái vé - automatic (available, sold_out, expired, canceled,
+          pending, reserved)
         type: string
     type: object
   domain.EventTypeInput:
@@ -148,23 +178,17 @@ definitions:
         type: string
       country:
         type: string
+      event_mode:
+        type: string
       from_attend:
         type: string
       link_attend:
-        type: string
-      online_flat:
-        type: boolean
-      postal_code:
-        type: string
-      state:
         type: string
     type: object
   domain.VerificationInput:
     properties:
       verification_code:
         type: string
-    required:
-    - verification_code
     type: object
 host: localhost:8080
 info:
@@ -261,6 +285,87 @@ paths:
       summary: Update an employee
       tags:
       - Employees
+  /api/v1/event-tickets/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new event ticket for the current user
+      parameters:
+      - description: Event Ticket Body
+        in: body
+        name: eventTickets
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventTicket'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event ticket
+      tags:
+      - Event Tickets
+  /api/v1/event-tickets/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an event ticket by ID for the current user
+      parameters:
+      - description: Event Tickets ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event ticket
+      tags:
+      - Event Ticket
+  /api/v1/event-tickets/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all event tickets
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all event tickets
+      tags:
+      - Event Tickets
+  /api/v1/event-tickets/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event tickets by its ID
+      parameters:
+      - description: Event Ticket ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get event tickets by ID
+      tags:
+      - Event Tickets
+  /api/v1/event-tickets/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing event ticket
+      parameters:
+      - description: Event Ticket Body
+        in: body
+        name: eventTicket
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventTicket'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event ticket
+      tags:
+      - Event Ticket
   /api/v1/event-types/create:
     post:
       consumes:
@@ -344,6 +449,33 @@ paths:
       summary: Get event type by ID
       tags:
       - Event Types
+  /api/v1/event-types/get/name:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event type by its Name
+      parameters:
+      - description: Event Type Name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get event type by Name
+      tags:
+      - Event Types
   /api/v1/event-types/update:
     put:
       consumes:
@@ -362,7 +494,7 @@ paths:
       summary: Update an event type
       tags:
       - Event Types
-  /api/v1/events/create:
+  /api/v1/event/create:
     post:
       consumes:
       - application/json
@@ -380,7 +512,25 @@ paths:
       summary: Create a new event
       tags:
       - Events
-  /api/v1/events/delete-one:
+  /api/v1/event/create/async:
+    post:
+      consumes:
+      - application/json
+      description: Add a new event to the system
+      parameters:
+      - description: Event input data
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event
+      tags:
+      - Events
+  /api/v1/event/delete-one:
     delete:
       consumes:
       - application/json
@@ -397,7 +547,7 @@ paths:
       summary: Delete an event
       tags:
       - Events
-  /api/v1/events/get-all/pagination:
+  /api/v1/event/get-all/pagination:
     get:
       consumes:
       - application/json
@@ -413,7 +563,7 @@ paths:
       summary: Get all event with pagination
       tags:
       - Events
-  /api/v1/events/get/all:
+  /api/v1/event/get/all:
     get:
       consumes:
       - application/json
@@ -424,7 +574,7 @@ paths:
       summary: Get all event
       tags:
       - Events
-  /api/v1/events/get/id:
+  /api/v1/event/get/id:
     get:
       consumes:
       - application/json
@@ -441,7 +591,7 @@ paths:
       summary: Get event by ID
       tags:
       - Events
-  /api/v1/events/get/start-time:
+  /api/v1/event/get/start-time:
     get:
       consumes:
       - application/json
@@ -458,7 +608,7 @@ paths:
       summary: Get event by start time
       tags:
       - Events
-  /api/v1/events/get/start-time/pagination:
+  /api/v1/event/get/start-time/pagination:
     get:
       consumes:
       - application/json
@@ -479,7 +629,49 @@ paths:
       summary: Get event by start time with pagination
       tags:
       - Events
-  /api/v1/events/update:
+  /api/v1/event/get/title:
+    get:
+      consumes:
+      - application/json
+      description: Get details of an event by title
+      produces:
+      - application/json
+      responses: {}
+      summary: Get event by title
+      tags:
+      - Events
+  /api/v1/event/get/user_id:
+    get:
+      consumes:
+      - application/json
+      description: Get details of an event by its User ID
+      produces:
+      - application/json
+      responses: {}
+      summary: Get event by UserID
+      tags:
+      - Events
+  /api/v1/event/get/user_id/start_time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve event details for a specific user based on User ID and
+        Start Time
+      parameters:
+      - description: Start Time (ISO 8601 format)
+        in: query
+        name: start_time
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Get events by User ID and Start Time
+      tags:
+      - Events
+  /api/v1/event/update:
     put:
       consumes:
       - application/json
@@ -502,7 +694,28 @@ paths:
       summary: Update an event
       tags:
       - Events
-  /api/v1/organization/create:
+  /api/v1/event/update/image:
+    patch:
+      consumes:
+      - application/json
+      description: Update details of an existing event
+      parameters:
+      - description: Event ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event
+      tags:
+      - Events
+  /api/v1/organizations/create:
     post:
       consumes:
       - application/json
@@ -518,6 +731,79 @@ paths:
       - application/json
       responses: {}
       summary: Create a new organization
+      tags:
+      - Organizations
+  /api/v1/organizations/delete:
+    delete:
+      description: Deletes a specific organization by ID. User must be logged in.
+      parameters:
+      - description: Organization ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an organization
+      tags:
+      - Organizations
+  /api/v1/organizations/get/all:
+    get:
+      description: Retrieve a list of all organizations.
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all organizations
+      tags:
+      - Organizations
+  /api/v1/organizations/get/id:
+    get:
+      description: Retrieve details of an organization using its ID.
+      parameters:
+      - description: Organization ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get organization by ID
+      tags:
+      - Organizations
+  /api/v1/organizations/get/user_id:
+    get:
+      description: Retrieve details of an organization using its ID.
+      produces:
+      - application/json
+      responses: {}
+      summary: Get organization by ID
+      tags:
+      - Organizations
+  /api/v1/organizations/update:
+    put:
+      consumes:
+      - application/json
+      description: Update details of an organization by its ID.
+      parameters:
+      - description: Organization ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Organization data
+        in: body
+        name: OrganizationInput
+        required: true
+        schema:
+          $ref: '#/definitions/domain.OrganizationInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an organization
       tags:
       - Organizations
   /api/v1/partners/create:
@@ -925,70 +1211,6 @@ paths:
       summary: Verify code for password change
       tags:
       - User
-  /organizations:
-    delete:
-      description: Deletes a specific organization by ID. User must be logged in.
-      parameters:
-      - description: Organization ID
-        in: query
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Delete an organization
-      tags:
-      - Organizations
-  /organizations/get/all:
-    get:
-      description: Retrieve a list of all organizations.
-      produces:
-      - application/json
-      responses: {}
-      summary: Get all organizations
-      tags:
-      - Organizations
-  /organizations/get/id:
-    get:
-      description: Retrieve details of an organization using its ID.
-      parameters:
-      - description: Organization ID
-        in: query
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: Get organization by ID
-      tags:
-      - Organizations
-  /organizations/update:
-    put:
-      consumes:
-      - application/json
-      description: Update details of an organization by its ID.
-      parameters:
-      - description: Organization ID
-        in: query
-        name: id
-        required: true
-        type: string
-      - description: Organization data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.OrganizationInput'
-      produces:
-      - application/json
-      responses: {}
-      summary: Update an organization
-      tags:
-      - Organizations
   /venues:
     get:
       consumes:

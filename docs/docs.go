@@ -145,6 +145,126 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/event-tickets/create": {
+            "post": {
+                "description": "Creates a new event ticket for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Tickets"
+                ],
+                "summary": "Create a new event ticket",
+                "parameters": [
+                    {
+                        "description": "Event Ticket Body",
+                        "name": "eventTickets",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventTicket"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-tickets/delete": {
+            "delete": {
+                "description": "Deletes an event ticket by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket"
+                ],
+                "summary": "Delete an event ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Tickets ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-tickets/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event tickets",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Tickets"
+                ],
+                "summary": "Get all event tickets",
+                "responses": {}
+            }
+        },
+        "/api/v1/event-tickets/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event tickets by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Tickets"
+                ],
+                "summary": "Get event tickets by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Ticket ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-tickets/update": {
+            "put": {
+                "description": "Updates an existing event ticket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket"
+                ],
+                "summary": "Update an event ticket",
+                "parameters": [
+                    {
+                        "description": "Event Ticket Body",
+                        "name": "eventTicket",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventTicket"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event-types/create": {
             "post": {
                 "description": "Creates a new event type for the current user",
@@ -268,6 +388,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/event-types/get/name": {
+            "get": {
+                "description": "Retrieves the details of an event type by its Name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Types"
+                ],
+                "summary": "Get event type by Name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Type Name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/event-types/update": {
             "put": {
                 "description": "Updates an existing event type",
@@ -296,6 +456,33 @@ const docTemplate = `{
             }
         },
         "/api/v1/event/create": {
+            "post": {
+                "description": "Add a new event to the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create a new event",
+                "parameters": [
+                    {
+                        "description": "Event input data",
+                        "name": "event",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event/create/async": {
             "post": {
                 "description": "Add a new event to the system",
                 "consumes": [
@@ -468,6 +655,68 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/event/get/title": {
+            "get": {
+                "description": "Get details of an event by title",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get event by title",
+                "responses": {}
+            }
+        },
+        "/api/v1/event/get/user_id": {
+            "get": {
+                "description": "Get details of an event by its User ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get event by UserID",
+                "responses": {}
+            }
+        },
+        "/api/v1/event/get/user_id/start_time": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve event details for a specific user based on User ID and Start Time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get events by User ID and Start Time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Time (ISO 8601 format)",
+                        "name": "start_time",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event/update": {
             "put": {
                 "description": "Update details of an existing event",
@@ -502,7 +751,38 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/organization/create": {
+        "/api/v1/event/update/image": {
+            "patch": {
+                "description": "Update details of an existing event",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Update an event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file to upload",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/organizations/create": {
             "post": {
                 "description": "Creates a new organization for the current user",
                 "consumes": [
@@ -519,6 +799,115 @@ const docTemplate = `{
                     {
                         "description": "Organization Input Body",
                         "name": "eventType",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.OrganizationInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/organizations/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes a specific organization by ID. User must be logged in.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Delete an organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/organizations/get/all": {
+            "get": {
+                "description": "Retrieve a list of all organizations.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Get all organizations",
+                "responses": {}
+            }
+        },
+        "/api/v1/organizations/get/id": {
+            "get": {
+                "description": "Retrieve details of an organization using its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Get organization by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/organizations/get/user_id": {
+            "get": {
+                "description": "Retrieve details of an organization using its ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Get organization by ID",
+                "responses": {}
+            }
+        },
+        "/api/v1/organizations/update": {
+            "put": {
+                "description": "Update details of an organization by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Update an organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Organization data",
+                        "name": "OrganizationInput",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -1140,102 +1529,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/organizations": {
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Deletes a specific organization by ID. User must be logged in.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Delete an organization",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/organizations/get/all": {
-            "get": {
-                "description": "Retrieve a list of all organizations.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Get all organizations",
-                "responses": {}
-            }
-        },
-        "/organizations/get/id": {
-            "get": {
-                "description": "Retrieve details of an organization using its ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Get organization by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/organizations/update": {
-            "put": {
-                "description": "Update details of an organization by its ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Update an organization",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "description": "Organization data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.OrganizationInput"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/venues": {
             "get": {
                 "description": "Retrieve a venue by its ID",
@@ -1365,10 +1658,6 @@ const docTemplate = `{
     "definitions": {
         "domain.ChangePasswordInput": {
             "type": "object",
-            "required": [
-                "password",
-                "password_compare"
-            ],
             "properties": {
                 "password": {
                     "type": "string"
@@ -1404,7 +1693,19 @@ const docTemplate = `{
                 "actual_attendee": {
                     "type": "integer"
                 },
+                "address_line": {
+                    "type": "string"
+                },
                 "asset_url": {
+                    "type": "string"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "country": {
                     "type": "string"
                 },
                 "description": {
@@ -1416,10 +1717,19 @@ const docTemplate = `{
                 "estimated_attendee": {
                     "type": "integer"
                 },
-                "event_type_id": {
+                "event_mode": {
+                    "type": "string"
+                },
+                "event_type_name": {
+                    "type": "string"
+                },
+                "from_attend": {
                     "type": "string"
                 },
                 "image_url": {
+                    "type": "string"
+                },
+                "link_attend": {
                     "type": "string"
                 },
                 "mode": {
@@ -1429,16 +1739,43 @@ const docTemplate = `{
                 "organization_id": {
                     "type": "string"
                 },
+                "short_description": {
+                    "type": "string"
+                },
                 "start_time": {
                     "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "title": {
                     "type": "string"
                 },
                 "total_expenditure": {
                     "type": "number"
+                }
+            }
+        },
+        "domain.EventTicket": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
                 },
-                "venue_id": {
+                "id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "status": {
+                    "description": "Trạng thái vé - automatic (available, sold_out, expired, canceled, pending, reserved)",
                     "type": "string"
                 }
             }
@@ -1588,28 +1925,19 @@ const docTemplate = `{
                 "country": {
                     "type": "string"
                 },
+                "event_mode": {
+                    "type": "string"
+                },
                 "from_attend": {
                     "type": "string"
                 },
                 "link_attend": {
-                    "type": "string"
-                },
-                "online_flat": {
-                    "type": "boolean"
-                },
-                "postal_code": {
-                    "type": "string"
-                },
-                "state": {
                     "type": "string"
                 }
             }
         },
         "domain.VerificationInput": {
             "type": "object",
-            "required": [
-                "verification_code"
-            ],
             "properties": {
                 "verification_code": {
                     "type": "string"
