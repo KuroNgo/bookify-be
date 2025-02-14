@@ -28,6 +28,10 @@ type partnerUseCase struct {
 	userRepository    userrepository.IUserRepository
 }
 
+func NewPartnerUseCase(database *config.Database, contextTimeout time.Duration, partnerRepository partnerrepository.IPartnerRepository, userRepository userrepository.IUserRepository) IPartnerUseCase {
+	return &partnerUseCase{database: database, contextTimeout: contextTimeout, partnerRepository: partnerRepository, userRepository: userRepository}
+}
+
 func (p partnerUseCase) GetByID(ctx context.Context, id string) (domain.Partner, error) {
 	ctx, cancel := context.WithTimeout(ctx, p.contextTimeout)
 	defer cancel()
@@ -186,8 +190,4 @@ func (p partnerUseCase) DeleteOne(ctx context.Context, id string, currentUser st
 	}
 
 	return nil
-}
-
-func NewPartnerUseCase(database *config.Database, contextTimeout time.Duration, partnerRepository partnerrepository.IPartnerRepository, userRepository userrepository.IUserRepository) IPartnerUseCase {
-	return &partnerUseCase{database: database, contextTimeout: contextTimeout, partnerRepository: partnerRepository, userRepository: userRepository}
 }

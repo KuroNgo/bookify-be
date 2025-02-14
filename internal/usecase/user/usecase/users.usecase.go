@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/dgraph-io/ristretto/v2"
 	"github.com/thanhpk/randstr"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	mongo_driven "go.mongodb.org/mongo-driver/mongo"
@@ -55,12 +56,31 @@ type userUseCase struct {
 	database       *config.Database
 	contextTimeout time.Duration
 	userRepository repository.IUserRepository
+	cache          *ristretto.Cache[string, domain.User]
 	client         *mongo_driven.Client
+}
+
+// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCache() (*ristretto.Cache[string, domain.User], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.User]{
+		NumCounters: 1e7,     // number of keys to track frequency of (10M)
+		MaxCost:     1 << 30, // maximum cost of cache (1GB)
+		BufferItems: 64,      // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewUserUseCase(database *config.Database, contextTimeout time.Duration, userRepository repository.IUserRepository,
 	client *mongo_driven.Client) IUserUseCase {
-	return &userUseCase{database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
+	cache, err := NewCache()
+	if err != nil {
+		panic(err)
+	}
+	return &userUseCase{cache: cache, database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
 }
 
 func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.User, error) {
@@ -101,6 +121,12 @@ func (u *userUseCase) GetByEmail(ctx context.Context, email string) (domain.User
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := u.cache.Get(email)
+	if found {
+		return value, nil
+	}
+
 	userData, err := u.userRepository.GetByEmail(ctx, email)
 	if err != nil {
 		return domain.User{}, err
@@ -122,6 +148,10 @@ func (u *userUseCase) GetByEmail(ctx context.Context, email string) (domain.User
 		Role:        userData.Role,
 	}
 
+	u.cache.Set(email, userData, 1)
+	// wait for value to pass through buffers
+	u.cache.Wait()
+
 	return output, nil
 }
 
@@ -134,6 +164,12 @@ func (u *userUseCase) GetByIDForCheckCookie(ctx context.Context, accessToken str
 		return domain.User{}, err
 	}
 
+	// get value from cache
+	value, found := u.cache.Get(fmt.Sprint(sub))
+	if found {
+		return value, nil
+	}
+
 	userID, err := primitive.ObjectIDFromHex(fmt.Sprint(sub))
 	if err != nil {
 		return domain.User{}, err
@@ -144,12 +180,22 @@ func (u *userUseCase) GetByIDForCheckCookie(ctx context.Context, accessToken str
 		return domain.User{}, err
 	}
 
+	u.cache.Set(fmt.Sprint(sub), userData, 1)
+	// wait for value to pass through buffers
+	u.cache.Wait()
+
 	return userData, nil
 }
 
 func (u *userUseCase) GetByID(ctx context.Context, idUser string) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := u.cache.Get(idUser)
+	if found {
+		return value, nil
+	}
 
 	userID, err := primitive.ObjectIDFromHex(idUser)
 	if err != nil {
@@ -161,12 +207,22 @@ func (u *userUseCase) GetByID(ctx context.Context, idUser string) (domain.User, 
 		return domain.User{}, err
 	}
 
+	u.cache.Set(idUser, userData, 1)
+	// wait for value to pass through buffers
+	u.cache.Wait()
+
 	return userData, nil
 }
 
 func (u *userUseCase) GetByVerificationCode(ctx context.Context, verificationCode string) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := u.cache.Get(verificationCode)
+	if found {
+		return value, nil
+	}
 
 	user, err := u.userRepository.GetByVerificationCode(ctx, verificationCode)
 	if err != nil {
@@ -200,6 +256,10 @@ func (u *userUseCase) GetByVerificationCode(ctx context.Context, verificationCod
 		AvatarURL:   user.AvatarURL,
 		Role:        user.Role,
 	}
+
+	u.cache.Set(verificationCode, response, 1)
+	// wait for value to pass through buffers
+	u.cache.Wait()
 
 	return response, nil
 }
@@ -258,6 +318,7 @@ func (u *userUseCase) UpdateOne(ctx context.Context, userID string, input *domai
 	if err != nil {
 		return err
 	}
+	u.cache.Clear()
 
 	return nil
 }
@@ -290,6 +351,7 @@ func (u *userUseCase) UpdateSocialMedia(ctx context.Context, userID string, user
 	if err != nil {
 		return err
 	}
+	u.cache.Clear()
 
 	return nil
 }
@@ -395,6 +457,8 @@ func (u *userUseCase) UpdateProfile(ctx context.Context, userID string, userProf
 		return "", err
 	}
 
+	u.cache.Clear()
+
 	return imageURL.ImageURL, nil
 }
 
@@ -440,6 +504,7 @@ func (u *userUseCase) UpdateProfileNotImage(ctx context.Context, userID string, 
 	if err != nil {
 		return err
 	}
+	u.cache.Clear()
 
 	return nil
 }
@@ -518,6 +583,8 @@ func (u *userUseCase) UpdateUserInfoOne(ctx context.Context, userID string, inpu
 	if err != nil {
 		return err
 	}
+
+	u.cache.Clear()
 
 	return nil
 }
@@ -609,6 +676,7 @@ func (u *userUseCase) UpdateImage(ctx context.Context, id string, file *multipar
 		return err
 	}
 
+	u.cache.Clear()
 	return session.CommitTransaction(ctx)
 }
 
@@ -848,7 +916,13 @@ func (u *userUseCase) DeleteOne(ctx context.Context, idUser string) error {
 		return err
 	}
 
-	return u.userRepository.DeleteOne(ctx, userID)
+	err = u.userRepository.DeleteOne(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	u.cache.Clear()
+	return nil
 }
 
 func (u *userUseCase) RefreshToken(ctx context.Context, refreshToken string) (*domain.OutputLogin, error) {

@@ -182,7 +182,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Event Ticket"
+                    "Event Tickets"
                 ],
                 "summary": "Delete an event ticket",
                 "parameters": [
@@ -248,7 +248,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Event Ticket"
+                    "Event Tickets"
                 ],
                 "summary": "Update an event ticket",
                 "parameters": [

@@ -10,7 +10,7 @@ import (
 // UpdateOne godoc
 // @Summary Update an event ticket
 // @Description Updates an existing event ticket
-// @Tags Event Ticket
+// @Tags Event Tickets
 // @Accept json
 // @Produce json
 // @Param eventTicket body domain.EventTicket true "Event Ticket Body"

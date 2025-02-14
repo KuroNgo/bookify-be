@@ -9,7 +9,7 @@ import (
 // DeleteOne godoc
 // @Summary Delete an event ticket
 // @Description Deletes an event ticket by ID for the current user
-// @Tags Event Ticket
+// @Tags Event Tickets
 // @Accept json
 // @Produce json
 // @Param id query string true "Event Tickets ID"
