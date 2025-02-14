@@ -15,7 +15,7 @@ import (
 // @Produce  json
 // @Param venueInput body domain.VenueInput true "Venue data to update" // Body chứa thông tin venue
 // @Security ApiKeyAuth
-// @Router /venues/update [put]
+// @Router /api/v1/venues/update [put]
 func (v VenueController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

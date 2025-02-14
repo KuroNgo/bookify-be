@@ -1211,24 +1211,7 @@ paths:
       summary: Verify code for password change
       tags:
       - User
-  /venues:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a venue by its ID
-      parameters:
-      - description: Venue ID
-        in: query
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: Get venue by ID
-      tags:
-      - Venues
-  /venues/create:
+  /api/v1/venues/create:
     post:
       consumes:
       - application/json
@@ -1246,7 +1229,7 @@ paths:
       summary: Create a new venue
       tags:
       - Venues
-  /venues/delete:
+  /api/v1/venues/delete:
     delete:
       consumes:
       - application/json
@@ -1263,7 +1246,7 @@ paths:
       summary: Delete a venue
       tags:
       - Venues
-  /venues/get/all:
+  /api/v1/venues/get/all:
     get:
       consumes:
       - application/json
@@ -1274,7 +1257,24 @@ paths:
       summary: Get all venues
       tags:
       - Venues
-  /venues/update:
+  /api/v1/venues/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a venue by its ID
+      parameters:
+      - description: Venue ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get venue by ID
+      tags:
+      - Venues
+  /api/v1/venues/update:
     put:
       consumes:
       - application/json

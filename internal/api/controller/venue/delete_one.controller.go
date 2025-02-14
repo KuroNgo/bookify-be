@@ -13,7 +13,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param id query string true "Venue ID to delete"
-// @Router /venues/delete [delete]
+// @Router /api/v1/venues/delete [delete]
 func (v VenueController) DeleteOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

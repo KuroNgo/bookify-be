@@ -11,7 +11,7 @@ import (
 // @Tags Venues
 // @Accept  json
 // @Produce  json
-// @Router /venues/get/all [get]
+// @Router /api/v1/venues/get/all [get]
 func (v VenueController) GetAll(ctx *gin.Context) {
 	data, err := v.VenueUseCase.GetAll(ctx)
 	if err != nil {

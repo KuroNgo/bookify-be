@@ -9,6 +9,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -26,11 +27,60 @@ type venueUseCase struct {
 	contextTimeout  time.Duration
 	venueRepository venue_repository.IVenueRepository
 	userRepository  userrepository.IUserRepository
+	cache           *ristretto.Cache[string, domain.Venue]
+	cacheVenues     *ristretto.Cache[string, []domain.Venue]
 }
 
-func (v venueUseCase) GetByID(ctx context.Context, id string) (domain.Venue, error) {
+// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCache() (*ristretto.Cache[string, domain.Venue], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Venue]{
+		NumCounters: 1e7,     // number of keys to track frequency of (10M)
+		MaxCost:     1 << 30, // maximum cost of cache (1GB)
+		BufferItems: 64,      // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheVenue Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheVenue() (*ristretto.Cache[string, []domain.Venue], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Venue]{
+		NumCounters: 1e7,     // number of keys to track frequency of (10M)
+		MaxCost:     1 << 30, // maximum cost of cache (1GB)
+		BufferItems: 64,      // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+func NewVenueUseCase(database *config.Database, contextTimeout time.Duration, venueRepository venue_repository.IVenueRepository, userRepository userrepository.IUserRepository) IVenueUseCase {
+	cache, err := NewCache()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheVenue()
+	if err != nil {
+		panic(err)
+	}
+	return &venueUseCase{cache: cache, cacheVenues: caches, database: database, contextTimeout: contextTimeout, venueRepository: venueRepository, userRepository: userRepository}
+}
+
+func (v *venueUseCase) GetByID(ctx context.Context, id string) (domain.Venue, error) {
 	ctx, cancel := context.WithTimeout(ctx, v.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := v.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	venueID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -42,22 +92,34 @@ func (v venueUseCase) GetByID(ctx context.Context, id string) (domain.Venue, err
 		return domain.Venue{}, err
 	}
 
+	v.cache.Set(id, data, 1)
+	// wait for value to pass through buffers
+	v.cache.Wait()
 	return data, nil
 }
 
-func (v venueUseCase) GetAll(ctx context.Context) ([]domain.Venue, error) {
+func (v *venueUseCase) GetAll(ctx context.Context) ([]domain.Venue, error) {
 	ctx, cancel := context.WithTimeout(ctx, v.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := v.cacheVenues.Get("venues")
+	if found {
+		return value, nil
+	}
 
 	data, err := v.venueRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	v.cacheVenues.Set("venues", data, 1)
+	// wait for value to pass through buffers
+	v.cacheVenues.Wait()
 	return data, nil
 }
 
-func (v venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, currentUser string) error {
+func (v *venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, v.contextTimeout)
 	defer cancel()
 
@@ -81,15 +143,6 @@ func (v venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, c
 	if err = validate_data.ValidateVenueInput(venue); err != nil {
 		return err
 	}
-	//
-	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if count > 0 {
-	//	return errors.New(constants.MsgAPIConflict)
-	//}
 
 	venueInput := &domain.Venue{
 		ID:          primitive.NewObjectID(),
@@ -109,10 +162,11 @@ func (v venueUseCase) CreateOne(ctx context.Context, venue *domain.VenueInput, c
 		return err
 	}
 
+	v.cache.Clear()
 	return nil
 }
 
-func (v venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.VenueInput, currentUser string) error {
+func (v *venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.VenueInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, v.contextTimeout)
 	defer cancel()
 
@@ -133,15 +187,6 @@ func (v venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.Ve
 	if err = validate_data.ValidateVenueInput(venue); err != nil {
 		return err
 	}
-	//
-	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if count > 0 {
-	//	return errors.New(constants.MsgAPIConflict)
-	//}
 
 	venueID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -166,10 +211,13 @@ func (v venueUseCase) UpdateOne(ctx context.Context, id string, venue *domain.Ve
 		return err
 	}
 
+	v.cache.Clear()
+	v.cacheVenues.Clear()
+
 	return nil
 }
 
-func (v venueUseCase) DeleteOne(ctx context.Context, id string, currentUser string) error {
+func (v *venueUseCase) DeleteOne(ctx context.Context, id string, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, v.contextTimeout)
 	defer cancel()
 
@@ -197,9 +245,8 @@ func (v venueUseCase) DeleteOne(ctx context.Context, id string, currentUser stri
 		return err
 	}
 
-	return nil
-}
+	v.cache.Clear()
+	v.cacheVenues.Clear()
 
-func NewVenueUseCase(database *config.Database, contextTimeout time.Duration, venueRepository venue_repository.IVenueRepository, userRepository userrepository.IUserRepository) IVenueUseCase {
-	return &venueUseCase{database: database, contextTimeout: contextTimeout, venueRepository: venueRepository, userRepository: userRepository}
+	return nil
 }

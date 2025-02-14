@@ -12,7 +12,7 @@ import (
 // @Accept  json
 // @Produce  json
 // @Param id query string true "Venue ID"
-// @Router /venues [get]
+// @Router /api/v1/venues/get/id [get]
 func (v VenueController) GetByID(ctx *gin.Context) {
 	id := ctx.Query("id")
 	data, err := v.VenueUseCase.GetByID(ctx, id)
