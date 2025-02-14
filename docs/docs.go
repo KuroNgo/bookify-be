@@ -1529,32 +1529,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/venues": {
-            "get": {
-                "description": "Retrieve a venue by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Venues"
-                ],
-                "summary": "Get venue by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Venue ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/venues/create": {
+        "/api/v1/venues/create": {
             "post": {
                 "description": "Create a new venue using the provided input data",
                 "consumes": [
@@ -1581,7 +1556,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/venues/delete": {
+        "/api/v1/venues/delete": {
             "delete": {
                 "description": "Delete a venue by its ID",
                 "consumes": [
@@ -1606,7 +1581,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/venues/get/all": {
+        "/api/v1/venues/get/all": {
             "get": {
                 "description": "Retrieve a list of all venues",
                 "consumes": [
@@ -1622,7 +1597,32 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/venues/update": {
+        "/api/v1/venues/get/id": {
+            "get": {
+                "description": "Retrieve a venue by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Get venue by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Venue ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/venues/update": {
             "put": {
                 "security": [
                     {

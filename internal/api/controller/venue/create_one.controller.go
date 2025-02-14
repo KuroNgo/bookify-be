@@ -14,7 +14,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param venueInput body domain.VenueInput true "Venue input data"
-// @Router /venues/create [post]
+// @Router /api/v1/venues/create [post]
 func (v VenueController) CreateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
