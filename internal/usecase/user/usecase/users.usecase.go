@@ -20,6 +20,7 @@ import (
 	mongo_driven "go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"log"
 	"mime/multipart"
 	"time"
 )
@@ -297,6 +298,7 @@ func (u *userUseCase) UpdateProfile(ctx context.Context, userID string, userProf
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
 
+	// Validate input
 	if err := validate_data.ValidateUser4(userProfile); err != nil {
 		return "", err
 	}
@@ -311,6 +313,7 @@ func (u *userUseCase) UpdateProfile(ctx context.Context, userID string, userProf
 		return "", err
 	}
 
+	// Nếu không có file, chỉ cập nhật thông tin người dùng
 	if file == nil {
 		parseDateOfBirth, err := time.Parse(time.RFC3339, userProfile.DateOfBirth)
 		if err != nil {
@@ -330,41 +333,41 @@ func (u *userUseCase) UpdateProfile(ctx context.Context, userID string, userProf
 			SocialMedia:  userProfile.SocialMedia,
 		}
 
-		err = u.userRepository.UpdateProfile(ctx, &user)
-		if err != nil {
+		if err := u.userRepository.UpdateProfile(ctx, &user); err != nil {
 			return "", err
 		}
-
 		return "", nil
 	}
 
+	// Kiểm tra xem file có phải ảnh hợp lệ không
 	if !helper.IsImage(file.Filename) {
-		return "", err
+		return "", errors.New("invalid image format")
 	}
 
 	f, err := file.Open()
 	if err != nil {
 		return "", err
 	}
-	defer func(f multipart.File) {
-		err = f.Close()
-		if err != nil {
-			return
-		}
-	}(f)
+	defer f.Close()
 
+	// Xóa ảnh cũ nếu có
+	if userData.AssetURL != "" {
+		result, err := images.DeleteToCloudinary(userData.AvatarURL, u.database)
+		if err != nil {
+			log.Println("Failed to delete old image from Cloudinary:", err)
+		} else {
+			log.Println("Deleted old image from Cloudinary successfully" + result)
+		}
+	}
+
+	// Upload ảnh mới lên Cloudinary
 	imageURL, err := images.UploadImageToCloudinary(f, file.Filename, u.database.CloudinaryUploadFolderUser, u.database)
 	if err != nil {
+		log.Println("Failed to upload image to Cloudinary:", err)
 		return "", err
 	}
 
-	// Đảm bảo xóa ảnh trên Cloudinary nếu xảy ra lỗi sau khi tải lên thành công
-	defer func() {
-		if err != nil {
-			_, _ = images.DeleteToCloudinary(imageURL.AssetID, u.database)
-		}
-	}()
-
+	// Parse ngày sinh
 	parseDateOfBirth, err := time.Parse(time.RFC3339, userProfile.DateOfBirth)
 	if err != nil {
 		return "", errors.New(constants.MsgInvalidInput)
@@ -385,8 +388,10 @@ func (u *userUseCase) UpdateProfile(ctx context.Context, userID string, userProf
 		SocialMedia:  userProfile.SocialMedia,
 	}
 
-	err = u.userRepository.UpdateProfile(ctx, &user)
-	if err != nil {
+	// Cập nhật thông tin người dùng
+	if err = u.userRepository.UpdateProfile(ctx, &user); err != nil {
+		log.Println("Failed to update user profile, rolling back image upload:", err)
+		_, _ = images.DeleteToCloudinary(imageURL.ImageURL, u.database) // Xóa ảnh mới nếu có lỗi
 		return "", err
 	}
 
@@ -579,7 +584,7 @@ func (u *userUseCase) UpdateImage(ctx context.Context, id string, file *multipar
 		// Đảm bảo xóa ảnh trên Cloudinary nếu xảy ra lỗi sau khi tải lên thành công
 		defer func() {
 			if err != nil {
-				_, _ = images.DeleteToCloudinary(imageURL.AssetID, u.database)
+				_, _ = images.DeleteToCloudinary(imageURL.ImageURL, u.database)
 			}
 		}()
 
