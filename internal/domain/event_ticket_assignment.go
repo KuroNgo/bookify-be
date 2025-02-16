@@ -17,4 +17,5 @@ type EventTicketAssignment struct {
 	ExpiryDate   time.Time          `bson:"expiry_date" json:"expiry_date"`
 	Price        int64              `bson:"price" json:"price"`
 	TicketType   string             `bson:"ticket_type" json:"ticket_type"`
+	Status       string             `bson:"status" json:"status"` // use, useless
 }

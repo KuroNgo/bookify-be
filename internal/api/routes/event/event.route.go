@@ -10,7 +10,7 @@ import (
 	organizationrepository "bookify/internal/repository/organization/repository"
 	user_repository "bookify/internal/repository/user/repository"
 	venue_repository "bookify/internal/repository/venue/repository"
-	"bookify/internal/usecase/event/usecase"
+	event_usecase "bookify/internal/usecase/event/usecase"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -24,7 +24,7 @@ func EventsRouter(env *config.Database, timeout time.Duration, db *mongo.Databas
 	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
 
 	event := &event_controller.EventController{
-		EventUseCase: usecase.NewEventUseCase(env, timeout, ev, or, evt, ve, ur, client),
+		EventUseCase: event_usecase.NewEventUseCase(env, timeout, ev, or, evt, ve, ur, client),
 		Database:     env,
 	}
 

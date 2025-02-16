@@ -1,13 +1,13 @@
-package usecase
+package event_usecase
 
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
-	event_repository "bookify/internal/repository/event/repository"
-	event_type_repository "bookify/internal/repository/event_type/repository"
-	organization_repository "bookify/internal/repository/organization/repository"
-	user_repository "bookify/internal/repository/user/repository"
-	venue_repository "bookify/internal/repository/venue/repository"
+	eventrepository "bookify/internal/repository/event/repository"
+	eventtyperepository "bookify/internal/repository/event_type/repository"
+	organizationrepository "bookify/internal/repository/organization/repository"
+	userrepository "bookify/internal/repository/user/repository"
+	venuerepository "bookify/internal/repository/venue/repository"
 	"bookify/pkg/interface/cloudinary/utils/images"
 	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/helper"
@@ -15,7 +15,7 @@ import (
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	mongo_driven "go.mongodb.org/mongo-driver/mongo"
+	mongodriven "go.mongodb.org/mongo-driver/mongo"
 	"mime/multipart"
 	"strconv"
 	"time"
@@ -40,17 +40,17 @@ type IEventUseCase interface {
 type eventUseCase struct {
 	database               *config.Database
 	contextTimeout         time.Duration
-	eventRepository        event_repository.IEventRepository
-	organizationRepository organization_repository.IOrganizationRepository
-	eventTypeRepository    event_type_repository.IEventTypeRepository
-	venueRepository        venue_repository.IVenueRepository
-	userRepository         user_repository.IUserRepository
-	client                 *mongo_driven.Client
+	eventRepository        eventrepository.IEventRepository
+	organizationRepository organizationrepository.IOrganizationRepository
+	eventTypeRepository    eventtyperepository.IEventTypeRepository
+	venueRepository        venuerepository.IVenueRepository
+	userRepository         userrepository.IUserRepository
+	client                 *mongodriven.Client
 }
 
-func NewEventUseCase(database *config.Database, contextTimeout time.Duration, eventRepository event_repository.IEventRepository,
-	organizationRepository organization_repository.IOrganizationRepository, eventTypeRepository event_type_repository.IEventTypeRepository,
-	venueRepository venue_repository.IVenueRepository, userRepository user_repository.IUserRepository, client *mongo_driven.Client) IEventUseCase {
+func NewEventUseCase(database *config.Database, contextTimeout time.Duration, eventRepository eventrepository.IEventRepository,
+	organizationRepository organizationrepository.IOrganizationRepository, eventTypeRepository eventtyperepository.IEventTypeRepository,
+	venueRepository venuerepository.IVenueRepository, userRepository userrepository.IUserRepository, client *mongodriven.Client) IEventUseCase {
 	return &eventUseCase{database: database, contextTimeout: contextTimeout, eventRepository: eventRepository,
 		organizationRepository: organizationRepository, eventTypeRepository: eventTypeRepository, venueRepository: venueRepository,
 		userRepository: userRepository, client: client}
@@ -310,7 +310,7 @@ func (e eventUseCase) CreateOneAsync(ctx context.Context, event *domain.EventInp
 	}
 	defer session.EndSession(ctx)
 
-	callback := func(sessionCtx mongo_driven.SessionContext) (interface{}, error) {
+	callback := func(sessionCtx mongodriven.SessionContext) (interface{}, error) {
 		// Create venue
 		venueInput := &domain.Venue{
 			ID:          primitive.NewObjectID(),
@@ -450,7 +450,7 @@ func (e eventUseCase) UpdateImage(ctx context.Context, id string, file *multipar
 	}
 	defer session.EndSession(ctx)
 
-	callback := func(sessionCtx mongo_driven.SessionContext) (interface{}, error) {
+	callback := func(sessionCtx mongodriven.SessionContext) (interface{}, error) {
 		if file == nil {
 			return nil, errors.New("images not nil")
 		}
