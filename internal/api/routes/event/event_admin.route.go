@@ -23,7 +23,7 @@ func AdminEventsRouter(env *config.Database, timeout time.Duration, db *mongo.Da
 	ur := user_repository.NewUserRepository(db, domain.CollectionUser)
 
 	event := &event_controller.EventController{
-		EventUseCase: usecase.NewEventUseCase(env, timeout, ev, or, evt, ve, ur, client),
+		EventUseCase: event_usecase.NewEventUseCase(env, timeout, ev, or, evt, ve, ur, client),
 		Database:     env,
 	}
 

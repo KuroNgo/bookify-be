@@ -3,7 +3,7 @@ package employee_usecase
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
-	employee_repository "bookify/internal/repository/employee/repository"
+	employeerepository "bookify/internal/repository/employee/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/validate_data"
@@ -21,10 +21,15 @@ type IEmployeeUseCase interface {
 	DeleteOne(ctx context.Context, id string, currentUser string) error
 }
 
+func NewEmployeeUseCase(database *config.Database, contextTimeout time.Duration, employeeRepository employeerepository.IEmployeeRepository,
+	userRepository userrepository.IUserRepository) IEmployeeUseCase {
+	return &employeeUseCase{database: database, contextTimeout: contextTimeout, employeeRepository: employeeRepository, userRepository: userRepository}
+}
+
 type employeeUseCase struct {
 	database           *config.Database
 	contextTimeout     time.Duration
-	employeeRepository employee_repository.IEmployeeRepository
+	employeeRepository employeerepository.IEmployeeRepository
 	userRepository     userrepository.IUserRepository
 }
 
@@ -188,9 +193,4 @@ func (e employeeUseCase) DeleteOne(ctx context.Context, id string, currentUser s
 	}
 
 	return nil
-}
-
-func NewEmployeeUseCase(database *config.Database, contextTimeout time.Duration, employeeRepository employee_repository.IEmployeeRepository,
-	userRepository userrepository.IUserRepository) IEmployeeUseCase {
-	return &employeeUseCase{database: database, contextTimeout: contextTimeout, employeeRepository: employeeRepository, userRepository: userRepository}
 }

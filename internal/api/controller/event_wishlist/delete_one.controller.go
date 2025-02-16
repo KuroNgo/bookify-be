@@ -1,4 +1,4 @@
-package event_ticket_controller
+package event_wishlist_controller
 
 import (
 	"fmt"
@@ -7,14 +7,14 @@ import (
 )
 
 // DeleteOne godoc
-// @Summary Delete an event ticket
-// @Description Deletes an event ticket by ID for the current user
-// @Tags Event Tickets
+// @Summary Delete an event type
+// @Description Deletes an event type by ID for the current user
+// @Tags Event Types
 // @Accept json
 // @Produce json
-// @Param id query string true "Event Tickets ID"
-// @Router /api/v1/event-tickets/delete [delete]
-func (e *EventTicketController) DeleteOne(ctx *gin.Context) {
+// @Param id query string true "Event Type ID"
+// @Router /api/v1/event-types/delete [delete]
+func (e EventController) DeleteOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -25,7 +25,7 @@ func (e *EventTicketController) DeleteOne(ctx *gin.Context) {
 	}
 
 	id := ctx.Query("id")
-	err := e.EventTicketUseCase.DeleteOne(ctx, id, fmt.Sprintf("%s", currentUser))
+	err := e.EventTypeUseCase.DeleteOne(ctx, id, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",

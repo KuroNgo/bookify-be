@@ -22,7 +22,7 @@ func OrganizationRouter(env *config.Database, timeout time.Duration, db *mongo.D
 		Database:            env,
 	}
 
-	router := group.Group("/organization")
+	router := group.Group("/organizations")
 	router.GET("/get/id", organization.GetByID)
 	router.GET("/get/user_id", middleware.DeserializeUser(), organization.GetByUserID)
 	router.GET("/get/all", organization.GetAll)

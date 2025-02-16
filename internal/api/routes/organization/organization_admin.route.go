@@ -21,7 +21,7 @@ func AdminOrganizationRouter(env *config.Database, timeout time.Duration, db *mo
 		Database:            env,
 	}
 
-	router := group.Group("/organization")
+	router := group.Group("/organizations")
 	router.POST("/create", organization.CreateOne)
 	router.PUT("/update", organization.UpdateOne)
 	router.POST("/delete", organization.DeleteOne)

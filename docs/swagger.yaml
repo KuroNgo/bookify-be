@@ -319,7 +319,7 @@ paths:
       responses: {}
       summary: Delete an event ticket
       tags:
-      - Event Ticket
+      - Event Tickets
   /api/v1/event-tickets/get/all:
     get:
       consumes:
@@ -365,7 +365,7 @@ paths:
       responses: {}
       summary: Update an event ticket
       tags:
-      - Event Ticket
+      - Event Tickets
   /api/v1/event-types/create:
     post:
       consumes:
