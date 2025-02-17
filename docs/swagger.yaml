@@ -20,6 +20,48 @@ definitions:
       organization_id:
         type: string
     type: object
+  domain.EventDiscount:
+    properties:
+      applicable_users:
+        description: User được chọn
+        items:
+          type: string
+        type: array
+      date_created:
+        type: string
+      discount_unit:
+        type: string
+      discount_value:
+        type: integer
+      end_date:
+        type: string
+      event_id:
+        type: string
+      id:
+        type: string
+      start_date:
+        type: string
+    type: object
+  domain.EventDiscountInput:
+    properties:
+      applicable_users:
+        description: User được chọn
+        items:
+          type: string
+        type: array
+      date_created:
+        type: string
+      discount_unit:
+        type: string
+      discount_value:
+        type: integer
+      end_date:
+        type: string
+      event_id:
+        type: string
+      start_date:
+        type: string
+    type: object
   domain.EventInput:
     properties:
       actual_attendee:
@@ -285,6 +327,107 @@ paths:
       summary: Update an employee
       tags:
       - Employees
+  /api/v1/event-discount/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new event discount for the current user
+      parameters:
+      - description: Event discount Body
+        in: body
+        name: discount
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventDiscountInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event discount
+      tags:
+      - Event Discounts
+  /api/v1/event-discount/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an event discount by ID for the current user
+      parameters:
+      - description: Event Discount ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event discount
+      tags:
+      - Event Discounts
+  /api/v1/event-discount/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event discount by its ID
+      parameters:
+      - description: Event Discount ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get event discount by ID
+      tags:
+      - Event Discounts
+  /api/v1/event-discount/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing event discount
+      parameters:
+      - description: Event Discount Body
+        in: body
+        name: eventDiscount
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventDiscount'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event discount
+      tags:
+      - Event Discounts
+  /api/v1/event-discounts/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all event discounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all event discount
+      tags:
+      - Event Discounts
   /api/v1/event-tickets/create:
     post:
       consumes:

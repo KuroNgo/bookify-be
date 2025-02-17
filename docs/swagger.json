@@ -139,6 +139,156 @@
                 "responses": {}
             }
         },
+        "/api/v1/event-discount/create": {
+            "post": {
+                "description": "Creates a new event discount for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Discounts"
+                ],
+                "summary": "Create a new event discount",
+                "parameters": [
+                    {
+                        "description": "Event discount Body",
+                        "name": "discount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventDiscountInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-discount/delete": {
+            "delete": {
+                "description": "Deletes an event discount by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Discounts"
+                ],
+                "summary": "Delete an event discount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Discount ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-discount/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event discount by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Discounts"
+                ],
+                "summary": "Get event discount by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Discount ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-discount/update": {
+            "put": {
+                "description": "Updates an existing event discount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Discounts"
+                ],
+                "summary": "Update an event discount",
+                "parameters": [
+                    {
+                        "description": "Event Discount Body",
+                        "name": "eventDiscount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventDiscount"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-discounts/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event discounts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Discounts"
+                ],
+                "summary": "Get all event discount",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/event-tickets/create": {
             "post": {
                 "description": "Creates a new event ticket for the current user",
@@ -1677,6 +1827,69 @@
                     "type": "string"
                 },
                 "organization_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EventDiscount": {
+            "type": "object",
+            "properties": {
+                "applicable_users": {
+                    "description": "User được chọn",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "date_created": {
+                    "type": "string"
+                },
+                "discount_unit": {
+                    "type": "string"
+                },
+                "discount_value": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EventDiscountInput": {
+            "type": "object",
+            "properties": {
+                "applicable_users": {
+                    "description": "User được chọn",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "date_created": {
+                    "type": "string"
+                },
+                "discount_unit": {
+                    "type": "string"
+                },
+                "discount_value": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "start_date": {
                     "type": "string"
                 }
             }

@@ -26,6 +26,10 @@ type eventTypeRepository struct {
 	collectionEventType string
 }
 
+func NewEventTypeRepository(database *mongo.Database, collectionEventType string) IEventTypeRepository {
+	return &eventTypeRepository{database: database, collectionEventType: collectionEventType}
+}
+
 func (e eventTypeRepository) GetByName(ctx context.Context, name string) (domain.EventType, error) {
 	eventTypeCollection := e.database.Collection(e.collectionEventType)
 
@@ -160,8 +164,4 @@ func (e eventTypeRepository) DeleteOne(ctx context.Context, id primitive.ObjectI
 
 	return nil
 
-}
-
-func NewEventTypeRepository(database *mongo.Database, collectionEventType string) IEventTypeRepository {
-	return &eventTypeRepository{database: database, collectionEventType: collectionEventType}
 }

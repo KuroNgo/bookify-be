@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func EventDiscountRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
+func AdminEventDiscountRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
 	ev := event_discount_repository.NewEventDiscountRepository(db, domain.CollectionEventDiscount)
 	ur := userrepository.NewUserRepository(db, domain.CollectionUser)
 
@@ -22,6 +22,7 @@ func EventDiscountRouter(env *config.Database, timeout time.Duration, db *mongo.
 	}
 
 	router := group.Group("/event-discounts")
-	router.GET("/get/id", eventDiscount.GetByID)
-	router.GET("/get/all", eventDiscount.GetAll)
+	router.POST("/create", eventDiscount.CreateOne)
+	router.PUT("/update", eventDiscount.UpdateOne)
+	router.POST("/delete", eventDiscount.DeleteOne)
 }
