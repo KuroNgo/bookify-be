@@ -12,25 +12,25 @@ func init() {
 	c.Start()
 }
 
-type CronScheduler struct {
+type Scheduler struct {
 	c        *cron.Cron
 	entryMap map[string]cron.EntryID
 }
 
-func NewCronScheduler() *CronScheduler {
-	return &CronScheduler{
+func NewCronScheduler() *Scheduler {
+	return &Scheduler{
 		c:        cron.New(),
 		entryMap: make(map[string]cron.EntryID),
 	}
 }
 
-func (cs *CronScheduler) Start() {
+func (cs *Scheduler) Start() {
 	// Bắt đầu cron scheduler
 	log.Println("Starting cron scheduler...")
 	cs.c.Start()
 }
 
-func (cs *CronScheduler) AddCronJob(name, cronExpression string, taskFunc func(ctx context.Context) error) cron.EntryID {
+func (cs *Scheduler) AddCronJob(name, cronExpression string, taskFunc func(ctx context.Context) error) cron.EntryID {
 	entryID, err := cs.c.AddFunc(cronExpression, func() {
 		err := taskFunc(context.Background())
 		if err != nil {
@@ -46,7 +46,7 @@ func (cs *CronScheduler) AddCronJob(name, cronExpression string, taskFunc func(c
 	return entryID
 }
 
-func (cs *CronScheduler) RemoveJob(name string) error {
+func (cs *Scheduler) RemoveJob(name string) error {
 	if entryID, exists := cs.entryMap[name]; exists {
 		cs.c.Remove(entryID)
 		delete(cs.entryMap, name)
@@ -56,11 +56,11 @@ func (cs *CronScheduler) RemoveJob(name string) error {
 	return fmt.Errorf("job '%s' not found", name)
 }
 
-func (cs *CronScheduler) GetJobCount() int {
+func (cs *Scheduler) GetJobCount() int {
 	return len(cs.entryMap)
 }
 
-func (cs *CronScheduler) GenerateCronExpression(day, month, hour, minute, dayOfWeek int) string {
+func (cs *Scheduler) GenerateCronExpression(day, month, hour, minute, dayOfWeek int) string {
 	log.Printf("Implemented job worker")
 	return fmt.Sprintf("%d %d %d %d %d", minute, hour, day, month, dayOfWeek)
 }

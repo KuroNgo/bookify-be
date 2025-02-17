@@ -6,16 +6,16 @@ import (
 )
 
 // GetAll godoc
-// @Summary Get all event types
-// @Description Retrieves a list of all event types
-// @Tags Event Types
+// @Summary Get all event wishlist
+// @Description Retrieves a list of all event wishlists
+// @Tags Event Wishlists
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Success"
 // @Failure 400 {object} map[string]interface{} "Bad Request"
-// @Router /api/v1/event-types/get/all [get]
-func (e EventController) GetAll(ctx *gin.Context) {
-	data, err := e.EventTypeUseCase.GetAll(ctx)
+// @Router /api/v1/event-wishlists/get/all [get]
+func (e *EventWishlistController) GetAll(ctx *gin.Context) {
+	data, err := e.EventWishlistUseCase.GetAll(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",

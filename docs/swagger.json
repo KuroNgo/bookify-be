@@ -599,6 +599,156 @@
                 "responses": {}
             }
         },
+        "/api/v1/event-wishlist/update": {
+            "put": {
+                "description": "Updates an existing event wishlists",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Wishlists"
+                ],
+                "summary": "Update an event wishlists",
+                "parameters": [
+                    {
+                        "description": "Event Wishlist Body",
+                        "name": "eventWishlist",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventWishlistInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-wishlists/create": {
+            "post": {
+                "description": "Creates a new event wishlist for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Wishlists"
+                ],
+                "summary": "Create a new event wishlist",
+                "parameters": [
+                    {
+                        "description": "Event Wishlist Body",
+                        "name": "eventWishlist",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventWishlist"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-wishlists/delete": {
+            "delete": {
+                "description": "Deletes an event wishlist by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Wishlists"
+                ],
+                "summary": "Delete an event wishlist",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Wishlist ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-wishlists/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event wishlists",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Wishlists"
+                ],
+                "summary": "Get all event wishlist",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-wishlists/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event wishlist by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Wishlists"
+                ],
+                "summary": "Get event wishlist by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Wishlists ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/event/create": {
             "post": {
                 "description": "Add a new event to the system",
@@ -1991,6 +2141,40 @@
             "type": "object",
             "properties": {
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EventWishlist": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EventWishlistInput": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

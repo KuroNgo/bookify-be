@@ -8,14 +8,14 @@ import (
 )
 
 // UpdateOne godoc
-// @Summary Update an event type
-// @Description Updates an existing event type
-// @Tags Event Types
+// @Summary Update an event wishlists
+// @Description Updates an existing event wishlists
+// @Tags Event Wishlists
 // @Accept json
 // @Produce json
-// @Param eventType body domain.EventTypeInput true "Event Type Body"
-// @Router /api/v1/event-types/update [put]
-func (e EventController) UpdateOne(ctx *gin.Context) {
+// @Param eventWishlist body domain.EventWishlistInput true "Event Wishlist Body"
+// @Router /api/v1/event-wishlist/update [put]
+func (e *EventWishlistController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -26,8 +26,8 @@ func (e EventController) UpdateOne(ctx *gin.Context) {
 	}
 
 	//  Lấy thông tin từ request
-	var eventTypeInput domain.EventTypeInput
-	if err := ctx.ShouldBindJSON(&eventTypeInput); err != nil {
+	var eventWishlistInput domain.EventWishlistInput
+	if err := ctx.ShouldBindJSON(&eventWishlistInput); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": err.Error()},
@@ -36,7 +36,7 @@ func (e EventController) UpdateOne(ctx *gin.Context) {
 	}
 	id := ctx.Query("id")
 
-	err := e.EventTypeUseCase.UpdateOne(ctx, id, &eventTypeInput, fmt.Sprintf("%s", currentUser))
+	err := e.EventWishlistUseCase.UpdateOne(ctx, id, &eventWishlistInput, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
