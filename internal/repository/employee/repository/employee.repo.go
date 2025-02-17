@@ -17,12 +17,15 @@ type IEmployeeRepository interface {
 	CreateOne(ctx context.Context, employee *domain.Employee) error
 	UpdateOne(ctx context.Context, employee *domain.Employee) error
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
-	//CountExist(ctx context.Context, name string) (int64, error)
 }
 
 type employeeRepository struct {
 	database           *mongo.Database
 	collectionEmployee string
+}
+
+func NewEmployeeRepository(database *mongo.Database, collectionEmployee string) IEmployeeRepository {
+	return &employeeRepository{database: database, collectionEmployee: collectionEmployee}
 }
 
 func (e employeeRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.Employee, error) {
@@ -112,8 +115,4 @@ func (e employeeRepository) DeleteOne(ctx context.Context, id primitive.ObjectID
 	}
 
 	return nil
-}
-
-func NewEmployeeRepository(database *mongo.Database, collectionEmployee string) IEmployeeRepository {
-	return &employeeRepository{database: database, collectionEmployee: collectionEmployee}
 }

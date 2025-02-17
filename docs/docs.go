@@ -295,6 +295,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/event-employee/create": {
+            "post": {
+                "description": "Creates a new event employee for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Employees"
+                ],
+                "summary": "Create a new event employee",
+                "parameters": [
+                    {
+                        "description": "Event Employee Body",
+                        "name": "eventEmployee",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventEmployeeInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event-tickets/create": {
             "post": {
                 "description": "Creates a new event ticket for the current user",
@@ -2047,6 +2074,29 @@ const docTemplate = `{
                 },
                 "start_date": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.EventEmployeeInput": {
+            "type": "object",
+            "properties": {
+                "deadline": {
+                    "type": "string"
+                },
+                "employeeID": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "task": {
+                    "type": "string"
+                },
+                "task_completed": {
+                    "type": "boolean"
                 }
             }
         },

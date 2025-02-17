@@ -6,6 +6,7 @@ import (
 	employee_route "bookify/internal/api/routes/employee"
 	"bookify/internal/api/routes/event"
 	event_discount_route "bookify/internal/api/routes/event_discount"
+	event_employee_route "bookify/internal/api/routes/event_employee"
 	event_ticket_route "bookify/internal/api/routes/event_ticket"
 	"bookify/internal/api/routes/event_type"
 	event_wishlist_route "bookify/internal/api/routes/event_wishlist"
@@ -73,6 +74,8 @@ func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db
 	event_discount_route.EventDiscountRouter(env, timeout, db, privateRouterV1)
 	event_wishlist_route.AdminEventWishlistRouter(env, timeout, db, privateRouterV1)
 	event_wishlist_route.EventWishlistRouter(env, timeout, db, privateRouterV1)
+	event_employee_route.AdminEventEmployeeRouter(env, timeout, db, privateRouterV1)
+	event_employee_route.EventEmployeeRouter(env, timeout, db, privateRouterV1)
 
 	err := data_seeder.DataSeeds(context.Background(), client)
 	if err != nil {
