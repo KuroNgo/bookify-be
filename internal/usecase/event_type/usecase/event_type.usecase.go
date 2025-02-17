@@ -9,6 +9,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -27,15 +28,58 @@ type eventTypeUseCase struct {
 	contextTimeout      time.Duration
 	eventTypeRepository eventtyperepository.IEventTypeRepository
 	userRepository      userrepository.IUserRepository
+	cache               *ristretto.Cache[string, domain.EventType]
+	caches              *ristretto.Cache[string, []domain.EventType]
+}
+
+// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCache() (*ristretto.Cache[string, domain.EventType], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.EventType]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+func NewCaches() (*ristretto.Cache[string, []domain.EventType], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.EventType]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventTypeRepository eventtyperepository.IEventTypeRepository, userRepository userrepository.IUserRepository) IEventTypeUseCase {
-	return &eventTypeUseCase{database: database, contextTimeout: contextTimeout, eventTypeRepository: eventTypeRepository, userRepository: userRepository}
+	cache, err := NewCache()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCaches()
+	if err != nil {
+		panic(err)
+	}
+	return &eventTypeUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, eventTypeRepository: eventTypeRepository, userRepository: userRepository}
 }
 
 func (e eventTypeUseCase) GetByName(ctx context.Context, name string) (domain.EventType, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(name)
+	if found {
+		return value, nil
+	}
 
 	if name == "" {
 		return domain.EventType{}, errors.New(constants.MsgInvalidInput)
@@ -46,12 +90,22 @@ func (e eventTypeUseCase) GetByName(ctx context.Context, name string) (domain.Ev
 		return domain.EventType{}, err
 	}
 
+	e.cache.Set(name, data, 1)
+	// wait for value to pass through buffers
+	e.cache.Wait()
+
 	return data, nil
 }
 
 func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventType, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	eventTypeID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -63,6 +117,10 @@ func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventT
 		return domain.EventType{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	// wait for value to pass through buffers
+	e.cache.Wait()
+
 	return data, nil
 }
 
@@ -70,10 +128,20 @@ func (e eventTypeUseCase) GetAll(ctx context.Context) ([]domain.EventType, error
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := e.caches.Get("typs")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.eventTypeRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	e.caches.Set("typs", data, 1)
+	// wait for value to pass through buffers
+	e.caches.Wait()
 
 	return data, nil
 }
@@ -118,6 +186,8 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventType *domain.Event
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
 
 	return nil
 }
@@ -168,6 +238,9 @@ func (e eventTypeUseCase) UpdateOne(ctx context.Context, id string, eventType *d
 		return err
 	}
 
+	e.cache.Clear()
+	e.caches.Clear()
+
 	return nil
 }
 
@@ -198,6 +271,9 @@ func (e eventTypeUseCase) DeleteOne(ctx context.Context, id string, currentUser 
 	if err != nil {
 		return err
 	}
+
+	e.cache.Clear()
+	e.caches.Clear()
 
 	return nil
 }

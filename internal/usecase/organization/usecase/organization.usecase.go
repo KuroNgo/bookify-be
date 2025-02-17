@@ -36,9 +36,9 @@ type organizationUseCase struct {
 // Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
 func NewCache() (*ristretto.Cache[string, domain.Organization], error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Organization]{
-		NumCounters: 1e7,     // number of keys to track frequency of (10M)
-		MaxCost:     1 << 30, // maximum cost of cache (1GB)
-		BufferItems: 64,      // number of keys per Get buffer
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
 	})
 	if err != nil {
 		return nil, err
@@ -50,9 +50,9 @@ func NewCache() (*ristretto.Cache[string, domain.Organization], error) {
 // Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
 func NewCaches() (*ristretto.Cache[string, []domain.Organization], error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Organization]{
-		NumCounters: 1e7,     // number of keys to track frequency of (10M)
-		MaxCost:     1 << 30, // maximum cost of cache (1GB)
-		BufferItems: 64,      // number of keys per Get buffer
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
 	})
 	if err != nil {
 		return nil, err
