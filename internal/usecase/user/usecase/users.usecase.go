@@ -57,6 +57,7 @@ type userUseCase struct {
 	contextTimeout time.Duration
 	userRepository repository.IUserRepository
 	cache          *ristretto.Cache[string, domain.User]
+	caches         *ristretto.Cache[string, []domain.User]
 	client         *mongo_driven.Client
 }
 
@@ -74,18 +75,41 @@ func NewCache() (*ristretto.Cache[string, domain.User], error) {
 	return cache, nil
 }
 
+func NewCaches() (*ristretto.Cache[string, []domain.User], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.User]{
+		NumCounters: 1e7,     // number of keys to track frequency of (10M)
+		MaxCost:     1 << 30, // maximum cost of cache (1GB)
+		BufferItems: 64,      // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
 func NewUserUseCase(database *config.Database, contextTimeout time.Duration, userRepository repository.IUserRepository,
 	client *mongo_driven.Client) IUserUseCase {
 	cache, err := NewCache()
 	if err != nil {
 		panic(err)
 	}
-	return &userUseCase{cache: cache, database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
+
+	caches, err := NewCaches()
+	if err != nil {
+		panic(err)
+	}
+	return &userUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, userRepository: userRepository, client: client}
 }
 
 func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := u.caches.Get("users")
+	if found {
+		return value, nil
+	}
 
 	userData, err := u.userRepository.FetchMany(ctx)
 	if err != nil {
@@ -113,6 +137,10 @@ func (u *userUseCase) FetchMany(ctx context.Context) ([]domain.User, error) {
 
 		outputs = append(outputs, output)
 	}
+
+	u.caches.Set("users", outputs, 1)
+	// wait for value to pass through buffers
+	u.caches.Wait()
 
 	return outputs, nil
 }
