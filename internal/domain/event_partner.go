@@ -3,7 +3,7 @@ package domain
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 const (
-	CollectionEmployeePartner = "employee_partner"
+	CollectionEventPartner = "event_partner"
 )
 
 type EventPartner struct {

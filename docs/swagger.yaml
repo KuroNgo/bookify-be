@@ -62,6 +62,21 @@ definitions:
       start_date:
         type: string
     type: object
+  domain.EventEmployeeInput:
+    properties:
+      deadline:
+        type: string
+      employeeID:
+        type: string
+      event_id:
+        type: string
+      start_date:
+        type: string
+      task:
+        type: string
+      task_completed:
+        type: boolean
+    type: object
   domain.EventInput:
     properties:
       actual_attendee:
@@ -450,6 +465,24 @@ paths:
       summary: Get all event discount
       tags:
       - Event Discounts
+  /api/v1/event-employee/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new event employee for the current user
+      parameters:
+      - description: Event Employee Body
+        in: body
+        name: eventEmployee
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventEmployeeInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event employee
+      tags:
+      - Event Employees
   /api/v1/event-tickets/create:
     post:
       consumes:
