@@ -16,3 +16,9 @@ type EventWishlist struct {
 	Notes     string             `bson:"notes,omitempty" json:"notes,omitempty"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 }
+
+type EventWishlistInput struct {
+	EventID primitive.ObjectID `bson:"event_id" json:"event_id"`
+	UserID  primitive.ObjectID `bson:"user_id" json:"user_id"`
+	Notes   string             `bson:"notes,omitempty" json:"notes,omitempty"`
+}

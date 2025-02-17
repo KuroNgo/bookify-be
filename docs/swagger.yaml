@@ -130,6 +130,28 @@ definitions:
       name:
         type: string
     type: object
+  domain.EventWishlist:
+    properties:
+      created_at:
+        type: string
+      event_id:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.EventWishlistInput:
+    properties:
+      event_id:
+        type: string
+      notes:
+        type: string
+      user_id:
+        type: string
+    type: object
   domain.ForgetPassword:
     properties:
       email:
@@ -637,6 +659,107 @@ paths:
       summary: Update an event type
       tags:
       - Event Types
+  /api/v1/event-wishlist/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing event wishlists
+      parameters:
+      - description: Event Wishlist Body
+        in: body
+        name: eventWishlist
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventWishlistInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event wishlists
+      tags:
+      - Event Wishlists
+  /api/v1/event-wishlists/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new event wishlist for the current user
+      parameters:
+      - description: Event Wishlist Body
+        in: body
+        name: eventWishlist
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventWishlist'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event wishlist
+      tags:
+      - Event Wishlists
+  /api/v1/event-wishlists/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an event wishlist by ID for the current user
+      parameters:
+      - description: Event Wishlist ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event wishlist
+      tags:
+      - Event Wishlists
+  /api/v1/event-wishlists/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all event wishlists
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all event wishlist
+      tags:
+      - Event Wishlists
+  /api/v1/event-wishlists/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event wishlist by its ID
+      parameters:
+      - description: Event Wishlists ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get event wishlist by ID
+      tags:
+      - Event Wishlists
   /api/v1/event/create:
     post:
       consumes:

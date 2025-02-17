@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func EventWishlistRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
+func AdminEventWishlistRouter(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
 	evw := event_wishlist_repository.NewEventWishlistRepository(db, domain.CollectionEventWishlist)
 	ur := userrepository.NewUserRepository(db, domain.CollectionUser)
 
@@ -22,6 +22,7 @@ func EventWishlistRouter(env *config.Database, timeout time.Duration, db *mongo.
 	}
 
 	router := group.Group("/event-wishlists")
-	router.GET("/get/id", eventWishlist.GetByID)
-	router.GET("/get/all", eventWishlist.GetAll)
+	router.POST("/create", eventWishlist.CreateOne)
+	router.PUT("/update", eventWishlist.UpdateOne)
+	router.POST("/delete", eventWishlist.DeleteOne)
 }
