@@ -53,19 +53,13 @@ type EventInput struct {
 }
 
 type EventResponse struct {
-	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	EventTypeID      primitive.ObjectID `bson:"event_type_id" json:"event_type_id"`
-	VenueID          primitive.ObjectID `bson:"venue_id" json:"venue_id"`
-	OrganizationID   primitive.ObjectID `bson:"organization_id" json:"organization_id"`
-	Title            string             `bson:"title" json:"title"`
-	ShortDescription string             `bson:"short_description" json:"short_description"`
-	Description      string             `bson:"description" json:"description"`
-	ImageURL         string             `bson:"image_url" json:"image_url"`
-	AssetURL         string             `bson:"asset_url" json:"asset_url"`
-	StartTime        time.Time          `bson:"start_time" json:"start_time"`
-	EndTime          time.Time          `bson:"end_time" json:"end_time"`
-	Mode             string             `bson:"mode" json:"mode"` // Public, Friend and Group, Invite Only
-	Tags             []string           `bson:"tags" json:"tags"`
+	Event Event `json:"event"`
+}
+
+type EventResponsePage struct {
+	Event       []Event `json:"event"`
+	Page        int64   `json:"page"`
+	CurrentPage int     `json:"current_page"`
 }
 
 type EventResponseForUser struct {

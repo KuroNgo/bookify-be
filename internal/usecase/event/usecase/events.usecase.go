@@ -14,6 +14,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	mongodriven "go.mongodb.org/mongo-driver/mongo"
 	"mime/multipart"
@@ -46,12 +47,51 @@ type eventUseCase struct {
 	venueRepository        venuerepository.IVenueRepository
 	userRepository         userrepository.IUserRepository
 	client                 *mongodriven.Client
+	cache                  *ristretto.Cache[string, domain.Event]
+	caches                 *ristretto.Cache[string, []domain.Event]
+}
+
+// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEvent() (*ristretto.Cache[string, domain.Event], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Event]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheEvent Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEvents() (*ristretto.Cache[string, []domain.Event], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Event]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewEventUseCase(database *config.Database, contextTimeout time.Duration, eventRepository eventrepository.IEventRepository,
 	organizationRepository organizationrepository.IOrganizationRepository, eventTypeRepository eventtyperepository.IEventTypeRepository,
 	venueRepository venuerepository.IVenueRepository, userRepository userrepository.IUserRepository, client *mongodriven.Client) IEventUseCase {
-	return &eventUseCase{database: database, contextTimeout: contextTimeout, eventRepository: eventRepository,
+	cache, err := NewCacheEvent()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheEvents()
+	if err != nil {
+		panic(err)
+	}
+	return &eventUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, eventRepository: eventRepository,
 		organizationRepository: organizationRepository, eventTypeRepository: eventTypeRepository, venueRepository: venueRepository,
 		userRepository: userRepository, client: client}
 }
@@ -59,6 +99,12 @@ func NewEventUseCase(database *config.Database, contextTimeout time.Duration, ev
 func (e eventUseCase) GetByID(ctx context.Context, id string) (domain.Event, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	eventID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -70,12 +116,21 @@ func (e eventUseCase) GetByID(ctx context.Context, id string) (domain.Event, err
 		return domain.Event{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
 func (e eventUseCase) GetByTitle(ctx context.Context, title string) (domain.Event, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(title)
+	if found {
+		return value, nil
+	}
 
 	if title == "" {
 		return domain.Event{}, errors.New(constants.MsgInvalidInput)
@@ -86,12 +141,21 @@ func (e eventUseCase) GetByTitle(ctx context.Context, title string) (domain.Even
 		return domain.Event{}, err
 	}
 
+	e.cache.Set(title, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
 func (e eventUseCase) GetByUserID(ctx context.Context, currentUser string) (domain.Event, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(currentUser)
+	if found {
+		return value, nil
+	}
 
 	currentUserID, err := primitive.ObjectIDFromHex(currentUser)
 	if err != nil {
@@ -108,12 +172,21 @@ func (e eventUseCase) GetByUserID(ctx context.Context, currentUser string) (doma
 		return domain.Event{}, err
 	}
 
+	e.cache.Set(currentUser, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
 func (e eventUseCase) GetByOrganizationIDAndStartTime(ctx context.Context, currentUser string, startTime string) ([]domain.Event, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.caches.Get(currentUser + startTime)
+	if found {
+		return value, nil
+	}
 
 	currentUserID, err := primitive.ObjectIDFromHex(currentUser)
 	if err != nil {
@@ -139,12 +212,21 @@ func (e eventUseCase) GetByOrganizationIDAndStartTime(ctx context.Context, curre
 		return nil, err
 	}
 
+	e.caches.Set(currentUser+startTime, data, 1)
+	e.caches.Wait()
+
 	return data, nil
 }
 
 func (e eventUseCase) GetByStartTime(ctx context.Context, startTime string) ([]domain.Event, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.caches.Get(startTime)
+	if found {
+		return value, nil
+	}
 
 	// Parse thời gian từ chuỗi (ISO 8601)
 	parseStartTime, err := time.Parse(time.RFC3339, startTime)
@@ -160,12 +242,21 @@ func (e eventUseCase) GetByStartTime(ctx context.Context, startTime string) ([]d
 		return nil, err
 	}
 
+	e.caches.Set(startTime, data, 1)
+	e.caches.Wait()
+
 	return data, nil
 }
 
 func (e eventUseCase) GetByStartTimePagination(ctx context.Context, startTime string, page string) ([]domain.Event, int64, int, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	//value, found := e.caches.Get(startTime + page)
+	//if found {
+	//	return value, nil
+	//}
 
 	layout := "20/1/2025"
 	parseStartTime, err := time.Parse(layout, startTime)
@@ -186,6 +277,9 @@ func (e eventUseCase) GetByStartTimePagination(ctx context.Context, startTime st
 	if err != nil {
 		return nil, 0, 0, err
 	}
+
+	//e.caches.Set(startTime, data, 1)
+	//e.caches.Wait()
 
 	return data, totalPage, pageCurrent, nil
 }

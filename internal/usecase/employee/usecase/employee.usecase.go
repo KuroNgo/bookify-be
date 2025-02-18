@@ -31,9 +31,9 @@ type employeeUseCase struct {
 	caches             *ristretto.Cache[string, []domain.Employee]
 }
 
-// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// NewCacheEmployee Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
 // Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
-func NewCache() (*ristretto.Cache[string, domain.Employee], error) {
+func NewCacheEmployee() (*ristretto.Cache[string, domain.Employee], error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Employee]{
 		NumCounters: 1e7,       // number of keys to track frequency of (10M)
 		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
@@ -45,9 +45,9 @@ func NewCache() (*ristretto.Cache[string, domain.Employee], error) {
 	return cache, nil
 }
 
-// NewCacheVenue Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// NewCacheEmployees Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
 // Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
-func NewCacheVenue() (*ristretto.Cache[string, []domain.Employee], error) {
+func NewCacheEmployees() (*ristretto.Cache[string, []domain.Employee], error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Employee]{
 		NumCounters: 1e7,       // number of keys to track frequency of (10M)
 		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
@@ -61,12 +61,12 @@ func NewCacheVenue() (*ristretto.Cache[string, []domain.Employee], error) {
 
 func NewEmployeeUseCase(database *config.Database, contextTimeout time.Duration, employeeRepository employeerepository.IEmployeeRepository,
 	userRepository userrepository.IUserRepository) IEmployeeUseCase {
-	cache, err := NewCache()
+	cache, err := NewCacheEmployee()
 	if err != nil {
 		panic(err)
 	}
 
-	caches, err := NewCacheVenue()
+	caches, err := NewCacheEmployees()
 	if err != nil {
 		panic(err)
 	}
