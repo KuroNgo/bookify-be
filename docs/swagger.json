@@ -589,6 +589,156 @@
                 "responses": {}
             }
         },
+        "/api/v1/event-ticket-assignment/delete": {
+            "delete": {
+                "description": "Deletes an event ticket assignment by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignments"
+                ],
+                "summary": "Delete an event ticket assignment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Ticket Assignment ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-ticket-assignments/create": {
+            "post": {
+                "description": "Creates a new event ticket assignment for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignments"
+                ],
+                "summary": "Create a new event ticket assignment",
+                "parameters": [
+                    {
+                        "description": "Event Ticket Assignment Body",
+                        "name": "eventTicketAssignment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventTicketAssignmentInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-ticket-assignments/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event ticket assignment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignments"
+                ],
+                "summary": "Get all event ticket assignment",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-ticket-assignments/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event ticket assignment by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignments"
+                ],
+                "summary": "Get event ticket assignment by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Ticket Assignment ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-ticket-assignments/update": {
+            "put": {
+                "description": "Updates an existing event ticket assignment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignment"
+                ],
+                "summary": "Update an event ticket assignment",
+                "parameters": [
+                    {
+                        "description": "Event Ticket Assignment Body",
+                        "name": "eventTicketAssignment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventTicketAssignmentInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event-tickets/create": {
             "post": {
                 "description": "Creates a new event ticket for the current user",
@@ -2470,6 +2620,36 @@
                 },
                 "status": {
                     "description": "Trạng thái vé - automatic (available, sold_out, expired, canceled, pending, reserved)",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EventTicketAssignmentInput": {
+            "type": "object",
+            "properties": {
+                "attendance_id": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "expiry_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "purchase_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "use, useless",
+                    "type": "string"
+                },
+                "ticket_type": {
                     "type": "string"
                 }
             }

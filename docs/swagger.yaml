@@ -149,6 +149,26 @@ definitions:
           pending, reserved)
         type: string
     type: object
+  domain.EventTicketAssignmentInput:
+    properties:
+      attendance_id:
+        type: string
+      event_id:
+        type: string
+      expiry_date:
+        type: string
+      id:
+        type: string
+      price:
+        type: integer
+      purchase_date:
+        type: string
+      status:
+        description: use, useless
+        type: string
+      ticket_type:
+        type: string
+    type: object
   domain.EventTypeInput:
     properties:
       name:
@@ -676,6 +696,107 @@ paths:
       summary: Update an event partner
       tags:
       - Event Partners
+  /api/v1/event-ticket-assignment/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an event ticket assignment by ID for the current user
+      parameters:
+      - description: Event Ticket Assignment ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event ticket assignment
+      tags:
+      - Event Ticket Assignments
+  /api/v1/event-ticket-assignments/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new event ticket assignment for the current user
+      parameters:
+      - description: Event Ticket Assignment Body
+        in: body
+        name: eventTicketAssignment
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventTicketAssignmentInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event ticket assignment
+      tags:
+      - Event Ticket Assignments
+  /api/v1/event-ticket-assignments/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all event ticket assignment
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all event ticket assignment
+      tags:
+      - Event Ticket Assignments
+  /api/v1/event-ticket-assignments/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event ticket assignment by its ID
+      parameters:
+      - description: Event Ticket Assignment ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get event ticket assignment by ID
+      tags:
+      - Event Ticket Assignments
+  /api/v1/event-ticket-assignments/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing event ticket assignment
+      parameters:
+      - description: Event Ticket Assignment Body
+        in: body
+        name: eventTicketAssignment
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventTicketAssignmentInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event ticket assignment
+      tags:
+      - Event Ticket Assignment
   /api/v1/event-tickets/create:
     post:
       consumes:
