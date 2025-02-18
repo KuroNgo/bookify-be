@@ -13,7 +13,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param id query string true "Event Type ID"
-// @Router /api/v1/event-types/delete [delete]
+// @Router /api/v1/event-employees/delete [delete]
 func (e EventEmployeeController) DeleteOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

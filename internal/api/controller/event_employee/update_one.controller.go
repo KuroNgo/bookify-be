@@ -7,6 +7,14 @@ import (
 	"net/http"
 )
 
+// UpdateOne godoc
+// @Summary Update an event employee
+// @Description Updates an existing event employee
+// @Tags Event Employees
+// @Accept json
+// @Produce json
+// @Param eventEmployee body domain.EventEmployeeInput true "Event Employee Body"
+// @Router /api/v1/event-employees/update [put]
 func (e EventEmployeeController) UpdateOne(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

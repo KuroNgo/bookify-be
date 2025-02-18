@@ -316,6 +316,279 @@
                 "responses": {}
             }
         },
+        "/api/v1/event-employees/delete": {
+            "delete": {
+                "description": "Deletes an event employee by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Employees"
+                ],
+                "summary": "Delete an event employee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Type ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-employees/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event employee",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Employees"
+                ],
+                "summary": "Get all event employee",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-employees/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event employee by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Employees"
+                ],
+                "summary": "Get event employee by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Employee ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-employees/update": {
+            "put": {
+                "description": "Updates an existing event employee",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Employees"
+                ],
+                "summary": "Update an event employee",
+                "parameters": [
+                    {
+                        "description": "Event Employee Body",
+                        "name": "eventEmployee",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventEmployeeInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-partners/create": {
+            "post": {
+                "description": "Creates a new event type for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Partners"
+                ],
+                "summary": "Create a new event partner",
+                "parameters": [
+                    {
+                        "description": "Event Partner Body",
+                        "name": "eventPartner",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventPartnerInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-partners/delete": {
+            "delete": {
+                "description": "Deletes an event partner by ID for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Partners"
+                ],
+                "summary": "Delete an event partner",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Partner ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/event-partners/get/all": {
+            "get": {
+                "description": "Retrieves a list of all event partner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Partners"
+                ],
+                "summary": "Get all event partner",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-partners/get/id": {
+            "get": {
+                "description": "Retrieves the details of an event partner by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Partners"
+                ],
+                "summary": "Get event partner by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Partner ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/event-partners/update": {
+            "put": {
+                "description": "Updates an existing event partner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Partners"
+                ],
+                "summary": "Update an event partner",
+                "parameters": [
+                    {
+                        "description": "Event Partner Body",
+                        "name": "eventPartner",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.EventPartnerInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event-tickets/create": {
             "post": {
                 "description": "Creates a new event ticket for the current user",
@@ -2163,6 +2436,20 @@
                 },
                 "total_expenditure": {
                     "type": "number"
+                }
+            }
+        },
+        "domain.EventPartnerInput": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "partner_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         },

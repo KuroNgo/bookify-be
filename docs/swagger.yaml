@@ -125,6 +125,15 @@ definitions:
       total_expenditure:
         type: number
     type: object
+  domain.EventPartnerInput:
+    properties:
+      event_id:
+        type: string
+      partner_id:
+        type: string
+      role:
+        type: string
+    type: object
   domain.EventTicket:
     properties:
       event_id:
@@ -483,6 +492,190 @@ paths:
       summary: Create a new event employee
       tags:
       - Event Employees
+  /api/v1/event-employees/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an event employee by ID for the current user
+      parameters:
+      - description: Event Type ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event employee
+      tags:
+      - Event Employees
+  /api/v1/event-employees/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all event employee
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all event employee
+      tags:
+      - Event Employees
+  /api/v1/event-employees/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event employee by its ID
+      parameters:
+      - description: Event Employee ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get event employee by ID
+      tags:
+      - Event Employees
+  /api/v1/event-employees/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing event employee
+      parameters:
+      - description: Event Employee Body
+        in: body
+        name: eventEmployee
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventEmployeeInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event employee
+      tags:
+      - Event Employees
+  /api/v1/event-partners/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new event type for the current user
+      parameters:
+      - description: Event Partner Body
+        in: body
+        name: eventPartner
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventPartnerInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new event partner
+      tags:
+      - Event Partners
+  /api/v1/event-partners/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an event partner by ID for the current user
+      parameters:
+      - description: Event Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an event partner
+      tags:
+      - Event Partners
+  /api/v1/event-partners/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all event partner
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all event partner
+      tags:
+      - Event Partners
+  /api/v1/event-partners/get/id:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of an event partner by its ID
+      parameters:
+      - description: Event Partner ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get event partner by ID
+      tags:
+      - Event Partners
+  /api/v1/event-partners/update:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing event partner
+      parameters:
+      - description: Event Partner Body
+        in: body
+        name: eventPartner
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EventPartnerInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update an event partner
+      tags:
+      - Event Partners
   /api/v1/event-tickets/create:
     post:
       consumes:
