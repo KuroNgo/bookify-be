@@ -10,6 +10,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -28,16 +29,61 @@ type eventWishlistUseCase struct {
 	eventWishlistRepository eventwishlistrepository.IEventWishlistRepository
 	eventRepository         event_repository.IEventRepository
 	userRepository          userrepository.IUserRepository
+	cache                   *ristretto.Cache[string, domain.EventWishlist]
+	caches                  *ristretto.Cache[string, []domain.EventWishlist]
+}
+
+// NewCacheEventWishlist Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventWishlist() (*ristretto.Cache[string, domain.EventWishlist], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.EventWishlist]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheEventWishlists Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventWishlists() (*ristretto.Cache[string, []domain.EventWishlist], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.EventWishlist]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewEventWishlistUseCase(database *config.Database, contextTimeout time.Duration,
 	eventWishlistRepository eventwishlistrepository.IEventWishlistRepository, userRepository userrepository.IUserRepository) IEventWishlistUseCase {
-	return &eventWishlistUseCase{database: database, contextTimeout: contextTimeout, eventWishlistRepository: eventWishlistRepository, userRepository: userRepository}
+	cache, err := NewCacheEventWishlist()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheEventWishlists()
+	if err != nil {
+		panic(err)
+	}
+	return &eventWishlistUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, eventWishlistRepository: eventWishlistRepository, userRepository: userRepository}
 }
 
 func (e *eventWishlistUseCase) GetByID(ctx context.Context, id string) (domain.EventWishlist, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	eventWishlistID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -49,6 +95,10 @@ func (e *eventWishlistUseCase) GetByID(ctx context.Context, id string) (domain.E
 		return domain.EventWishlist{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	// wait for value to pass through buffers
+	e.cache.Wait()
+
 	return data, nil
 }
 
@@ -56,10 +106,20 @@ func (e *eventWishlistUseCase) GetAll(ctx context.Context) ([]domain.EventWishli
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := e.caches.Get("wishlists")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.eventWishlistRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	e.caches.Set("wishlists", data, 1)
+	// wait for value to pass through buffers
+	e.caches.Wait()
 
 	return data, nil
 }
@@ -108,6 +168,8 @@ func (e *eventWishlistUseCase) CreateOne(ctx context.Context, eventWishlist *dom
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
 
 	return nil
 }
@@ -161,6 +223,9 @@ func (e *eventWishlistUseCase) UpdateOne(ctx context.Context, id string, eventWi
 		return err
 	}
 
+	e.caches.Clear()
+	e.cache.Clear()
+
 	return nil
 }
 
@@ -191,6 +256,9 @@ func (e *eventWishlistUseCase) DeleteOne(ctx context.Context, id string, current
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }

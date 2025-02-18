@@ -29,18 +29,62 @@ type eventEmployeeUseCase struct {
 	contextTimeout          time.Duration
 	eventEmployeeRepository event_employee_repository.IEventEmployeeRepository
 	userRepository          userrepository.IUserRepository
-	cache                   *ristretto.Cache[string, domain.EventType]
-	caches                  *ristretto.Cache[string, []domain.EventType]
+	cache                   *ristretto.Cache[string, domain.EventEmployee]
+	caches                  *ristretto.Cache[string, []domain.EventEmployee]
+}
+
+// NewCacheEventType Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventType() (*ristretto.Cache[string, domain.EventEmployee], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.EventEmployee]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheEventTypes Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventTypes() (*ristretto.Cache[string, []domain.EventEmployee], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.EventEmployee]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewEventEmployeeUseCase(database *config.Database, contextTimeout time.Duration, eventEmployeeRepository event_employee_repository.IEventEmployeeRepository,
 	userRepository userrepository.IUserRepository) IEventEmployeeUseCase {
-	return &eventEmployeeUseCase{database: database, contextTimeout: contextTimeout, eventEmployeeRepository: eventEmployeeRepository, userRepository: userRepository}
+	cache, err := NewCacheEventType()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheEventTypes()
+	if err != nil {
+		panic(err)
+	}
+	return &eventEmployeeUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout,
+		eventEmployeeRepository: eventEmployeeRepository, userRepository: userRepository}
 }
 
 func (e *eventEmployeeUseCase) GetByID(ctx context.Context, id string) (domain.EventEmployee, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	eventTypeID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -52,6 +96,9 @@ func (e *eventEmployeeUseCase) GetByID(ctx context.Context, id string) (domain.E
 		return domain.EventEmployee{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
@@ -59,10 +106,19 @@ func (e *eventEmployeeUseCase) GetAll(ctx context.Context) ([]domain.EventEmploy
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := e.caches.Get("event_employees")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.eventEmployeeRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	e.caches.Set("event_employees", data, 1)
+	e.caches.Wait()
 
 	return data, nil
 }
@@ -103,6 +159,8 @@ func (e *eventEmployeeUseCase) CreateOne(ctx context.Context, eventEmployee *dom
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
 
 	return nil
 }
@@ -145,6 +203,9 @@ func (e *eventEmployeeUseCase) UpdateOne(ctx context.Context, id string, eventEm
 		return err
 	}
 
+	e.caches.Clear()
+	e.cache.Clear()
+
 	return nil
 }
 
@@ -176,5 +237,8 @@ func (e *eventEmployeeUseCase) DeleteOne(ctx context.Context, id string, current
 		return err
 	}
 
+	e.caches.Clear()
+	e.cache.Clear()
+	
 	return nil
 }

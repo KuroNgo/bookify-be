@@ -10,6 +10,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -28,16 +29,61 @@ type eventTypeUseCase struct {
 	eventTicketRepository eventticketrepository.IEventTicketRepository
 	eventRepository       eventrepository.IEventRepository
 	userRepository        userrepository.IUserRepository
+	cache                 *ristretto.Cache[string, domain.EventTicket]
+	caches                *ristretto.Cache[string, []domain.EventTicket]
+}
+
+// NewCacheEventTicket Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventTicket() (*ristretto.Cache[string, domain.EventTicket], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.EventTicket]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheEventTickets Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventTickets() (*ristretto.Cache[string, []domain.EventTicket], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.EventTicket]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewEventTicketUseCase(database *config.Database, contextTimeout time.Duration, eventTicketRepository eventticketrepository.IEventTicketRepository,
 	eventRepository eventrepository.IEventRepository, userRepository userrepository.IUserRepository) IEventTicketUseCase {
-	return &eventTypeUseCase{database: database, contextTimeout: contextTimeout, eventTicketRepository: eventTicketRepository, eventRepository: eventRepository, userRepository: userRepository}
+	cache, err := NewCacheEventTicket()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheEventTickets()
+	if err != nil {
+		panic(err)
+	}
+	return &eventTypeUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, eventTicketRepository: eventTicketRepository, eventRepository: eventRepository, userRepository: userRepository}
 }
 
 func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventTicket, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	eventTicketID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -49,6 +95,9 @@ func (e eventTypeUseCase) GetByID(ctx context.Context, id string) (domain.EventT
 		return domain.EventTicket{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
@@ -56,10 +105,19 @@ func (e eventTypeUseCase) GetAll(ctx context.Context) ([]domain.EventTicket, err
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := e.caches.Get("event_tickets")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.eventTicketRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	e.caches.Set("event_tickets", data, 1)
+	e.caches.Wait()
 
 	return data, nil
 }
@@ -98,6 +156,8 @@ func (e eventTypeUseCase) CreateOne(ctx context.Context, eventTicket *domain.Eve
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
 
 	return nil
 }
@@ -142,6 +202,9 @@ func (e eventTypeUseCase) UpdateOne(ctx context.Context, id string, eventTicket 
 		return err
 	}
 
+	e.caches.Clear()
+	e.cache.Clear()
+
 	return nil
 }
 
@@ -172,6 +235,9 @@ func (e eventTypeUseCase) DeleteOne(ctx context.Context, id string, currentUser 
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }
