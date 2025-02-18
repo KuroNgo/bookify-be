@@ -4,7 +4,9 @@ import (
 	"bookify/internal/domain"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"time"
 )
 
 // CreateOne godoc
@@ -43,6 +45,13 @@ func (e EventEmployeeController) CreateOne(ctx *gin.Context) {
 		)
 		return
 	}
+
+	time.AfterFunc(1*time.Minute, func() {
+		err := e.EventEmployeeUseCase.SendQuestOfEmployeeInform(ctx)
+		if err != nil {
+			log.Printf("Error sending email: %v", err)
+		}
+	})
 
 	// Trả về phản hồi thành công
 	ctx.JSON(http.StatusOK, gin.H{

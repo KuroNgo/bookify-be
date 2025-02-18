@@ -9,6 +9,7 @@ import (
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -21,21 +22,66 @@ type IEmployeeUseCase interface {
 	DeleteOne(ctx context.Context, id string, currentUser string) error
 }
 
-func NewEmployeeUseCase(database *config.Database, contextTimeout time.Duration, employeeRepository employeerepository.IEmployeeRepository,
-	userRepository userrepository.IUserRepository) IEmployeeUseCase {
-	return &employeeUseCase{database: database, contextTimeout: contextTimeout, employeeRepository: employeeRepository, userRepository: userRepository}
-}
-
 type employeeUseCase struct {
 	database           *config.Database
 	contextTimeout     time.Duration
 	employeeRepository employeerepository.IEmployeeRepository
 	userRepository     userrepository.IUserRepository
+	cache              *ristretto.Cache[string, domain.Employee]
+	caches             *ristretto.Cache[string, []domain.Employee]
+}
+
+// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCache() (*ristretto.Cache[string, domain.Employee], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Employee]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheVenue Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheVenue() (*ristretto.Cache[string, []domain.Employee], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Employee]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+func NewEmployeeUseCase(database *config.Database, contextTimeout time.Duration, employeeRepository employeerepository.IEmployeeRepository,
+	userRepository userrepository.IUserRepository) IEmployeeUseCase {
+	cache, err := NewCache()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheVenue()
+	if err != nil {
+		panic(err)
+	}
+	return &employeeUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, employeeRepository: employeeRepository, userRepository: userRepository}
 }
 
 func (e employeeUseCase) GetByID(ctx context.Context, id string) (domain.Employee, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	employeeID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -47,6 +93,9 @@ func (e employeeUseCase) GetByID(ctx context.Context, id string) (domain.Employe
 		return domain.Employee{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
@@ -54,10 +103,19 @@ func (e employeeUseCase) GetAll(ctx context.Context) ([]domain.Employee, error) 
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := e.caches.Get("employees")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.employeeRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	e.caches.Set("employees", data, 1)
+	e.caches.Wait()
 
 	return data, nil
 }
@@ -87,15 +145,6 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 		return err
 	}
 
-	//count, err := p.partnerRepository.CountExist(ctx, partner.Name)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if count > 0 {
-	//	return errors.New(constants.MsgAPIConflict)
-	//}
-
 	employeeInput := &domain.Employee{
 		ID:             primitive.NewObjectID(),
 		OrganizationID: employee.OrganizationID,
@@ -109,6 +158,8 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
 
 	return nil
 }
@@ -138,15 +189,6 @@ func (e employeeUseCase) UpdateOne(ctx context.Context, id string, employee *dom
 		return err
 	}
 
-	//count, err := e.employeeRepository.CountExist(ctx, partner.Name)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if count > 0 {
-	//	return errors.New(constants.MsgAPIConflict)
-	//}
-
 	employeeInput := &domain.Employee{
 		ID:             primitive.NewObjectID(),
 		OrganizationID: employee.OrganizationID,
@@ -160,6 +202,9 @@ func (e employeeUseCase) UpdateOne(ctx context.Context, id string, employee *dom
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }
@@ -191,6 +236,9 @@ func (e employeeUseCase) DeleteOne(ctx context.Context, id string, currentUser s
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }

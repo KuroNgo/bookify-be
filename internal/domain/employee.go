@@ -22,3 +22,7 @@ type EmployeeInput struct {
 	JobTitle       string             `bson:"job_title" json:"job_title"`
 	Email          string             `bson:"email" json:"email"`
 }
+
+type EmployeeResponse struct {
+	Employee []Employee `json:"employee"`
+}

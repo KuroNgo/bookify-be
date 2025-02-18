@@ -232,6 +232,16 @@ definitions:
         example: "12345"
         type: string
     type: object
+  domain.SignupUser:
+    properties:
+      email:
+        type: string
+      password:
+        description: Hash of the password
+        type: string
+      phone:
+        type: string
+    type: object
   domain.UpdateSocialMedia:
     properties:
       enable_automatic_sharing_of_events:
@@ -796,7 +806,7 @@ paths:
       responses: {}
       summary: Update an event ticket assignment
       tags:
-      - Event Ticket Assignment
+      - Event Ticket Assignments
   /api/v1/event-tickets/create:
     post:
       consumes:
@@ -1675,40 +1685,14 @@ paths:
       - User
   /api/v1/users/signup:
     post:
-      consumes:
-      - application/x-www-form-urlencoded
-      - multipart/form-data
       description: Register a new user with form data
       parameters:
-      - description: Email of the user
-        example: '"john.doe@example.com"'
-        in: formData
-        name: email
+      - description: User data
+        in: body
+        name: SignUp
         required: true
-        type: string
-      - description: Password of the user
-        example: '"securepassword123"'
-        in: formData
-        name: password
-        required: true
-        type: string
-      - description: Full name of the user
-        example: '"John Doe"'
-        in: formData
-        name: fullName
-        required: true
-        type: string
-      - description: Avatar URL of the user
-        example: '"http://example.com/avatar.jpg"'
-        in: formData
-        name: avatarUrl
-        type: string
-      - description: Phone number of the user
-        example: '"+1234567890"'
-        in: formData
-        name: phone
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/domain.SignupUser'
       produces:
       - application/json
       responses: {}

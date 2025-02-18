@@ -14,11 +14,14 @@ import (
 )
 
 type IEventEmployeeUseCase interface {
+	ICronjobEventEmployee // embedded interface
 	GetByID(ctx context.Context, id string) (domain.EventEmployee, error)
 	GetAll(ctx context.Context) ([]domain.EventEmployee, error)
 	CreateOne(ctx context.Context, eventEmployee *domain.EventEmployeeInput, currentUser string) error
 	UpdateOne(ctx context.Context, id string, eventEmployee *domain.EventEmployeeInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
+	SendQuestOfEmployeeInform(ctx context.Context) error
+	DeadlineInform(ctx context.Context) error
 }
 
 type eventEmployeeUseCase struct {
