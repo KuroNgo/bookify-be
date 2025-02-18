@@ -728,7 +728,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Event Ticket Assignment"
+                    "Event Ticket Assignments"
                 ],
                 "summary": "Update an event ticket assignment",
                 "parameters": [
@@ -2056,10 +2056,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Register a new user with form data",
-                "consumes": [
-                    "application/x-www-form-urlencoded",
-                    "multipart/form-data"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -2069,43 +2065,13 @@ const docTemplate = `{
                 "summary": "Register user",
                 "parameters": [
                     {
-                        "type": "string",
-                        "example": "\"john.doe@example.com\"",
-                        "description": "Email of the user",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"securepassword123\"",
-                        "description": "Password of the user",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"John Doe\"",
-                        "description": "Full name of the user",
-                        "name": "fullName",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"http://example.com/avatar.jpg\"",
-                        "description": "Avatar URL of the user",
-                        "name": "avatarUrl",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"+1234567890\"",
-                        "description": "Phone number of the user",
-                        "name": "phone",
-                        "in": "formData",
-                        "required": true
+                        "description": "User data",
+                        "name": "SignUp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SignupUser"
+                        }
                     }
                 ],
                 "responses": {}
@@ -2754,6 +2720,21 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "12345"
+                }
+            }
+        },
+        "domain.SignupUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Hash of the password",
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },

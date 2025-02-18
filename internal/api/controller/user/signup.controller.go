@@ -10,14 +10,8 @@ import (
 // @Summary Register user
 // @Description Register a new user with form data
 // @Tags User
-// @Accept x-www-form-urlencoded
-// @Accept multipart/form-data
 // @Produce json
-// @Param email formData string true "Email of the user" example("john.doe@example.com")
-// @Param password formData string true "Password of the user" example("securepassword123")
-// @Param fullName formData string true "Full name of the user" example("John Doe")
-// @Param avatarUrl formData string false "Avatar URL of the user" example("http://example.com/avatar.jpg")
-// @Param phone formData string true "Phone number of the user" example("+1234567890")
+// @Param SignUp body domain.SignupUser true "User data"
 // @Security ApiKeyAuth
 // @Router /api/v1/users/signup [post]
 func (u *UserController) SignUp(ctx *gin.Context) {

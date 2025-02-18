@@ -62,7 +62,7 @@ func SendEmail(data *EmailData, emailTo string, templateName string) error {
 	m.SetHeader("To", emailTo)
 	m.SetHeader("Subject", data.Subject)
 
-	m.SetAddressHeader(constant.Bcc, constant.BCCAdmin3, constant.Admin)
+	//m.SetAddressHeader(constant.Bcc, constant.BCCAdmin3, constant.Admin)
 
 	m.SetBody("text/html", body.String())
 	//m.AddAlternative("text/plain", body.String())

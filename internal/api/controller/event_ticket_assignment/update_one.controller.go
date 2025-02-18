@@ -10,7 +10,7 @@ import (
 // UpdateOne godoc
 // @Summary Update an event ticket assignment
 // @Description Updates an existing event ticket assignment
-// @Tags Event Ticket Assignment
+// @Tags Event Ticket Assignments
 // @Accept json
 // @Produce json
 // @Param eventTicketAssignment body domain.EventTicketAssignmentInput true "Event Ticket Assignment Body"
