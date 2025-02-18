@@ -8,6 +8,7 @@ import (
 	"bookify/pkg/shared/constants"
 	"context"
 	"errors"
+	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -25,17 +26,62 @@ type eventTicketAssignmentUseCase struct {
 	contextTimeout                  time.Duration
 	eventTicketAssignmentRepository event_ticket_repository.IEventTicketAssignmentRepository
 	userRepository                  userrepository.IUserRepository
+	cache                           *ristretto.Cache[string, domain.EventTicketAssignment]
+	caches                          *ristretto.Cache[string, []domain.EventTicketAssignment]
+}
+
+// NewCacheEventTicketAssignment Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventTicketAssignment() (*ristretto.Cache[string, domain.EventTicketAssignment], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.EventTicketAssignment]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
+// NewCacheEventTicketAssignments Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventTicketAssignments() (*ristretto.Cache[string, []domain.EventTicketAssignment], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.EventTicketAssignment]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func NewEventTicketAssignmentUseCase(database *config.Database, contextTimeout time.Duration,
 	eventTicketAssignmentRepository event_ticket_repository.IEventTicketAssignmentRepository, userRepository userrepository.IUserRepository) IEventTicketAssignmentUseCase {
-	return &eventTicketAssignmentUseCase{database: database, contextTimeout: contextTimeout,
+	cache, err := NewCacheEventTicketAssignment()
+	if err != nil {
+		panic(err)
+	}
+
+	caches, err := NewCacheEventTicketAssignments()
+	if err != nil {
+		panic(err)
+	}
+	return &eventTicketAssignmentUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout,
 		eventTicketAssignmentRepository: eventTicketAssignmentRepository, userRepository: userRepository}
 }
 
 func (e *eventTicketAssignmentUseCase) GetByID(ctx context.Context, id string) (domain.EventTicketAssignment, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
+
+	// get value from cache
+	value, found := e.cache.Get(id)
+	if found {
+		return value, nil
+	}
 
 	eventTypeID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -47,6 +93,9 @@ func (e *eventTicketAssignmentUseCase) GetByID(ctx context.Context, id string) (
 		return domain.EventTicketAssignment{}, err
 	}
 
+	e.cache.Set(id, data, 1)
+	e.cache.Wait()
+
 	return data, nil
 }
 
@@ -54,10 +103,19 @@ func (e *eventTicketAssignmentUseCase) GetAll(ctx context.Context) ([]domain.Eve
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	// get value from cache
+	value, found := e.caches.Get("event_ticket_assignments")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.eventTicketAssignmentRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	e.caches.Set("event_ticket_assignments", data, 1)
+	e.caches.Wait()
 
 	return data, nil
 }
@@ -105,6 +163,8 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
 
 	return nil
 }
@@ -158,6 +218,9 @@ func (e *eventTicketAssignmentUseCase) UpdateOne(ctx context.Context, id string,
 		return err
 	}
 
+	e.caches.Clear()
+	e.cache.Clear()
+
 	return nil
 }
 
@@ -174,6 +237,9 @@ func (e *eventTicketAssignmentUseCase) DeleteOne(ctx context.Context, id string,
 	if err != nil {
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }
