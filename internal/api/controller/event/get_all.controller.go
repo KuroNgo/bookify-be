@@ -11,7 +11,7 @@ import (
 // @Tags Events
 // @Accept json
 // @Produce json
-// @Router /api/v1/event/get/all [get]
+// @Router /api/v1/events/get/all [get]
 func (e *EventController) GetAll(ctx *gin.Context) {
 	data, err := e.EventUseCase.GetAll(ctx)
 	if err != nil {

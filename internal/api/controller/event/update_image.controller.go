@@ -14,7 +14,7 @@ import (
 // @Produce json
 // @Param id query string true "Event ID"
 // @Param file formData file false "Image file to upload"
-// @Router /api/v1/event/update/image [patch]
+// @Router /api/v1/events/update/image [patch]
 func (e *EventController) UpdateImage(ctx *gin.Context) {
 	_, exist := ctx.Get("currentUser")
 	if !exist {

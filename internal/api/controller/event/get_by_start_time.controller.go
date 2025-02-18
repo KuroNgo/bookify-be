@@ -13,7 +13,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param startDate query string true "Start date in YYYY-MM-DD format"
-// @Router /api/v1/event/get/start-time [get]
+// @Router /api/v1/events/get/start-time [get]
 func (e *EventController) GetByStartTime(ctx *gin.Context) {
 	startDate := ctx.Query("startTime")
 	if startDate == "" {

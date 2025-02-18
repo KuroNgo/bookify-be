@@ -14,7 +14,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param event body domain.EventInput true "Event input data"
-// @Router /api/v1/event/create/async [post]
+// @Router /api/v1/events/create/async [post]
 func (e *EventController) CreateOneAsync(ctx *gin.Context) {
 	_, exist := ctx.Get("currentUser")
 	if !exist {

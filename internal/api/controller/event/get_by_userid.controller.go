@@ -13,7 +13,7 @@ import (
 // @Tags Events
 // @Accept json
 // @Produce json
-// @Router /api/v1/event/get/user_id [get]
+// @Router /api/v1/events/get/user_id [get]
 func (e *EventController) GetByUserID(ctx *gin.Context) {
 	currentUser, exist := ctx.Get("currentUser")
 	if !exist {

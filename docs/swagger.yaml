@@ -1117,7 +1117,7 @@ paths:
       summary: Get event wishlist by ID
       tags:
       - Event Wishlists
-  /api/v1/event/create:
+  /api/v1/events/create:
     post:
       consumes:
       - application/json
@@ -1135,7 +1135,7 @@ paths:
       summary: Create a new event
       tags:
       - Events
-  /api/v1/event/create/async:
+  /api/v1/events/create/async:
     post:
       consumes:
       - application/json
@@ -1153,7 +1153,7 @@ paths:
       summary: Create a new event
       tags:
       - Events
-  /api/v1/event/delete-one:
+  /api/v1/events/delete-one:
     delete:
       consumes:
       - application/json
@@ -1170,7 +1170,7 @@ paths:
       summary: Delete an event
       tags:
       - Events
-  /api/v1/event/get-all/pagination:
+  /api/v1/events/get-all/pagination:
     get:
       consumes:
       - application/json
@@ -1186,7 +1186,7 @@ paths:
       summary: Get all event with pagination
       tags:
       - Events
-  /api/v1/event/get/all:
+  /api/v1/events/get/all:
     get:
       consumes:
       - application/json
@@ -1197,7 +1197,7 @@ paths:
       summary: Get all event
       tags:
       - Events
-  /api/v1/event/get/id:
+  /api/v1/events/get/id:
     get:
       consumes:
       - application/json
@@ -1214,7 +1214,7 @@ paths:
       summary: Get event by ID
       tags:
       - Events
-  /api/v1/event/get/start-time:
+  /api/v1/events/get/start-time:
     get:
       consumes:
       - application/json
@@ -1231,7 +1231,7 @@ paths:
       summary: Get event by start time
       tags:
       - Events
-  /api/v1/event/get/start-time/pagination:
+  /api/v1/events/get/start-time/pagination:
     get:
       consumes:
       - application/json
@@ -1252,7 +1252,7 @@ paths:
       summary: Get event by start time with pagination
       tags:
       - Events
-  /api/v1/event/get/title:
+  /api/v1/events/get/title:
     get:
       consumes:
       - application/json
@@ -1263,7 +1263,7 @@ paths:
       summary: Get event by title
       tags:
       - Events
-  /api/v1/event/get/user_id:
+  /api/v1/events/get/user_id:
     get:
       consumes:
       - application/json
@@ -1274,7 +1274,7 @@ paths:
       summary: Get event by UserID
       tags:
       - Events
-  /api/v1/event/get/user_id/start_time:
+  /api/v1/events/get/user_id/start_time:
     get:
       consumes:
       - application/json
@@ -1294,7 +1294,7 @@ paths:
       summary: Get events by User ID and Start Time
       tags:
       - Events
-  /api/v1/event/update:
+  /api/v1/events/update:
     put:
       consumes:
       - application/json
@@ -1317,7 +1317,7 @@ paths:
       summary: Update an event
       tags:
       - Events
-  /api/v1/event/update/image:
+  /api/v1/events/update/image:
     patch:
       consumes:
       - application/json
