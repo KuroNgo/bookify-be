@@ -1,4 +1,4 @@
-package event_ticket_repository
+package event_ticket_assignment_repository
 
 import (
 	"bookify/internal/domain"
