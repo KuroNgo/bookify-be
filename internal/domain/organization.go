@@ -1,6 +1,9 @@
 package domain
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
 
 const (
 	CollectionOrganization = "organization"
@@ -13,6 +16,8 @@ type Organization struct {
 	ContactPerson string             `bson:"contact_person" json:"contact_person"`
 	Email         string             `bson:"email" json:"email"`
 	Phone         string             `bson:"phone" json:"phone"`
+	CreatedAt     time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt     time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
 type OrganizationInput struct {

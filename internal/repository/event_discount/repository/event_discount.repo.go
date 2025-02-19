@@ -12,6 +12,8 @@ import (
 
 type IEventDiscountRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.EventDiscount, error)
+	GetByUserIDInApplicable(ctx context.Context, userID primitive.ObjectID) ([]domain.EventDiscount, error)
+	GetByUserIDInApplicableAndEventID(ctx context.Context, userID primitive.ObjectID, eventID primitive.ObjectID) (domain.EventDiscount, error)
 	GetAll(ctx context.Context) ([]domain.EventDiscount, error)
 	CreateOne(ctx context.Context, discount domain.EventDiscount) error
 	UpdateOne(ctx context.Context, discount domain.EventDiscount) error
@@ -40,6 +42,44 @@ func (e eventSaleOffRepository) GetByID(ctx context.Context, id primitive.Object
 	}
 
 	return eventDiscount, nil
+}
+
+func (e eventSaleOffRepository) GetByUserIDInApplicableAndEventID(ctx context.Context, userID primitive.ObjectID, eventID primitive.ObjectID) (domain.EventDiscount, error) {
+	eventDiscountCollection := e.database.Collection(e.collectionEventDiscount)
+
+	filter := bson.M{"event_id": eventID, "applicable_users": userID}
+	var eventDiscount domain.EventDiscount
+	if err := eventDiscountCollection.FindOne(ctx, filter).Decode(&eventDiscount); err != nil {
+		if errors.Is(err, mongo.ErrNilDocument) {
+			return domain.EventDiscount{}, nil
+		}
+		return domain.EventDiscount{}, err
+	}
+
+	return eventDiscount, nil
+}
+
+func (e eventSaleOffRepository) GetByUserIDInApplicable(ctx context.Context, userID primitive.ObjectID) ([]domain.EventDiscount, error) {
+	eventDiscountCollection := e.database.Collection(e.collectionEventDiscount)
+
+	filter := bson.M{"applicable_users": userID}
+	cursor, err := eventDiscountCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var eventDiscounts []domain.EventDiscount
+	for cursor.Next(ctx) {
+		var eventDiscount domain.EventDiscount
+		if err = cursor.Decode(&eventDiscount); err != nil {
+			return nil, err
+		}
+
+		eventDiscounts = append(eventDiscounts, eventDiscount)
+	}
+
+	return eventDiscounts, nil
 }
 
 func (e eventSaleOffRepository) GetAll(ctx context.Context) ([]domain.EventDiscount, error) {

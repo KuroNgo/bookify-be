@@ -3,6 +3,7 @@ package event_ticket_assignment_usecase
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
+	eventdiscountrepository "bookify/internal/repository/event_discount/repository"
 	event_ticket_repository "bookify/internal/repository/event_ticket_assignment/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
@@ -25,6 +26,7 @@ type eventTicketAssignmentUseCase struct {
 	database                        *config.Database
 	contextTimeout                  time.Duration
 	eventTicketAssignmentRepository event_ticket_repository.IEventTicketAssignmentRepository
+	eventDiscountRepository         eventdiscountrepository.IEventDiscountRepository
 	userRepository                  userrepository.IUserRepository
 	cache                           *ristretto.Cache[string, domain.EventTicketAssignment]
 	caches                          *ristretto.Cache[string, []domain.EventTicketAssignment]
@@ -129,13 +131,16 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 		return err
 	}
 
-	userData, err := e.userRepository.GetByID(ctx, userID)
+	discount, err := e.eventDiscountRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	if userData.Role != constants.RoleSuperAdmin {
-		return errors.New(constants.MsgForbidden)
+	var costsPayable float64
+	if discount.DiscountUnit == "percent" {
+		costsPayable = discount.DiscountValue / 100 * eventTicketAssignment.Price
+	} else if discount.DiscountUnit == "amount" {
+		costsPayable = eventTicketAssignment.Price - discount.DiscountValue
 	}
 
 	eventID, err := primitive.ObjectIDFromHex(eventTicketAssignment.EventID)
@@ -154,7 +159,7 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 		AttendanceID: attendanceID,
 		PurchaseDate: time.Now(),
 		ExpiryDate:   eventTicketAssignment.ExpiryDate,
-		Price:        eventTicketAssignment.Price,
+		Price:        costsPayable,
 		TicketType:   eventTicketAssignment.TicketType,
 		Status:       eventTicketAssignment.Status,
 	}

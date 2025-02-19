@@ -36,7 +36,7 @@ func UserRouter(env *config.Database, timeout time.Duration, db *mongo.Database,
 	router.GET("/get/info", user.GetMe)
 	router.GET("/get/refresh", user.RefreshToken)
 	router.DELETE("/current/delete", middleware.DeserializeUser(), user.DeleteCurrentUser)
-	router.GET("/logout", user.LogoutUser)
+	router.GET("/logout", middleware.DeserializeUser(), user.LogoutUser)
 
 	google := group.Group("/auth")
 	google.GET("/google/callback", user.GoogleLoginWithUser)

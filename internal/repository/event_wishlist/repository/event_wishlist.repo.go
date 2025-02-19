@@ -13,6 +13,7 @@ import (
 
 type IEventWishlistRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.EventWishlist, error)
+	GetByUserID(ctx context.Context, userId primitive.ObjectID) (domain.EventWishlist, error)
 	GetAll(ctx context.Context) ([]domain.EventWishlist, error)
 	CreateOne(ctx context.Context, eventWishlist domain.EventWishlist) error
 	UpdateOne(ctx context.Context, eventWishlist domain.EventWishlist) error
@@ -32,6 +33,21 @@ func (e *eventWishlistRepository) GetByID(ctx context.Context, id primitive.Obje
 	eventWishlistCollection := e.database.Collection(e.collectionEventWishlist)
 
 	filter := bson.M{"_id": id}
+	var eventWishlist domain.EventWishlist
+	if err := eventWishlistCollection.FindOne(ctx, filter).Decode(&eventWishlist); err != nil {
+		if errors.Is(err, mongo.ErrNilDocument) {
+			return domain.EventWishlist{}, nil
+		}
+		return domain.EventWishlist{}, err
+	}
+
+	return eventWishlist, nil
+}
+
+func (e *eventWishlistRepository) GetByUserID(ctx context.Context, userId primitive.ObjectID) (domain.EventWishlist, error) {
+	eventWishlistCollection := e.database.Collection(e.collectionEventWishlist)
+
+	filter := bson.M{"user_id": userId}
 	var eventWishlist domain.EventWishlist
 	if err := eventWishlistCollection.FindOne(ctx, filter).Decode(&eventWishlist); err != nil {
 		if errors.Is(err, mongo.ErrNilDocument) {

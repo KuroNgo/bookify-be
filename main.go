@@ -3,6 +3,7 @@ package main
 import (
 	"bookify/internal/api/routes"
 	"bookify/internal/infrastructor"
+	cronjob "bookify/pkg/shared/cron"
 	"github.com/gin-gonic/gin"
 	_ "net/http/pprof"
 	"time"
@@ -25,14 +26,14 @@ func main() {
 	db := app.MongoDB.Database(env.DBName)
 	defer app.CloseDBConnection()
 
-	//cr := cronjob.NewCronScheduler()
+	cr := cronjob.NewCronScheduler()
 
 	timeout := time.Duration(env.ContextTimeout) * time.Second
 	cacheTTL := time.Minute * 5
 
 	_gin := gin.Default()
 
-	routes.SetUp(env, timeout, client, db, _gin, cacheTTL)
+	routes.SetUp(env, cr, timeout, client, db, _gin, cacheTTL)
 	err := _gin.Run(env.ServerAddress)
 	if err != nil {
 		return

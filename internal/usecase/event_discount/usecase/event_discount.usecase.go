@@ -5,6 +5,8 @@ import (
 	"bookify/internal/domain"
 	eventrepository "bookify/internal/repository/event/repository"
 	eventdiscountrepository "bookify/internal/repository/event_discount/repository"
+	eventticketrepository "bookify/internal/repository/event_ticket/repository"
+	eventwishlistrepository "bookify/internal/repository/event_wishlist/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/validate_data"
@@ -17,6 +19,7 @@ import (
 )
 
 type IEventDiscountUseCase interface {
+	IJobWorkerEventDiscount
 	GetByID(ctx context.Context, id string) (domain.EventDiscount, error)
 	GetAll(ctx context.Context) ([]domain.EventDiscount, error)
 	CreateOne(ctx context.Context, discount *domain.EventDiscountInput, currentUser string) error
@@ -29,6 +32,8 @@ type eventDiscountUseCase struct {
 	contextTimeout          time.Duration
 	eventDiscountRepository eventdiscountrepository.IEventDiscountRepository
 	eventRepository         eventrepository.IEventRepository
+	eventTicketRepository   eventticketrepository.IEventTicketRepository
+	wishlistRepository      eventwishlistrepository.IEventWishlistRepository
 	userRepository          userrepository.IUserRepository
 	cache                   *ristretto.Cache[string, domain.EventDiscount]
 	caches                  *ristretto.Cache[string, []domain.EventDiscount]
@@ -62,7 +67,7 @@ func NewCacheEventDiscounts() (*ristretto.Cache[string, []domain.EventDiscount],
 	return cache, nil
 }
 
-func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventDiscountRepository eventdiscountrepository.IEventDiscountRepository,
+func NewEventDiscountUseCase(database *config.Database, contextTimeout time.Duration, eventDiscountRepository eventdiscountrepository.IEventDiscountRepository,
 	userRepository userrepository.IUserRepository) IEventDiscountUseCase {
 	cache, err := NewCacheEventDiscount()
 	if err != nil {
@@ -156,6 +161,20 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 		return err
 	}
 
+	eventTicketData, err := e.eventTicketRepository.GetByID(ctx, eventData.ID)
+	if err != nil {
+		return err
+	}
+
+	// you can not create a discount with price greater than price of event\
+	if discount.DiscountUnit == "amount" && discount.DiscountValue > eventTicketData.Price {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if discount.DiscountUnit == "percent" && discount.DiscountValue > 100 && discount.DiscountValue < 0 {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
 	applicableUsers, err := ConvertStringsToObjectIDs(discount.ApplicableUsers)
 	if err != nil {
 		return err
@@ -218,6 +237,20 @@ func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discoun
 	eventData, err := e.eventRepository.GetByID(ctx, eventID)
 	if err != nil {
 		return err
+	}
+
+	eventTicketData, err := e.eventTicketRepository.GetByID(ctx, eventData.ID)
+	if err != nil {
+		return err
+	}
+
+	// you can not create a discount with price greater than price of event\
+	if discount.DiscountUnit == "amount" && discount.DiscountValue > eventTicketData.Price {
+		return errors.New(constants.MsgInvalidInput)
+	}
+
+	if discount.DiscountUnit == "percent" && discount.DiscountValue > 100 && discount.DiscountValue < 0 {
+		return errors.New(constants.MsgInvalidInput)
 	}
 
 	applicableUsers, err := ConvertStringsToObjectIDs(discount.ApplicableUsers)

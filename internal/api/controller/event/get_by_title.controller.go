@@ -11,7 +11,7 @@ import (
 // @Tags Events
 // @Accept json
 // @Produce json
-// @Router /api/v1/event/get/title [get]
+// @Router /api/v1/events/get/title [get]
 func (e *EventController) GetByTitle(ctx *gin.Context) {
 	title := ctx.Query("title")
 

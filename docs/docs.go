@@ -70,6 +70,31 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/employees/delete-soft": {
+            "patch": {
+                "description": "Delete an employee record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Delete an employee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/employees/get/all": {
             "get": {
                 "description": "Retrieve all employee records",
@@ -99,6 +124,31 @@ const docTemplate = `{
                     "Employees"
                 ],
                 "summary": "Get an employee by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/employees/restore": {
+            "delete": {
+                "description": "Restore an employee record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Restore an employee",
                 "parameters": [
                     {
                         "type": "string",
@@ -1205,7 +1255,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/event/create": {
+        "/api/v1/events/create": {
             "post": {
                 "description": "Add a new event to the system",
                 "consumes": [
@@ -1232,7 +1282,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/create/async": {
+        "/api/v1/events/create/async": {
             "post": {
                 "description": "Add a new event to the system",
                 "consumes": [
@@ -1259,7 +1309,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/delete-one": {
+        "/api/v1/events/delete-one": {
             "delete": {
                 "description": "Delete an event by its ID",
                 "consumes": [
@@ -1284,7 +1334,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get-all/pagination": {
+        "/api/v1/events/get-all/pagination": {
             "get": {
                 "description": "Get a paginated list of all event",
                 "consumes": [
@@ -1308,7 +1358,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/all": {
+        "/api/v1/events/get/all": {
             "get": {
                 "description": "Get a list of all event",
                 "consumes": [
@@ -1324,7 +1374,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/id": {
+        "/api/v1/events/get/id": {
             "get": {
                 "description": "Get details of an event by its ID",
                 "consumes": [
@@ -1349,7 +1399,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/start-time": {
+        "/api/v1/events/get/start-time": {
             "get": {
                 "description": "Get event starting from a specific date",
                 "consumes": [
@@ -1374,7 +1424,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/start-time/pagination": {
+        "/api/v1/events/get/start-time/pagination": {
             "get": {
                 "description": "Get paginated event starting from a specific date",
                 "consumes": [
@@ -1405,7 +1455,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/title": {
+        "/api/v1/events/get/title": {
             "get": {
                 "description": "Get details of an event by title",
                 "consumes": [
@@ -1421,7 +1471,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/user_id": {
+        "/api/v1/events/get/user_id": {
             "get": {
                 "description": "Get details of an event by its User ID",
                 "consumes": [
@@ -1437,7 +1487,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/get/user_id/start_time": {
+        "/api/v1/events/get/user_id/start_time": {
             "get": {
                 "security": [
                     {
@@ -1467,7 +1517,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/update": {
+        "/api/v1/events/update": {
             "put": {
                 "description": "Update details of an existing event",
                 "consumes": [
@@ -1501,7 +1551,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/v1/event/update/image": {
+        "/api/v1/events/update/image": {
             "patch": {
                 "description": "Update details of an existing event",
                 "consumes": [
@@ -2399,6 +2449,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization_id": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }

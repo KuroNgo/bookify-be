@@ -13,13 +13,13 @@ import (
 )
 
 type EmailData struct {
-	Code        string
-	FullName    string
-	Subject     string
-	HREmail     string
-	EmployeeID  string
-	LeaveType   string
-	ProductList []string
+	Code             string
+	FullName         string
+	Email            string
+	Subject          string
+	JobTitle         string
+	OrganizationName string
+	ExpireDate       string
 }
 
 func ParseTemplateDir(dir string) (*template.Template, error) {

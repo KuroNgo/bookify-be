@@ -15,7 +15,7 @@ type EventTicketAssignment struct {
 	AttendanceID primitive.ObjectID `bson:"attendance_id" json:"attendance_id"`
 	PurchaseDate time.Time          `bson:"purchase_date" json:"purchase_date"`
 	ExpiryDate   time.Time          `bson:"expiry_date" json:"expiry_date"`
-	Price        int64              `bson:"price" json:"price"`
+	Price        float64            `bson:"price" json:"price"`
 	TicketType   string             `bson:"ticket_type" json:"ticket_type"`
 	Status       string             `bson:"status" json:"status"` // use, useless
 }
@@ -26,7 +26,7 @@ type EventTicketAssignmentInput struct {
 	AttendanceID string    `bson:"attendance_id" json:"attendance_id"`
 	PurchaseDate time.Time `bson:"purchase_date" json:"purchase_date"`
 	ExpiryDate   time.Time `bson:"expiry_date" json:"expiry_date"`
-	Price        int64     `bson:"price" json:"price"`
+	Price        float64   `bson:"price" json:"price"`
 	TicketType   string    `bson:"ticket_type" json:"ticket_type"`
 	Status       string    `bson:"status" json:"status"` // use, useless
 }

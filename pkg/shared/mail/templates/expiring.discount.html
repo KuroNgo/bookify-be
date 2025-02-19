@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Last Chance! Your Exclusive Discount is Expiring Soon</title>
+</head>
+<body>
+
+<p>Dear {{ .FullName }},</p>
+
+<p>Time is running out! Your exclusive <strong>{{ .DiscountPercentage }}% discount</strong> for <strong>{{ .EventName }}</strong> is about to expire.</p>
+
+<p><strong>Offer Details:</strong></p>
+<ul>
+  <li><strong>Event:</strong> {{ .EventName }}</li>
+  <li><strong>Discount:</strong> {{ .DiscountPercentage }}% off</li>
+  <li><strong>Expires On:</strong> {{ .ExpiryDate }}</li>
+</ul>
+
+<p>Don’t miss this chance to attend at a special price! Secure your spot before the discount disappears.</p>
+
+<p>If you have any questions, feel free to reach out.</p>
+
+<p>See you at <strong>{{ .EventName }}</strong>!</p>
+
+<p>Best regards,</p>
+<p><strong>The Bookify Team</strong></p>
+
+</body>
+</html>

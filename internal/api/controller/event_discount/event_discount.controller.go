@@ -2,13 +2,15 @@ package event_discount_controller
 
 import (
 	"bookify/internal/config"
-	event_discount_usecase "bookify/internal/usecase/event_discount/usecase"
+	eventdiscountusecase "bookify/internal/usecase/event_discount/usecase"
+	cronjob "bookify/pkg/shared/cron"
 	"github.com/gin-gonic/gin"
 )
 
 type EventDiscountController struct {
 	Database             *config.Database
-	EventDiscountUseCase event_discount_usecase.IEventDiscountUseCase
+	CronJob              *cronjob.CronScheduler
+	EventDiscountUseCase eventdiscountusecase.IEventDiscountUseCase
 }
 
 type IEventTypeUseCase interface {
@@ -19,6 +21,6 @@ type IEventTypeUseCase interface {
 	DeleteOne(ctx *gin.Context)
 }
 
-func NewEvent(Database *config.Database, EventDiscountUseCase event_discount_usecase.IEventDiscountUseCase) IEventTypeUseCase {
+func NewEvent(Database *config.Database, EventDiscountUseCase eventdiscountusecase.IEventDiscountUseCase) IEventTypeUseCase {
 	return &EventDiscountController{Database: Database, EventDiscountUseCase: EventDiscountUseCase}
 }
