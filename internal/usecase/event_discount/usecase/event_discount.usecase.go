@@ -62,7 +62,7 @@ func NewCacheEventDiscounts() (*ristretto.Cache[string, []domain.EventDiscount],
 	return cache, nil
 }
 
-func NewEventTypeUseCase(database *config.Database, contextTimeout time.Duration, eventDiscountRepository eventdiscountrepository.IEventDiscountRepository,
+func NewEventDiscountUseCase(database *config.Database, contextTimeout time.Duration, eventDiscountRepository eventdiscountrepository.IEventDiscountRepository,
 	userRepository userrepository.IUserRepository) IEventDiscountUseCase {
 	cache, err := NewCacheEventDiscount()
 	if err != nil {

@@ -19,6 +19,8 @@ definitions:
         type: string
       organization_id:
         type: string
+      status:
+        type: string
     type: object
   domain.EventDiscount:
     properties:
@@ -352,6 +354,23 @@ paths:
       summary: Delete an employee
       tags:
       - Employees
+  /api/v1/employees/delete-soft:
+    patch:
+      consumes:
+      - application/json
+      description: Delete an employee record by ID
+      parameters:
+      - description: Employee ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete an employee
+      tags:
+      - Employees
   /api/v1/employees/get/all:
     get:
       consumes:
@@ -378,6 +397,23 @@ paths:
       - application/json
       responses: {}
       summary: Get an employee by ID
+      tags:
+      - Employees
+  /api/v1/employees/restore:
+    delete:
+      consumes:
+      - application/json
+      description: Restore an employee record by ID
+      parameters:
+      - description: Employee ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Restore an employee
       tags:
       - Employees
   /api/v1/employees/update:

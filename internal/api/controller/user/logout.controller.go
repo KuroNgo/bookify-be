@@ -1,6 +1,7 @@
 package user_controller
 
 import (
+	"bookify/internal/api/middleware"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -13,15 +14,9 @@ import (
 // @Produce  json
 // @Router /api/v1/users/logout [get]
 func (u *UserController) LogoutUser(ctx *gin.Context) {
-	//_, exists := ctx.Get("currentUser")
-	//if !exists {
-	//	ctx.JSON(http.StatusUnauthorized, gin.H{
-	//		"status":  "fail",
-	//		"message": "You are not logged in!",
-	//	})
-	//	return
-	//}
-	//
+	currentUser, _ := ctx.Get("currentUser")
+	delete(middleware.CacheJWT, currentUser.(string))
+
 	//user, err := u.UserUseCase.GetByID(ctx, fmt.Sprint(currentUser))
 	//if err != nil || user.ID == primitive.NilObjectID {
 	//	ctx.JSON(http.StatusUnauthorized, gin.H{

@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var CacheJWT = make(map[string]interface{}) // Cache tạm thời
+
 func DeserializeUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var accessToken string
@@ -31,6 +33,13 @@ func DeserializeUser() gin.HandlerFunc {
 			return
 		}
 
+		// 👉 Kiểm tra cache trước khi xác thực token
+		if user, found := CacheJWT[accessToken]; found {
+			ctx.Set("currentUser", user)
+			ctx.Next()
+			return
+		}
+
 		app, _ := infrastructor.App()
 		env := app.Env
 
@@ -43,6 +52,9 @@ func DeserializeUser() gin.HandlerFunc {
 			})
 			return
 		}
+
+		// Lưu vào cache (nếu có Redis thì lưu vào Redis thay vì map)
+		CacheJWT[accessToken] = sub
 
 		ctx.Set("currentUser", sub)
 		ctx.Next() // Cho phép tiếp tục các handler khác nếu không có lỗi

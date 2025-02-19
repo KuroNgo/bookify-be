@@ -17,6 +17,8 @@ type IEmployeeRepository interface {
 	CreateOne(ctx context.Context, employee *domain.Employee) error
 	UpdateOne(ctx context.Context, employee *domain.Employee) error
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
+	DeleteSoft(ctx context.Context, id primitive.ObjectID) error
+	Restore(ctx context.Context, id primitive.ObjectID) error
 }
 
 type employeeRepository struct {
@@ -31,7 +33,7 @@ func NewEmployeeRepository(database *mongo.Database, collectionEmployee string) 
 func (e employeeRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.Employee, error) {
 	employeeCollection := e.database.Collection(e.collectionEmployee)
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": id, "status": "enabled"}
 	var employee domain.Employee
 	if err := employeeCollection.FindOne(ctx, filter).Decode(&employee); err != nil {
 		return domain.Employee{}, err
@@ -43,7 +45,7 @@ func (e employeeRepository) GetByID(ctx context.Context, id primitive.ObjectID) 
 func (e employeeRepository) GetAll(ctx context.Context) ([]domain.Employee, error) {
 	employeeCollection := e.database.Collection(e.collectionEmployee)
 
-	filter := bson.M{}
+	filter := bson.M{"status": "enabled"}
 	cursor, err := employeeCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -92,6 +94,7 @@ func (e employeeRepository) UpdateOne(ctx context.Context, employee *domain.Empl
 		"last_name":       employee.LastName,
 		"email":           employee.Email,
 		"job_title":       employee.JobTitle,
+		"updated_at":      employee.UpdatedAt,
 	}}
 	_, err := employeeCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -110,6 +113,36 @@ func (e employeeRepository) DeleteOne(ctx context.Context, id primitive.ObjectID
 
 	filter := bson.M{"_id": id}
 	_, err := employeeCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e employeeRepository) DeleteSoft(ctx context.Context, id primitive.ObjectID) error {
+	employeeCollection := e.database.Collection(e.collectionEmployee)
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{
+		"status": "disabled",
+	}}
+	_, err := employeeCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e employeeRepository) Restore(ctx context.Context, id primitive.ObjectID) error {
+	employeeCollection := e.database.Collection(e.collectionEmployee)
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{
+		"status": "enabled",
+	}}
+	_, err := employeeCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}

@@ -26,6 +26,8 @@ type Event struct {
 	ActualAttendee    int16              `bson:"actual_attendee" json:"actual_attendee"`
 	TotalExpenditure  float64            `bson:"total_expenditure" json:"total_expenditure"`
 	Tags              []string           `bson:"tags" json:"tags"`
+	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
 type EventInput struct {

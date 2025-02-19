@@ -18,6 +18,9 @@ type EventDiscount struct {
 	StartDate       time.Time            `bson:"start_date" json:"start_date"`
 	ApplicableUsers []primitive.ObjectID `bson:"applicable_users,omitempty" json:"applicable_users,omitempty"` // User được chọn
 	EndDate         time.Time            `bson:"end_date" json:"end_date"`
+	CreatedAt       time.Time            `bson:"created_at" json:"created_at"`
+	UpdatedAt       time.Time            `bson:"updated_at" json:"updated_at"`
+	WhoCreated      string               `bson:"who_created" json:"who_created"`
 }
 
 type EventDiscountInput struct {

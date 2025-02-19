@@ -17,7 +17,7 @@ func EventDiscountRouter(env *config.Database, timeout time.Duration, db *mongo.
 	ur := userrepository.NewUserRepository(db, domain.CollectionUser)
 
 	eventDiscount := &event_discount_controller.EventDiscountController{
-		EventDiscountUseCase: event_discount_usecase.NewEventTypeUseCase(env, timeout, ev, ur),
+		EventDiscountUseCase: event_discount_usecase.NewEventDiscountUseCase(env, timeout, ev, ur),
 		Database:             env,
 	}
 

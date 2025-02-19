@@ -65,7 +65,7 @@ func NewCacheEvent() (*ristretto.Cache[string, domain.Event], error) {
 	return cache, nil
 }
 
-// NewCacheEvent Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// NewCacheEvents Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
 // Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
 func NewCacheEvents() (*ristretto.Cache[string, []domain.Event], error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, []domain.Event]{

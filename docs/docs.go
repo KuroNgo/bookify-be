@@ -70,6 +70,31 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/employees/delete-soft": {
+            "patch": {
+                "description": "Delete an employee record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Delete an employee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/employees/get/all": {
             "get": {
                 "description": "Retrieve all employee records",
@@ -99,6 +124,31 @@ const docTemplate = `{
                     "Employees"
                 ],
                 "summary": "Get an employee by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/employees/restore": {
+            "delete": {
+                "description": "Restore an employee record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Restore an employee",
                 "parameters": [
                     {
                         "type": "string",
@@ -2399,6 +2449,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization_id": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }
