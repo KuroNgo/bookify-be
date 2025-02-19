@@ -12,7 +12,7 @@ const (
 type EventDiscount struct {
 	ID              primitive.ObjectID   `bson:"_id" json:"id"`
 	EventID         primitive.ObjectID   `bson:"event_id" json:"event_id"`
-	DiscountValue   int                  `bson:"discount_value" json:"discount_value"`
+	DiscountValue   float64              `bson:"discount_value" json:"discount_value"`
 	DiscountUnit    string               `bson:"discount_unit" json:"discount_unit"`
 	DateCreated     time.Time            `bson:"date_created" json:"date_created"`
 	StartDate       time.Time            `bson:"start_date" json:"start_date"`
@@ -25,7 +25,7 @@ type EventDiscount struct {
 
 type EventDiscountInput struct {
 	EventID         string    `bson:"event_id" json:"event_id"`
-	DiscountValue   int       `bson:"discount_value" json:"discount_value"`
+	DiscountValue   float64   `bson:"discount_value" json:"discount_value"`
 	DiscountUnit    string    `bson:"discount_unit" json:"discount_unit"`
 	DateCreated     time.Time `bson:"date_created" json:"date_created"`
 	StartDate       time.Time `bson:"start_date" json:"start_date"`

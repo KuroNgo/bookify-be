@@ -151,6 +151,16 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 		return err
 	}
 
+	// Handle get by id to get user data
+	count, err := e.employeeRepository.CountExist(ctx, employee.Email)
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		return errors.New(constants.MsgConflict)
+	}
+
 	organizationData, err := e.organizationRepository.GetByID(ctx, employee.OrganizationID)
 	if err != nil {
 		return err
@@ -175,13 +185,13 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 	}
 
 	e.caches.Clear()
-
-	time.AfterFunc(time.Minute*5, func() {
+	time.AfterFunc(time.Minute, func() {
 		emailData := handles.EmailData{
-			FullName:     employee.FirstName + " " + employee.LastName,
-			Subject:      "[Bookify] - Welcome to Bookify! Your employee account is ready",
-			JobTitle:     employee.JobTitle,
-			Organization: organizationData.Name,
+			FullName:         employee.FirstName + " " + employee.LastName,
+			Subject:          "[Bookify] - Welcome to Bookify! Your employee account is ready",
+			JobTitle:         employee.JobTitle,
+			Email:            userData.Email,
+			OrganizationName: organizationData.Name,
 		}
 
 		err = handles.SendEmail(&emailData, employee.Email, "create_one.employee.html")
@@ -316,10 +326,11 @@ func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser 
 		}
 
 		emailData := handles.EmailData{
-			FullName:     employeeData.FirstName + " " + employeeData.LastName,
-			Subject:      "[Bookify] - Employee account removal notification",
-			JobTitle:     employeeData.JobTitle,
-			Organization: organizationData.Name,
+			FullName:         employeeData.FirstName + " " + employeeData.LastName,
+			Subject:          "[Bookify] - Welcome to Bookify! Your employee account is ready",
+			JobTitle:         employeeData.JobTitle,
+			Email:            userData.Email,
+			OrganizationName: organizationData.Name,
 		}
 
 		err = handles.SendEmail(&emailData, employeeData.Email, "delete_one.employee.html")
@@ -375,10 +386,11 @@ func (e employeeUseCase) Restore(ctx context.Context, id string, currentUser str
 		}
 
 		emailData := handles.EmailData{
-			FullName:     employeeData.FirstName + " " + employeeData.LastName,
-			Subject:      "[Bookify] - Employee account removal notification",
-			JobTitle:     employeeData.JobTitle,
-			Organization: organizationData.Name,
+			FullName:         employeeData.FirstName + " " + employeeData.LastName,
+			Subject:          "[Bookify] - Welcome to Bookify! Your employee account is ready",
+			JobTitle:         employeeData.JobTitle,
+			Email:            userData.Email,
+			OrganizationName: organizationData.Name,
 		}
 
 		err = handles.SendEmail(&emailData, employeeData.Email, "restore_one.employee.html")

@@ -28,7 +28,6 @@ type EmployeeInput struct {
 	LastName       string             `bson:"last_name" json:"last_name"`
 	JobTitle       string             `bson:"job_title" json:"job_title"`
 	Email          string             `bson:"email" json:"email"`
-	Status         string             `bson:"status" json:"status"`
 }
 
 type EmployeeResponse struct {

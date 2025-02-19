@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type IEmployeeRepository interface {
@@ -19,6 +20,7 @@ type IEmployeeRepository interface {
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
 	DeleteSoft(ctx context.Context, id primitive.ObjectID) error
 	Restore(ctx context.Context, id primitive.ObjectID) error
+	CountExist(ctx context.Context, email string) (int64, error)
 }
 
 type employeeRepository struct {
@@ -125,8 +127,10 @@ func (e employeeRepository) DeleteSoft(ctx context.Context, id primitive.ObjectI
 
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": bson.M{
-		"status": "disabled",
+		"status":     "disabled",
+		"updated_at": time.Now(),
 	}}
+
 	_, err := employeeCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
@@ -140,7 +144,8 @@ func (e employeeRepository) Restore(ctx context.Context, id primitive.ObjectID) 
 
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": bson.M{
-		"status": "enabled",
+		"status":     "enabled",
+		"updated_at": time.Now(),
 	}}
 	_, err := employeeCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -148,4 +153,16 @@ func (e employeeRepository) Restore(ctx context.Context, id primitive.ObjectID) 
 	}
 
 	return nil
+}
+
+func (e employeeRepository) CountExist(ctx context.Context, email string) (int64, error) {
+	employeeCollection := e.database.Collection(e.collectionEmployee)
+
+	filter := bson.M{"email": email}
+	count, err := employeeCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

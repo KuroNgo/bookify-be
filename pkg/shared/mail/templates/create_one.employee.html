@@ -6,16 +6,16 @@
 </head>
 <body>
 
-<p>Dear {{FullName}},</p>
+<p>Dear {{ .FullName }},</p>
 
 <p>Welcome to Bookify! We are excited to have you on board. As a valued member of our team,
     your contributions will be essential to our mission, and we look forward to working with you.</p>
 
 <p><strong>Here are some details to help you get started:</strong></p>
 <ul>
-    <li><strong>Job Title:</strong> {{JobTitle}}</li>
-    <li><strong>Email:</strong> {{Email}}</li>
-    <li><strong>Organization:</strong> {{OrganizationName}}</li>
+    <li><strong>Job Title:</strong> {{ .JobTitle }}</li>
+    <li><strong>Email:</strong> {{ .Email }}</li>
+    <li><strong>Organization:</strong> {{ .OrganizationName }}</li>
 </ul>
 
 <p>If you have any questions or need assistance, feel free to reach out.</p>

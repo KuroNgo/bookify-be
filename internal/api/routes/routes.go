@@ -17,6 +17,7 @@ import (
 	"bookify/internal/api/routes/user"
 	venue_route "bookify/internal/api/routes/venue"
 	"bookify/internal/config"
+	cronjob "bookify/pkg/shared/cron"
 	"context"
 	"fmt"
 	"github.com/gin-contrib/gzip"
@@ -25,7 +26,7 @@ import (
 	"time"
 )
 
-func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db *mongo.Database, gin *gin.Engine, cacheTTL time.Duration) {
+func SetUp(env *config.Database, cr *cronjob.CronScheduler, timeout time.Duration, client *mongo.Client, db *mongo.Database, gin *gin.Engine, cacheTTL time.Duration) {
 	publicRouterV1 := gin.Group("/api/v1")
 	privateRouterV1 := gin.Group("/api/v1")
 	userRouter := gin.Group("/api/v1")
@@ -73,7 +74,7 @@ func SetUp(env *config.Database, timeout time.Duration, client *mongo.Client, db
 	event_ticket_route.EventTicketRouter(env, timeout, db, privateRouterV1)
 	event_ticket_route.AdminEventTicketRouter(env, timeout, db, privateRouterV1)
 	event_discount_route.AdminEventDiscountRouter(env, timeout, db, privateRouterV1)
-	event_discount_route.EventDiscountRouter(env, timeout, db, privateRouterV1)
+	event_discount_route.EventDiscountRouter(env, cr, timeout, db, privateRouterV1)
 	event_wishlist_route.AdminEventWishlistRouter(env, timeout, db, privateRouterV1)
 	event_wishlist_route.EventWishlistRouter(env, timeout, db, privateRouterV1)
 	event_employee_route.AdminEventEmployeeRouter(env, timeout, db, privateRouterV1)

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exclusive Discount Just for You!</title>
+</head>
+<body>
+
+<p>Dear {{ .FullName }},</p>
+
+<p>We have exciting news for you! Because you’ve shown interest in <strong>{{ .EventName }}</strong>, we’re offering you an exclusive discount!</p>
+
+<p><strong>Special Offer:</strong></p>
+<ul>
+    <li><strong>Event:</strong> {{ .EventName }}</li>
+    <li><strong>Valid Until:</strong> {{ .ExpiryDate }}</li>
+</ul>
+
+<p>Don’t miss this opportunity to attend at a special price! Secure your spot now before the offer expires.</p>
+
+<p>If you have any questions, feel free to reach out to us.</p>
+
+<p>See you at <strong>{{ .EventName }}</strong>!</p>
+
+<p>Best regards,</p>
+<p><strong>The Bookify Team</strong></p>
+
+</body>
+</html>
