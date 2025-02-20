@@ -25,13 +25,17 @@ type venueRepository struct {
 	collectionVenue string
 }
 
+func NewVenueRepository(database *mongo.Database, collectionVenue string) IVenueRepository {
+	return &venueRepository{database: database, collectionVenue: collectionVenue}
+}
+
 func (v venueRepository) GetByID(ctx context.Context, id primitive.ObjectID) (domain.Venue, error) {
 	venueCollection := v.database.Collection(v.collectionVenue)
 
 	filter := bson.M{"_id": id}
 	var venue domain.Venue
 	if err := venueCollection.FindOne(ctx, filter).Decode(&venue); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.Venue{}, nil
 		}
 		return domain.Venue{}, err
@@ -137,7 +141,3 @@ func (v venueRepository) DeleteOne(ctx context.Context, id primitive.ObjectID) e
 //func (v venueRepository) CountExist(ctx context.Context, name string) (int64, error) {
 //	panic("implement me")
 //}
-
-func NewVenueRepository(database *mongo.Database, collectionVenue string) IVenueRepository {
-	return &venueRepository{database: database, collectionVenue: collectionVenue}
-}

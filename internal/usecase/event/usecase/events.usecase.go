@@ -28,9 +28,9 @@ type IEventUseCase interface {
 	GetByUserID(ctx context.Context, currentUser string) (domain.Event, error)
 	GetByOrganizationIDAndStartTime(ctx context.Context, currentUser string, startTime string) ([]domain.Event, error)
 	GetByStartTime(ctx context.Context, startTime string) ([]domain.Event, error)
-	GetByStartTimePagination(ctx context.Context, startTime string, page string) ([]domain.Event, int64, int, error)
+	GetByStartTimePagination(ctx context.Context, startTime string, page string) (domain.EventResponsePage, error)
 	GetAll(ctx context.Context) ([]domain.Event, error)
-	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
+	GetAllPagination(ctx context.Context, page string) (domain.EventResponsePage, error)
 	CreateOne(ctx context.Context, event *domain.EventInput) error
 	CreateOneAsync(ctx context.Context, event *domain.EventInput) error
 	UpdateOne(ctx context.Context, id string, event *domain.EventInput) error
@@ -49,9 +49,10 @@ type eventUseCase struct {
 	client                 *mongodriven.Client
 	cache                  *ristretto.Cache[string, domain.Event]
 	caches                 *ristretto.Cache[string, []domain.Event]
+	cacheResponses         *ristretto.Cache[string, domain.EventResponsePage]
 }
 
-// NewCache Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// NewCacheEvent Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
 // Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
 func NewCacheEvent() (*ristretto.Cache[string, domain.Event], error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.Event]{
@@ -79,6 +80,20 @@ func NewCacheEvents() (*ristretto.Cache[string, []domain.Event], error) {
 	return cache, nil
 }
 
+// NewCacheEventResponses Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
+// Nếu bộ nhớ vượt quá MaxCost, Ristretto sẽ tự động xóa các mục có chi phí thấp nhất
+func NewCacheEventResponses() (*ristretto.Cache[string, domain.EventResponsePage], error) {
+	cache, err := ristretto.NewCache(&ristretto.Config[string, domain.EventResponsePage]{
+		NumCounters: 1e7,       // number of keys to track frequency of (10M)
+		MaxCost:     100 << 20, // 100MB // maximum cost of cache (100MB)
+		BufferItems: 64,        // number of keys per Get buffer
+	})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
+}
+
 func NewEventUseCase(database *config.Database, contextTimeout time.Duration, eventRepository eventrepository.IEventRepository,
 	organizationRepository organizationrepository.IOrganizationRepository, eventTypeRepository eventtyperepository.IEventTypeRepository,
 	venueRepository venuerepository.IVenueRepository, userRepository userrepository.IUserRepository, client *mongodriven.Client) IEventUseCase {
@@ -91,7 +106,12 @@ func NewEventUseCase(database *config.Database, contextTimeout time.Duration, ev
 	if err != nil {
 		panic(err)
 	}
-	return &eventUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, eventRepository: eventRepository,
+
+	cacheResponses, err := NewCacheEventResponses()
+	if err != nil {
+		panic(err)
+	}
+	return &eventUseCase{cache: cache, caches: caches, cacheResponses: cacheResponses, database: database, contextTimeout: contextTimeout, eventRepository: eventRepository,
 		organizationRepository: organizationRepository, eventTypeRepository: eventTypeRepository, venueRepository: venueRepository,
 		userRepository: userRepository, client: client}
 }
@@ -248,73 +268,103 @@ func (e eventUseCase) GetByStartTime(ctx context.Context, startTime string) ([]d
 	return data, nil
 }
 
-func (e eventUseCase) GetByStartTimePagination(ctx context.Context, startTime string, page string) ([]domain.Event, int64, int, error) {
+func (e eventUseCase) GetByStartTimePagination(ctx context.Context, startTime string, page string) (domain.EventResponsePage, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
-	// get value from cache
-	//value, found := e.caches.Get(startTime + page)
-	//if found {
-	//	return value, nil
-	//}
+	//get value from cache
+	value, found := e.cacheResponses.Get(startTime + page)
+	if found {
+		return value, nil
+	}
 
 	layout := "20/1/2025"
 	parseStartTime, err := time.Parse(layout, startTime)
 	if err != nil {
-		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
+		return domain.EventResponsePage{}, errors.New(constants.MsgInvalidInput)
 	}
 
 	pageChoose, err := strconv.Atoi(page)
 	if err != nil {
-		return nil, 0, 0, err
+		return domain.EventResponsePage{}, err
 	}
 
 	if pageChoose < 1 {
-		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
+		return domain.EventResponsePage{}, errors.New(constants.MsgInvalidInput)
 	}
 
 	data, totalPage, pageCurrent, err := e.eventRepository.GetByStartTimePagination(ctx, parseStartTime, page)
 	if err != nil {
-		return nil, 0, 0, err
+		return domain.EventResponsePage{}, err
 	}
 
-	//e.caches.Set(startTime, data, 1)
-	//e.caches.Wait()
+	response := domain.EventResponsePage{
+		Event:       data,
+		CurrentPage: pageCurrent,
+		Page:        totalPage,
+	}
 
-	return data, totalPage, pageCurrent, nil
+	e.cacheResponses.Set(startTime+page, response, 1)
+	e.cacheResponses.Wait()
+
+	return response, nil
 }
 
 func (e eventUseCase) GetAll(ctx context.Context) ([]domain.Event, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	//get value from cache
+	value, found := e.caches.Get("events")
+	if found {
+		return value, nil
+	}
+
 	data, err := e.eventRepository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	e.caches.Set("events", data, 1)
+	e.caches.Wait()
+
 	return data, nil
 }
 
-func (e eventUseCase) GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error) {
+func (e eventUseCase) GetAllPagination(ctx context.Context, page string) (domain.EventResponsePage, error) {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
+	//get value from cache
+	value, found := e.cacheResponses.Get("events" + page)
+	if found {
+		return value, nil
+	}
+
 	pageChoose, err := strconv.Atoi(page)
 	if err != nil {
-		return nil, 0, 0, err
+		return domain.EventResponsePage{}, err
 	}
 
 	if pageChoose < 1 {
-		return nil, 0, 0, errors.New(constants.MsgInvalidInput)
+		return domain.EventResponsePage{}, errors.New(constants.MsgInvalidInput)
 	}
 
 	data, totalPage, pageCurrent, err := e.eventRepository.GetAllPagination(ctx, page)
 	if err != nil {
-		return nil, 0, 0, err
+		return domain.EventResponsePage{}, err
 	}
 
-	return data, totalPage, pageCurrent, nil
+	response := domain.EventResponsePage{
+		Event:       data,
+		CurrentPage: pageCurrent,
+		Page:        totalPage,
+	}
+
+	e.cacheResponses.Set("events"+page, response, 1)
+	e.cacheResponses.Wait()
+
+	return response, nil
 }
 
 func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) error {
@@ -384,6 +434,9 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 	if err != nil {
 		return err
 	}
+
+	e.cacheResponses.Clear()
+	e.caches.Clear()
 
 	return nil
 }
@@ -472,6 +525,9 @@ func (e eventUseCase) CreateOneAsync(ctx context.Context, event *domain.EventInp
 		return err
 	}
 
+	e.cacheResponses.Clear()
+	e.caches.Clear()
+
 	return nil // Transaction successful, no need to commit explicitly
 }
 
@@ -525,6 +581,10 @@ func (e eventUseCase) UpdateOne(ctx context.Context, id string, event *domain.Ev
 	if err != nil {
 		return err
 	}
+
+	e.cacheResponses.Clear()
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }
@@ -591,6 +651,10 @@ func (e eventUseCase) UpdateImage(ctx context.Context, id string, file *multipar
 		return err
 	}
 
+	e.cacheResponses.Clear()
+	e.caches.Clear()
+	e.cache.Clear()
+
 	return session.CommitTransaction(ctx)
 }
 
@@ -607,6 +671,10 @@ func (e eventUseCase) DeleteOne(ctx context.Context, eventID string) error {
 	if err != nil {
 		return err
 	}
+
+	e.cacheResponses.Clear()
+	e.caches.Clear()
+	e.cache.Clear()
 
 	return nil
 }

@@ -39,6 +39,9 @@ func (o organizationRepository) GetByID(ctx context.Context, id primitive.Object
 
 	var organization domain.Organization
 	if err := organizationCollection.FindOne(ctx, filter, options.FindOne().SetProjection(projection)).Decode(&organization); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Organization{}, nil
+		}
 		return domain.Organization{}, err
 	}
 

@@ -38,6 +38,9 @@ func (e employeeRepository) GetByID(ctx context.Context, id primitive.ObjectID) 
 	filter := bson.M{"_id": id, "status": "enabled"}
 	var employee domain.Employee
 	if err := employeeCollection.FindOne(ctx, filter).Decode(&employee); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Employee{}, nil
+		}
 		return domain.Employee{}, err
 	}
 

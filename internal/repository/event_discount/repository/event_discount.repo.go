@@ -8,10 +8,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type IEventDiscountRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.EventDiscount, error)
+	GetByUserIDInApplicableAndExpiringOneDayLeft(ctx context.Context, userID primitive.ObjectID) (domain.EventDiscount, error)
 	GetByUserIDInApplicable(ctx context.Context, userID primitive.ObjectID) ([]domain.EventDiscount, error)
 	GetByUserIDInApplicableAndEventID(ctx context.Context, userID primitive.ObjectID, eventID primitive.ObjectID) (domain.EventDiscount, error)
 	GetAll(ctx context.Context) ([]domain.EventDiscount, error)
@@ -35,7 +37,26 @@ func (e eventSaleOffRepository) GetByID(ctx context.Context, id primitive.Object
 	filter := bson.M{"_id": id}
 	var eventDiscount domain.EventDiscount
 	if err := eventDiscountCollection.FindOne(ctx, filter).Decode(&eventDiscount); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.EventDiscount{}, nil
+		}
+		return domain.EventDiscount{}, err
+	}
+
+	return eventDiscount, nil
+}
+func (e eventSaleOffRepository) GetByUserIDInApplicableAndExpiringOneDayLeft(ctx context.Context, userID primitive.ObjectID) (domain.EventDiscount, error) {
+	eventDiscountCollection := e.database.Collection(e.collectionEventDiscount)
+
+	filter := bson.M{
+		"applicable_users": userID,
+		"end_date":         bson.M{"$lt": time.Now().Add(24 * time.Hour)},
+	}
+
+	var eventDiscount domain.EventDiscount
+	err := eventDiscountCollection.FindOne(ctx, filter).Decode(&eventDiscount)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventDiscount{}, nil
 		}
 		return domain.EventDiscount{}, err
@@ -50,7 +71,7 @@ func (e eventSaleOffRepository) GetByUserIDInApplicableAndEventID(ctx context.Co
 	filter := bson.M{"event_id": eventID, "applicable_users": userID}
 	var eventDiscount domain.EventDiscount
 	if err := eventDiscountCollection.FindOne(ctx, filter).Decode(&eventDiscount); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventDiscount{}, nil
 		}
 		return domain.EventDiscount{}, err
