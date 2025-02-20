@@ -18,7 +18,7 @@ func EventDiscountRouter(env *config.Database, cr *cronjob.CronScheduler, timeou
 	ur := userrepository.NewUserRepository(db, domain.CollectionUser)
 
 	eventDiscount := &event_discount_controller.EventDiscountController{
-		EventDiscountUseCase: event_discount_usecase.NewEventDiscountUseCase(env, timeout, ev, ur),
+		EventDiscountUseCase: event_discount_usecase.NewEventDiscountUseCase(env, cr, timeout, ev, ur),
 		Database:             env,
 		CronJob:              cr,
 	}

@@ -11,9 +11,11 @@ import (
 
 type IJobWorkerEventDiscount interface {
 	SendDiscountForApplicableUsersIfTheyHaveWishlist(ctx context.Context) error
-	JobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(cs *cronjob.CronScheduler) error
 	SendDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(ctx context.Context) error
+	JobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(cs *cronjob.CronScheduler) error
 	JobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(cs *cronjob.CronScheduler) error
+	RemoveJobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(cs *cronjob.CronScheduler) error
+	RemoveJobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(cs *cronjob.CronScheduler) error
 }
 
 func (e *eventDiscountUseCase) SendDiscountForApplicableUsersIfTheyHaveWishlist(ctx context.Context) error {
@@ -77,6 +79,15 @@ func (e *eventDiscountUseCase) JobWorkerSendDiscountForApplicableUsersIfTheyHave
 	return nil
 }
 
+func (e *eventDiscountUseCase) RemoveJobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(cs *cronjob.CronScheduler) error {
+	err := cs.RemoveJob("sendDiscountEmails")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (e *eventDiscountUseCase) SendDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
@@ -95,36 +106,56 @@ func (e *eventDiscountUseCase) SendDiscountForApplicableUsersIfTheyHaveWishlistE
 			continue // Bỏ qua user lỗi, tiếp tục xử lý user tiếp theo
 		}
 
-		eventDiscountData, err := e.eventDiscountRepository.GetByUserIDInApplicableAndEventID(ctx, userID, wishlistData.EventID)
+		eventDiscountData, err := e.eventDiscountRepository.GetByUserIDInApplicableAndExpiringOneDayLeft(ctx, userID)
 		if err != nil || helper.IsZeroValue(eventDiscountData) {
 			continue
 		}
 
-		userData, err := e.userRepository.GetByID(ctx, userID)
-		if err != nil {
-			continue
-		}
-
-		emailData := handles.EmailData{
-			FullName:   userData.FullName,
-			Subject:    "Exclusive Discount Just for You!",
-			ExpireDate: eventDiscountData.EndDate.Format(time.UnixDate),
-		}
-
-		// Gửi email giảm giá
-		go func(email string, data handles.EmailData) {
-			err := handles.SendEmail(&data, email, "receive_exclusive.discount.html")
+		if wishlistData.EventID == eventDiscountData.EventID {
+			userData, err := e.userRepository.GetByID(ctx, userID)
 			if err != nil {
-				// Ghi log lỗi thay vì return
-				log.Println("Failed to send discount email:", err)
+				continue
 			}
-		}(userData.Email, emailData)
+
+			emailData := handles.EmailData{
+				FullName:   userData.FullName,
+				Subject:    "Exclusive Discount Just for You!",
+				ExpireDate: eventDiscountData.EndDate.Format(time.UnixDate),
+			}
+
+			// Gửi email giảm giá
+			go func(email string, data handles.EmailData) {
+				err := handles.SendEmail(&data, email, "receive_exclusive.discount.html")
+				if err != nil {
+					// Ghi log lỗi thay vì return
+					log.Println("Failed to send discount email:", err)
+				}
+			}(userData.Email, emailData)
+		}
 	}
 
 	return nil
 }
 
 func (e *eventDiscountUseCase) JobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(cs *cronjob.CronScheduler) error {
-	//TODO implement me
-	panic("implement me")
+	cronExpression := cs.GenerateCronExpression(0, 0, 12, 1, 0)
+
+	cs.AddCronJob("sendDiscountExpiringOneDayLeftEmails", cronExpression, func(ctx context.Context) error {
+		err := e.SendDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(ctx)
+		if err != nil {
+			log.Println("Job send discount emails failed:", err)
+		}
+		return err // Quan trọng: Trả về lỗi để job có thể xử lý nếu cần
+	})
+
+	return nil
+}
+
+func (e *eventDiscountUseCase) RemoveJobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(cs *cronjob.CronScheduler) error {
+	err := cs.RemoveJob("sendDiscountExpiringOneDayLeftEmails")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
