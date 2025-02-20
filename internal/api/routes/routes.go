@@ -73,7 +73,7 @@ func SetUp(env *config.Database, cr *cronjob.CronScheduler, timeout time.Duratio
 	employee_route.AdminEmployeeRouter(env, timeout, db, privateRouterV1)
 	event_ticket_route.EventTicketRouter(env, timeout, db, privateRouterV1)
 	event_ticket_route.AdminEventTicketRouter(env, timeout, db, privateRouterV1)
-	event_discount_route.AdminEventDiscountRouter(env, timeout, db, privateRouterV1)
+	event_discount_route.AdminEventDiscountRouter(env, cr, timeout, db, privateRouterV1)
 	event_discount_route.EventDiscountRouter(env, cr, timeout, db, privateRouterV1)
 	event_wishlist_route.AdminEventWishlistRouter(env, timeout, db, privateRouterV1)
 	event_wishlist_route.EventWishlistRouter(env, timeout, db, privateRouterV1)

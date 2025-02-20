@@ -9,12 +9,14 @@ import (
 	eventwishlistrepository "bookify/internal/repository/event_wishlist/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
+	cronjob "bookify/pkg/shared/cron"
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"time"
 )
 
@@ -30,6 +32,7 @@ type IEventDiscountUseCase interface {
 type eventDiscountUseCase struct {
 	database                *config.Database
 	contextTimeout          time.Duration
+	cs                      *cronjob.CronScheduler
 	eventDiscountRepository eventdiscountrepository.IEventDiscountRepository
 	eventRepository         eventrepository.IEventRepository
 	eventTicketRepository   eventticketrepository.IEventTicketRepository
@@ -67,7 +70,7 @@ func NewCacheEventDiscounts() (*ristretto.Cache[string, []domain.EventDiscount],
 	return cache, nil
 }
 
-func NewEventDiscountUseCase(database *config.Database, contextTimeout time.Duration, eventDiscountRepository eventdiscountrepository.IEventDiscountRepository,
+func NewEventDiscountUseCase(database *config.Database, cs *cronjob.CronScheduler, contextTimeout time.Duration, eventDiscountRepository eventdiscountrepository.IEventDiscountRepository,
 	userRepository userrepository.IUserRepository) IEventDiscountUseCase {
 	cache, err := NewCacheEventDiscount()
 	if err != nil {
@@ -78,7 +81,8 @@ func NewEventDiscountUseCase(database *config.Database, contextTimeout time.Dura
 	if err != nil {
 		panic(err)
 	}
-	return &eventDiscountUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, eventDiscountRepository: eventDiscountRepository, userRepository: userRepository}
+	return &eventDiscountUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout,
+		eventDiscountRepository: eventDiscountRepository, userRepository: userRepository, cs: cs}
 }
 
 func (e *eventDiscountUseCase) GetByID(ctx context.Context, id string) (domain.EventDiscount, error) {
@@ -128,6 +132,10 @@ func (e *eventDiscountUseCase) GetAll(ctx context.Context) ([]domain.EventDiscou
 	return data, nil
 }
 
+// CreateOne
+// - The discount's StartDate and EndDate must fall within the event's StartDate and EndDate.
+// - If the discount unit is "amount", the DiscountValue must not exceed the event ticket price.
+// - If the discount unit is "percent", the DiscountValue must be between 0 and 100.
 func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.EventDiscountInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
@@ -171,7 +179,7 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 		return errors.New(constants.MsgInvalidInput)
 	}
 
-	if discount.DiscountUnit == "percent" && discount.DiscountValue > 100 && discount.DiscountValue < 0 {
+	if discount.DiscountUnit == "percent" && (discount.DiscountValue > 100 || discount.DiscountValue < 0) {
 		return errors.New(constants.MsgInvalidInput)
 	}
 
@@ -198,9 +206,16 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 
 	// background job
 	go func() {
-		err = e.SendDiscountForApplicableUsersIfTheyHaveWishlist(ctx)
+		err = e.JobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(e.cs)
 		if err != nil {
-			return
+			log.Println("Failed to execute job:", err)
+		}
+	}()
+
+	go func() {
+		err = e.JobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(e.cs)
+		if err != nil {
+			log.Println("Failed to execute job:", err)
 		}
 	}()
 
@@ -209,11 +224,21 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 	return nil
 }
 
+// UpdateOne
+// - Ensure the discount's StartDate and EndDate are within the event's StartDate and EndDate.
+// - If the discount unit is "amount", the DiscountValue must not exceed the event ticket price.
+// - If the discount unit is "percent", the DiscountValue must be between 0 and 100.
+// - If the discount's StartDate changes, remove the scheduled background jobs and reinitialize them.
 func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discount *domain.EventDiscountInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
 	discountID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	discountData, err := e.eventDiscountRepository.GetByID(ctx, discountID)
 	if err != nil {
 		return err
 	}
@@ -257,7 +282,7 @@ func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discoun
 		return errors.New(constants.MsgInvalidInput)
 	}
 
-	if discount.DiscountUnit == "percent" && discount.DiscountValue > 100 && discount.DiscountValue < 0 {
+	if discount.DiscountUnit == "percent" && (discount.DiscountValue > 100 || discount.DiscountValue < 0) {
 		return errors.New(constants.MsgInvalidInput)
 	}
 
@@ -266,7 +291,7 @@ func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discoun
 		return err
 	}
 
-	eventTypeInput := domain.EventDiscount{
+	eventDiscountInput := domain.EventDiscount{
 		ID:              discountID,
 		EventID:         eventData.ID,
 		DiscountValue:   discount.DiscountValue,
@@ -277,10 +302,41 @@ func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discoun
 		DateCreated:     time.Now(),
 	}
 
-	err = e.eventDiscountRepository.CreateOne(ctx, eventTypeInput)
+	if !discount.StartDate.Equal(discountData.StartDate) {
+		go func() {
+			err = e.RemoveJobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(e.cs)
+			if err != nil {
+				log.Printf("Failed to remove job for discount ID %s: %v", id, err)
+			}
+		}()
+
+		go func() {
+			err = e.RemoveJobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(e.cs)
+			if err != nil {
+				log.Printf("Failed to remove job for discount ID %s: %v", id, err)
+			}
+		}()
+	}
+
+	err = e.eventDiscountRepository.UpdateOne(ctx, eventDiscountInput)
 	if err != nil {
 		return err
 	}
+
+	// background job
+	go func() {
+		err = e.JobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(e.cs)
+		if err != nil {
+			log.Println("Failed to execute job:", err)
+		}
+	}()
+
+	go func() {
+		err = e.JobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(e.cs)
+		if err != nil {
+			log.Println("Failed to execute job:", err)
+		}
+	}()
 
 	e.caches.Clear()
 	e.cache.Clear()
@@ -316,6 +372,20 @@ func (e *eventDiscountUseCase) DeleteOne(ctx context.Context, id string, current
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		err = e.RemoveJobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(e.cs)
+		if err != nil {
+			log.Println("Failed to execute job:", err)
+		}
+	}()
+
+	go func() {
+		err = e.RemoveJobWorkerDiscountForApplicableUsersIfTheyHaveWishlistExpiringOneDayLeft(e.cs)
+		if err != nil {
+			log.Println("Failed to execute job:", err)
+		}
+	}()
 
 	e.caches.Clear()
 	e.cache.Clear()
