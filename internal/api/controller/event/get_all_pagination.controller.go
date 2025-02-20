@@ -15,7 +15,7 @@ import (
 // @Router /api/v1/events/get-all/pagination [get]
 func (e *EventController) GetAllPagination(ctx *gin.Context) {
 	page := ctx.DefaultQuery("page", "1")
-	data, pageOutput, currentPage, err := e.EventUseCase.GetAllPagination(ctx, page)
+	data, err := e.EventUseCase.GetAllPagination(ctx, page)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",
@@ -27,7 +27,7 @@ func (e *EventController) GetAllPagination(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":       "success",
 		"data":         data,
-		"page":         pageOutput,
-		"current_page": currentPage,
+		"page":         data.Page,
+		"current_page": data.CurrentPage,
 	})
 }

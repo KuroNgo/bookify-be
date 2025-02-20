@@ -36,7 +36,7 @@ func (e eventTypeRepository) GetByName(ctx context.Context, name string) (domain
 	filter := bson.M{"name": name}
 	var eventType domain.EventType
 	if err := eventTypeCollection.FindOne(ctx, filter).Decode(&eventType); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventType{}, nil
 		}
 		return domain.EventType{}, err
@@ -63,7 +63,7 @@ func (e eventTypeRepository) GetByID(ctx context.Context, id primitive.ObjectID)
 	filter := bson.M{"_id": id}
 	var eventType domain.EventType
 	if err := eventTypeCollection.FindOne(ctx, filter).Decode(&eventType); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventType{}, nil
 		}
 		return domain.EventType{}, err

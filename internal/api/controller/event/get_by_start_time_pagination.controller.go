@@ -18,7 +18,7 @@ func (e *EventController) GetByStartTimePagination(ctx *gin.Context) {
 	startDate := ctx.Query("startDate")
 	page := ctx.DefaultQuery("page", "1")
 
-	data, pageOutput, currentPage, err := e.EventUseCase.GetByStartTimePagination(ctx, startDate, page)
+	data, err := e.EventUseCase.GetByStartTimePagination(ctx, startDate, page)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",
@@ -30,7 +30,7 @@ func (e *EventController) GetByStartTimePagination(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":       "success",
 		"data":         data,
-		"page":         pageOutput,
-		"current_page": currentPage,
+		"page":         data.Page,
+		"current_page": data.CurrentPage,
 	})
 }

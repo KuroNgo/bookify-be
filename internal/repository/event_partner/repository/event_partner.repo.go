@@ -32,7 +32,7 @@ func (e *eventPartnerRepository) GetByID(ctx context.Context, id primitive.Objec
 	filter := bson.M{"_id": id}
 	var eventPartner domain.EventPartner
 	if err := eventPartnerCollection.FindOne(ctx, filter).Decode(&eventPartner); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventPartner{}, nil
 		}
 		return domain.EventPartner{}, err

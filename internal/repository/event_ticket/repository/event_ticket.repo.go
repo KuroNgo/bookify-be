@@ -39,7 +39,7 @@ func (e *eventTicketRepository) GetByID(ctx context.Context, id primitive.Object
 	filter := bson.M{"_id": id}
 	var eventTicket domain.EventTicket
 	if err := collectionEventTicket.FindOne(ctx, filter).Decode(&eventTicket); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventTicket{}, nil
 		}
 		return domain.EventTicket{}, err
@@ -58,7 +58,7 @@ func (e *eventTicketRepository) GetByEventID(ctx context.Context, eventId primit
 	filter := bson.M{"event_id": eventId}
 	var eventTicket domain.EventTicket
 	if err := collectionEventTicket.FindOne(ctx, filter).Decode(&eventTicket); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventTicket{}, nil
 		}
 		return domain.EventTicket{}, err

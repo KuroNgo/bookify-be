@@ -31,7 +31,7 @@ func (p partnerRepository) GetByID(ctx context.Context, id primitive.ObjectID) (
 	filter := bson.M{"_id": id}
 	var partner domain.Partner
 	if err := partnerCollection.FindOne(ctx, filter).Decode(&partner); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.Partner{}, nil
 		}
 		return domain.Partner{}, err

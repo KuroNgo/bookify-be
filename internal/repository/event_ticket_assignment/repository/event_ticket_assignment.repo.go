@@ -32,7 +32,7 @@ func (e *eventTicketAssignmentRepository) GetByID(ctx context.Context, id primit
 	filter := bson.M{"_id": id}
 	var eventTicketAssignment domain.EventTicketAssignment
 	if err := eventTicketAssignmentCollection.FindOne(ctx, filter).Decode(&eventTicketAssignment); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventTicketAssignment{}, nil
 		}
 		return domain.EventTicketAssignment{}, err

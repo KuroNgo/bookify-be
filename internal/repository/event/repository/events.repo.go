@@ -46,6 +46,9 @@ func (e eventRepository) GetByID(ctx context.Context, id primitive.ObjectID) (do
 	filter := bson.M{"_id": id}
 	var event domain.Event
 	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Event{}, nil
+		}
 		return domain.Event{}, err
 	}
 
@@ -58,6 +61,9 @@ func (e eventRepository) GetByTitle(ctx context.Context, title string) (domain.E
 	filter := bson.M{"title": title}
 	var event domain.Event
 	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Event{}, nil
+		}
 		return domain.Event{}, err
 	}
 
@@ -70,6 +76,9 @@ func (e eventRepository) GetByOrganizationID(ctx context.Context, organizationID
 	filter := bson.M{"organization_id": organizationID}
 	var event domain.Event
 	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Event{}, nil
+		}
 		return domain.Event{}, err
 	}
 

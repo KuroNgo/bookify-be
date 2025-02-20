@@ -36,7 +36,7 @@ func (e *eventEmployeeRepository) GetByID(ctx context.Context, id primitive.Obje
 	filter := bson.M{"_id": id}
 	var eventEmployee domain.EventEmployee
 	if err := eventEmployeeCollection.FindOne(ctx, filter).Decode(&eventEmployee); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventEmployee{}, nil
 		}
 		return domain.EventEmployee{}, err
@@ -51,7 +51,7 @@ func (e *eventEmployeeRepository) GetByEmployeeID(ctx context.Context, employeeI
 	filter := bson.M{"employee_id": employeeID}
 	var eventEmployee domain.EventEmployee
 	if err := eventEmployeeCollection.FindOne(ctx, filter).Decode(&eventEmployee); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventEmployee{}, nil
 		}
 		return domain.EventEmployee{}, err

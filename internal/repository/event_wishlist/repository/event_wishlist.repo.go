@@ -35,7 +35,7 @@ func (e *eventWishlistRepository) GetByID(ctx context.Context, id primitive.Obje
 	filter := bson.M{"_id": id}
 	var eventWishlist domain.EventWishlist
 	if err := eventWishlistCollection.FindOne(ctx, filter).Decode(&eventWishlist); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventWishlist{}, nil
 		}
 		return domain.EventWishlist{}, err
@@ -50,7 +50,7 @@ func (e *eventWishlistRepository) GetByUserID(ctx context.Context, userId primit
 	filter := bson.M{"user_id": userId}
 	var eventWishlist domain.EventWishlist
 	if err := eventWishlistCollection.FindOne(ctx, filter).Decode(&eventWishlist); err != nil {
-		if errors.Is(err, mongo.ErrNilDocument) {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.EventWishlist{}, nil
 		}
 		return domain.EventWishlist{}, err

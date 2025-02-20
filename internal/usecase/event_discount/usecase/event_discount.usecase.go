@@ -166,7 +166,7 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 		return err
 	}
 
-	// you can not create a discount with price greater than price of event\
+	// you can not create a discount with price greater than price of event
 	if discount.DiscountUnit == "amount" && discount.DiscountValue > eventTicketData.Price {
 		return errors.New(constants.MsgInvalidInput)
 	}
@@ -195,6 +195,14 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 	if err != nil {
 		return err
 	}
+
+	// background job
+	go func() {
+		err = e.SendDiscountForApplicableUsersIfTheyHaveWishlist(ctx)
+		if err != nil {
+			return
+		}
+	}()
 
 	e.caches.Clear()
 
