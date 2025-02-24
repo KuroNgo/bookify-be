@@ -1,9 +1,9 @@
 package event_discount_usecase
 
 import (
-	cronjob "bookify/pkg/shared/cron"
 	"bookify/pkg/shared/helper"
 	"bookify/pkg/shared/mail/handles"
+	cronjob "bookify/pkg/shared/schedules"
 	"context"
 	"log"
 	"time"

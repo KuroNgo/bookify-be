@@ -2,7 +2,7 @@ package event_type_unit
 
 import (
 	"bookify/internal/domain"
-	"bookify/internal/infrastructor"
+	"bookify/internal/infrastructor/mongodb"
 	event_type_repository "bookify/internal/repository/event_type/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
@@ -11,8 +11,8 @@ import (
 )
 
 func TestFindByIDEventType(t *testing.T) {
-	client, database := infrastructor.SetupTestDatabase(t)
-	defer infrastructor.TearDownTestDatabase(client, t)
+	client, database := mongodb.SetupTestDatabase(t)
+	defer mongodb.TearDownTestDatabase(client, t)
 
 	// Function to clear the event collection before each test case
 	clearEventCollection := func() {

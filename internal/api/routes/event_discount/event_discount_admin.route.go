@@ -7,7 +7,7 @@ import (
 	event_discount_repository "bookify/internal/repository/event_discount/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	event_discount_usecase "bookify/internal/usecase/event_discount/usecase"
-	cronjob "bookify/pkg/shared/cron"
+	cronjob "bookify/pkg/shared/schedules"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"

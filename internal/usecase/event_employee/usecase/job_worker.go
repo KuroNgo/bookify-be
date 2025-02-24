@@ -1,7 +1,7 @@
 package event_employee_usecase
 
 import (
-	cronjob "bookify/pkg/shared/cron"
+	cronjob "bookify/pkg/shared/schedules"
 	"context"
 )
 
@@ -16,7 +16,7 @@ func (e *eventEmployeeUseCase) SendQuestOfEmployeeInform(ctx context.Context) er
 	panic("implement me")
 }
 
-// StartSchedulesSendQuestOfEmployeeInform : cron of SendQuestOfEmployeeInform
+// StartSchedulesSendQuestOfEmployeeInform : schedules of SendQuestOfEmployeeInform
 func (e *eventEmployeeUseCase) StartSchedulesSendQuestOfEmployeeInform(cs *cronjob.CronScheduler) error {
 	oneMinute := cs.GenerateCronExpression(0, 0, 0, 1, 0)
 	cs.AddCronJob("sendQuestOfEmployeeInform", oneMinute, e.SendQuestOfEmployeeInform)
@@ -33,7 +33,7 @@ func (e *eventEmployeeUseCase) DeadlineInform(ctx context.Context) error {
 	panic("implement me")
 }
 
-// StopSchedulerDeadlineInform : cron of DeadlineInform
+// StopSchedulerDeadlineInform : schedules of DeadlineInform
 func (e *eventEmployeeUseCase) StopSchedulerDeadlineInform(cs *cronjob.CronScheduler) error {
 	err := cs.RemoveJob("updateRemainingLeaveDays")
 	if err != nil {

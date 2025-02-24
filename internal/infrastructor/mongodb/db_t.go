@@ -1,4 +1,4 @@
-package infrastructor
+package mongodb
 
 import (
 	"context"

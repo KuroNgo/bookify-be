@@ -12,12 +12,16 @@ import (
 )
 
 type Database struct {
-	DBHost     string `mapstructure:"DB_HOST"`
-	DBPort     string `mapstructure:"DB_PORT"`
-	DBUser     string `mapstructure:"DB_USER"`
-	DBPassword string `mapstructure:"DB_PASS"`
-	DBName     string `mapstructure:"DB_NAME"`
-	DBType     string `mapstructure:"DB_TYPE"`
+	DBHost      string `mapstructure:"DB_HOST"`
+	DBPort      string `mapstructure:"DB_PORT"`
+	DBUser      string `mapstructure:"DB_USER"`
+	DBPassword  string `mapstructure:"DB_PASS"`
+	DBName      string `mapstructure:"DB_NAME"`
+	DBType      string `mapstructure:"DB_TYPE"`
+	DBRHost     string `mapstructure:"DBR_HOST"`
+	DBRPort     string `mapstructure:"DBR_PORT"`
+	DBRUser     string `mapstructure:"DBR_USER"`
+	DBRPassword string `mapstructure:"DBR_PASS"`
 
 	Level  string `mapstructure:"level"`
 	Format string `mapstructure:"format"`

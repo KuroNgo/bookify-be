@@ -25,8 +25,8 @@ func NewCronScheduler() *CronScheduler {
 }
 
 func (cs *CronScheduler) Start() {
-	// Bắt đầu cron scheduler
-	log.Println("Starting cron scheduler...")
+	// Bắt đầu schedules scheduler
+	log.Println("Starting schedules scheduler...")
 	cs.c.Start()
 }
 
@@ -34,12 +34,12 @@ func (cs *CronScheduler) AddCronJob(name, cronExpression string, taskFunc func(c
 	entryID, err := cs.c.AddFunc(cronExpression, func() {
 		err := taskFunc(context.Background())
 		if err != nil {
-			log.Printf("Error in cron job: %v", err)
+			log.Printf("Error in schedules job: %v", err)
 		}
 	})
 
 	if err != nil {
-		log.Printf("Error adding cron job: %v", err)
+		log.Printf("Error adding schedules job: %v", err)
 	}
 
 	cs.entryMap[name] = entryID
