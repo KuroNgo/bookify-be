@@ -1,18 +1,16 @@
 package middleware
 
 import (
-	activity_log_controller "bookify/internal/api/controller/activity_log"
+	activitylogcontroller "bookify/internal/api/controller/activity_log"
 	"bookify/internal/domain"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
 	"time"
 )
 
 // StructuredLogger Ghi log cho các thao tác lỗi
-func StructuredLogger(logger *zerolog.Logger, activity *activity_log_controller.ActivityController) gin.HandlerFunc {
+func StructuredLogger(logger *zerolog.Logger, activity *activitylogcontroller.ActivityController) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		start := time.Now()
 		path := ctx.Request.URL.Path
@@ -32,7 +30,6 @@ func StructuredLogger(logger *zerolog.Logger, activity *activity_log_controller.
 
 		if ctx.Writer.Status() >= 500 || ctx.Errors != nil || (param.Method == "DELETE" && ctx.Writer.Status() == 200) {
 			currentUser, _ := ctx.Get("currentUser")
-			user, _ := activity.UserUseCase.GetByID(ctx, fmt.Sprintf("%s", currentUser))
 
 			param.Latency = time.Since(start).Truncate(time.Millisecond)
 			param.StatusCode = ctx.Writer.Status()
@@ -48,8 +45,6 @@ func StructuredLogger(logger *zerolog.Logger, activity *activity_log_controller.
 				Msg(param.ErrorMessage)
 
 			newLog := &domain.ActivityLogInput{
-				LogID:        primitive.NewObjectID(),
-				UserID:       user.ID,
 				ClientIP:     param.ClientIP,
 				Method:       param.Method,
 				StatusCode:   param.StatusCode,
@@ -61,15 +56,13 @@ func StructuredLogger(logger *zerolog.Logger, activity *activity_log_controller.
 				ExpireAt:     expireValue,
 			}
 
-			err := activity.ActivityUseCase.CreateOne(ctx, newLog)
-			if err != nil {
-				logger.Error().Err(err).Msg("Failed to create activity log")
-				ctx.JSON(http.StatusInternalServerError, gin.H{
-					"status": "error",
-					"error":  "Failed to create activity log",
-				})
-				return
-			}
+			go func() {
+				err := activity.ActivityUseCase.CreateOne(ctx, newLog, fmt.Sprintf("%s", currentUser))
+				if err != nil {
+					logger.Error().Err(err).Msg("Failed to create activity log")
+					return
+				}
+			}()
 		}
 	}
 }

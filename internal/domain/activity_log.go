@@ -10,7 +10,7 @@ const (
 )
 
 type ActivityLog struct {
-	LogID        primitive.ObjectID `json:"_id" bson:"_id"`
+	ID           primitive.ObjectID `json:"_id" bson:"_id"`
 	ClientIP     string             `json:"client_ip" bson:"client_ip"`
 	UserID       primitive.ObjectID `json:"user_id" bson:"user_id"`
 	Level        int                `json:"level" bson:"level"`
@@ -25,7 +25,6 @@ type ActivityLog struct {
 }
 
 type ActivityLogInput struct {
-	LogID        primitive.ObjectID `json:"_id" bson:"_id"`
 	ClientIP     string             `json:"client_ip" bson:"client_ip"`
 	UserID       primitive.ObjectID `json:"user_id" bson:"user_id"`
 	Level        int                `json:"level" bson:"level"`

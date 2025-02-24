@@ -16,7 +16,7 @@ type IActivityUseCase interface {
 	GetByLevel(ctx context.Context, id string) (domain.ActivityLog, error)
 	GetByUserID(ctx context.Context, id string) (domain.ActivityLog, error)
 	GetAll(ctx context.Context) ([]domain.ActivityLog, error)
-	CreateOne(ctx context.Context, activity *domain.ActivityLogInput) error
+	CreateOne(ctx context.Context, activity *domain.ActivityLogInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string) error
 }
 
@@ -97,14 +97,19 @@ func (a *activityUseCase) GetAll(ctx context.Context) ([]domain.ActivityLog, err
 	return data, nil
 }
 
-func (a *activityUseCase) CreateOne(ctx context.Context, activity *domain.ActivityLogInput) error {
+func (a *activityUseCase) CreateOne(ctx context.Context, activity *domain.ActivityLogInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, a.contextTimeout)
 	defer cancel()
 
+	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
 	employeeInput := &domain.ActivityLog{
-		LogID:        primitive.NewObjectID(),
+		ID:           primitive.NewObjectID(),
 		ClientIP:     activity.ClientIP,
-		UserID:       activity.UserID,
+		UserID:       userID,
 		Level:        activity.Level,
 		Method:       activity.Method,
 		StatusCode:   activity.StatusCode,
@@ -116,7 +121,7 @@ func (a *activityUseCase) CreateOne(ctx context.Context, activity *domain.Activi
 		ExpireAt:     activity.ExpireAt,
 	}
 
-	err := a.activityRepository.CreateOne(ctx, employeeInput)
+	err = a.activityRepository.CreateOne(ctx, employeeInput)
 	if err != nil {
 		return err
 	}

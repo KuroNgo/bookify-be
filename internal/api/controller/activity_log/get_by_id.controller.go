@@ -1,6 +1,8 @@
 package activity_log_controller
 
 import (
+	"bookify/pkg/shared/constants"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -13,6 +15,23 @@ import (
 // @Param id query string true "Activity Log ID"
 // @Router /api/v1/activity-logs/get/id [get]
 func (a ActivityController) GetByID(ctx *gin.Context) {
+	currentUser, exist := ctx.Get("currentUser")
+	if !exist {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"message": "You are not login!",
+		})
+		return
+	}
+
+	_, err := a.UserUseCase.GetByID(ctx, fmt.Sprintf("%d", currentUser))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"message": constants.MsgAPIUnauthorized,
+		})
+	}
+
 	id := ctx.Query("id")
 	data, err := a.ActivityUseCase.GetByID(ctx, id)
 	if err != nil {

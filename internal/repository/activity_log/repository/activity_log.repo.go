@@ -126,7 +126,7 @@ func (a *activityLogRepository) CreateOne(ctx context.Context, activityLog *doma
 func (a *activityLogRepository) UpdateOne(ctx context.Context, activityLog *domain.ActivityLog) error {
 	activityCollection := a.database.Collection(a.collectionActivityLog)
 
-	filter := bson.M{"_id": activityLog.LogID}
+	filter := bson.M{"_id": activityLog.ID}
 	update := bson.M{"$set": bson.M{
 		"client_ip":     activityLog.ClientIP,
 		"user_id":       activityLog.UserID,

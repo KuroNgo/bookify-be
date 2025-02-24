@@ -1,23 +1,25 @@
 package activity_log_route
 
 import (
-	activity_log_controller "bookify/internal/api/controller/activity_log"
+	activitylogcontroller "bookify/internal/api/controller/activity_log"
 	"bookify/internal/config"
 	"bookify/internal/domain"
 	activitylogrepository "bookify/internal/repository/activity_log/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	activitylogusecase "bookify/internal/usecase/activity_log/usecase"
+	userusecase "bookify/internal/usecase/user/usecase"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
 
-func ActivityRoute(env *config.Database, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
+func ActivityRoute(env *config.Database, client *mongo.Client, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
 	ac := activitylogrepository.NewActivityLogRepository(db, domain.CollectionActivityLog)
 	users := userrepository.NewUserRepository(db, domain.CollectionUser)
 
-	activity := &activity_log_controller.ActivityController{
+	activity := &activitylogcontroller.ActivityController{
 		ActivityUseCase: activitylogusecase.NewActivityUseCase(env, timeout, ac, users),
+		UserUseCase:     userusecase.NewUserUseCase(env, timeout, users, client),
 		Database:        env,
 	}
 

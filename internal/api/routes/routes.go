@@ -64,7 +64,7 @@ func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronSche
 	router.OPTIONS("/*path", middleware.OptionMessages)
 
 	SwaggerRouter(env, timeout, db, router)
-	activity_log_route.ActivityRoute(env, timeout, db, privateRouterV1)
+	activity_log_route.ActivityRoute(env, client, timeout, db, privateRouterV1)
 	user.UserRouter(env, timeout, db, client, userRouter)
 	event.EventsRouter(env, timeout, db, client, publicRouterV1)
 	event.AdminEventsRouter(env, timeout, db, client, privateRouterV1)

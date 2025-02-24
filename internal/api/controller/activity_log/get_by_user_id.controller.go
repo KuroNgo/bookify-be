@@ -1,6 +1,7 @@
 package activity_log_controller
 
 import (
+	"bookify/pkg/shared/constants"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -20,6 +21,14 @@ func (a ActivityController) GetByUserID(ctx *gin.Context) {
 			"message": "You are not login!",
 		})
 		return
+	}
+
+	_, err := a.UserUseCase.GetByID(ctx, fmt.Sprintf("%d", currentUser))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"message": constants.MsgAPIUnauthorized,
+		})
 	}
 
 	data, err := a.ActivityUseCase.GetByID(ctx, fmt.Sprintf("%s", currentUser))
