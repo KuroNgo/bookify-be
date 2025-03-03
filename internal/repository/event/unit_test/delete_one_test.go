@@ -2,7 +2,7 @@ package unit
 
 import (
 	"bookify/internal/domain"
-	"bookify/internal/infrastructor"
+	"bookify/internal/infrastructor/mongodb"
 	event_repository "bookify/internal/repository/event/repository"
 	event_type_repository "bookify/internal/repository/event_type/repository"
 	organizationrepository "bookify/internal/repository/organization/repository"
@@ -15,8 +15,8 @@ import (
 )
 
 func TestDeleteOneEvent(t *testing.T) {
-	client, database := infrastructor.SetupTestDatabase(t)
-	defer infrastructor.TearDownTestDatabase(client, t)
+	client, database := mongodb.SetupTestDatabase(t)
+	defer mongodb.TearDownTestDatabase(client, t)
 
 	// Function to clear the event collection before each test case
 	clearEventTypeCollection := func() {

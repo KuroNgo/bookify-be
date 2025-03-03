@@ -3,6 +3,7 @@ package routes
 import (
 	"bookify/internal/api/data_seeder"
 	"bookify/internal/api/middleware"
+	activity_log_route "bookify/internal/api/routes/activity_log"
 	employee_route "bookify/internal/api/routes/employee"
 	"bookify/internal/api/routes/event"
 	event_discount_route "bookify/internal/api/routes/event_discount"
@@ -17,20 +18,24 @@ import (
 	"bookify/internal/api/routes/user"
 	venue_route "bookify/internal/api/routes/venue"
 	"bookify/internal/config"
-	cronjob "bookify/pkg/shared/cron"
+	cronjob "bookify/pkg/shared/schedules"
 	"context"
 	"fmt"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
 
-func SetUp(env *config.Database, cr *cronjob.CronScheduler, timeout time.Duration, client *mongo.Client, db *mongo.Database, gin *gin.Engine, cacheTTL time.Duration) {
+func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronScheduler, timeout time.Duration,
+	client *mongo.Client, clientRedis *redis.Client, db *mongo.Database, gin *gin.Engine, cacheTTL time.Duration) {
 	publicRouterV1 := gin.Group("/api/v1")
 	privateRouterV1 := gin.Group("/api/v1")
 	userRouter := gin.Group("/api/v1")
 	router := gin.Group("")
+	value := activity_log_route.Activity(env, cr, client, timeout, db)
 
 	publicRouterV1.Use(
 		middleware.CORSPublic(),
@@ -41,6 +46,7 @@ func SetUp(env *config.Database, cr *cronjob.CronScheduler, timeout time.Duratio
 
 	privateRouterV1.Use(
 		middleware.CORSPrivate(),
+		middleware.StructuredLogger(&log.Logger, value),
 		middleware.Recover(),
 		gzip.Gzip(gzip.DefaultCompression,
 			gzip.WithExcludedPaths([]string{",*"})),
@@ -58,8 +64,9 @@ func SetUp(env *config.Database, cr *cronjob.CronScheduler, timeout time.Duratio
 	router.OPTIONS("/*path", middleware.OptionMessages)
 
 	SwaggerRouter(env, timeout, db, router)
+	activity_log_route.ActivityRoute(env, cr, client, timeout, db, privateRouterV1)
 	user.UserRouter(env, timeout, db, client, userRouter)
-	event.EventsRouter(env, timeout, db, client, publicRouterV1)
+	event.EventsRouter(env, timeout, db, client, privateRouterV1)
 	event.AdminEventsRouter(env, timeout, db, client, privateRouterV1)
 	event_type.EventTypeRouter(env, timeout, db, publicRouterV1)
 	event_type.AdminEventTypeRouter(env, timeout, db, privateRouterV1)

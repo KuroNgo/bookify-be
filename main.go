@@ -2,8 +2,9 @@ package main
 
 import (
 	"bookify/internal/api/routes"
-	"bookify/internal/infrastructor"
-	cronjob "bookify/pkg/shared/cron"
+	"bookify/internal/infrastructor/mongodb"
+	"bookify/internal/infrastructor/redis"
+	cronjob "bookify/pkg/shared/schedules"
 	"github.com/gin-gonic/gin"
 	_ "net/http/pprof"
 	"time"
@@ -20,20 +21,29 @@ import (
 // @host localhost:8080
 // @BasePath /api/v1
 func main() {
-
-	app, client := infrastructor.App()
+	// Khởi tạo MongoDB
+	app, client := mongodb.App()
 	env := app.Env
 	db := app.MongoDB.Database(env.DBName)
 	defer app.CloseDBConnection()
 
+	// Khởi tạo Redis
+	appRedis, clientRedis := redis.App()
+	envRedis := appRedis.Env
+	defer appRedis.CloseDBConnection()
+
+	// Khởi tạo cronjob
 	cr := cronjob.NewCronScheduler()
 
 	timeout := time.Duration(env.ContextTimeout) * time.Second
 	cacheTTL := time.Minute * 5
 
+	// Khởi tạo Gin
 	_gin := gin.Default()
 
-	routes.SetUp(env, cr, timeout, client, db, _gin, cacheTTL)
+	// Truyền Redis client thay vì `dbRedis`
+	routes.SetUp(env, envRedis, cr, timeout, client, clientRedis, db, _gin, cacheTTL)
+
 	err := _gin.Run(env.ServerAddress)
 	if err != nil {
 		return

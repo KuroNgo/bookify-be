@@ -3,10 +3,12 @@ package event_ticket_assignment_usecase
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
+	eventrepository "bookify/internal/repository/event/repository"
 	eventdiscountrepository "bookify/internal/repository/event_discount/repository"
 	event_ticket_repository "bookify/internal/repository/event_ticket_assignment/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/helper"
 	"context"
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
@@ -27,6 +29,7 @@ type eventTicketAssignmentUseCase struct {
 	contextTimeout                  time.Duration
 	eventTicketAssignmentRepository event_ticket_repository.IEventTicketAssignmentRepository
 	eventDiscountRepository         eventdiscountrepository.IEventDiscountRepository
+	eventRepository                 eventrepository.IEventRepository
 	userRepository                  userrepository.IUserRepository
 	cache                           *ristretto.Cache[string, domain.EventTicketAssignment]
 	caches                          *ristretto.Cache[string, []domain.EventTicketAssignment]
@@ -122,6 +125,8 @@ func (e *eventTicketAssignmentUseCase) GetAll(ctx context.Context) ([]domain.Eve
 	return data, nil
 }
 
+// CreateOne creates a new event ticket assignment for a user.
+// If the user is eligible for a discount, the final price is adjusted accordingly.
 func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicketAssignment *domain.EventTicketAssignmentInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
@@ -131,21 +136,34 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 		return err
 	}
 
-	discount, err := e.eventDiscountRepository.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	var costsPayable float64
-	if discount.DiscountUnit == "percent" {
-		costsPayable = discount.DiscountValue / 100 * eventTicketAssignment.Price
-	} else if discount.DiscountUnit == "amount" {
-		costsPayable = eventTicketAssignment.Price - discount.DiscountValue
-	}
-
 	eventID, err := primitive.ObjectIDFromHex(eventTicketAssignment.EventID)
 	if err != nil {
 		return err
+	}
+
+	eventData, err := e.eventRepository.GetByID(ctx, eventID)
+	if err != nil {
+		return errors.New(constants.MsgDataNotFound)
+	}
+
+	// get discount
+	discount, err := e.eventDiscountRepository.GetByUserIDInApplicableAndEventID(ctx, userID, eventID)
+	if err != nil {
+		return err
+	}
+
+	// calculate a value of cost payable
+	var costsPayable = eventTicketAssignment.Price
+	if !helper.IsZeroValue(discount) { // Chỉ áp dụng giảm giá nếu có
+		if discount.DiscountUnit == "percent" {
+			costsPayable = eventTicketAssignment.Price * (1 - discount.DiscountValue/100)
+		} else if discount.DiscountUnit == "amount" {
+			costsPayable = eventTicketAssignment.Price - discount.DiscountValue
+		}
+
+		if costsPayable < 0 {
+			costsPayable = 0
+		}
 	}
 
 	attendanceID, err := primitive.ObjectIDFromHex(eventTicketAssignment.AttendanceID)
@@ -155,7 +173,7 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 
 	eventTicketAssignmentInput := domain.EventTicketAssignment{
 		ID:           primitive.NewObjectID(),
-		EventID:      eventID,
+		EventID:      eventData.ID,
 		AttendanceID: attendanceID,
 		PurchaseDate: time.Now(),
 		ExpiryDate:   eventTicketAssignment.ExpiryDate,
@@ -169,11 +187,14 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 		return err
 	}
 
+	// clear cache
 	e.caches.Clear()
 
 	return nil
 }
 
+// UpdateOne updates an existing event ticket assignment.
+// Only a super admin can perform this action.
 func (e *eventTicketAssignmentUseCase) UpdateOne(ctx context.Context, id string, eventTicketAssignment *domain.EventTicketAssignmentInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()

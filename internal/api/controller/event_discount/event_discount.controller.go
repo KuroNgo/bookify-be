@@ -3,7 +3,7 @@ package event_discount_controller
 import (
 	"bookify/internal/config"
 	eventdiscountusecase "bookify/internal/usecase/event_discount/usecase"
-	cronjob "bookify/pkg/shared/cron"
+	cronjob "bookify/pkg/shared/schedules"
 	"github.com/gin-gonic/gin"
 )
 

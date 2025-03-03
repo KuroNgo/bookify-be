@@ -18,6 +18,76 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/activity-logs/get/all": {
+            "get": {
+                "description": "Retrieve a list of all activity log.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity Logs"
+                ],
+                "summary": "Get all activity log",
+                "responses": {}
+            }
+        },
+        "/api/v1/activity-logs/get/id": {
+            "get": {
+                "description": "Retrieve details of an activity using its id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity Logs"
+                ],
+                "summary": "Get Activity by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity Log ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/activity-logs/get/level": {
+            "get": {
+                "description": "Retrieve details of an organization using its Level.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity Logs"
+                ],
+                "summary": "Get organization by level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity Level",
+                        "name": "level",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/activity-logs/get/user_id": {
+            "get": {
+                "description": "Retrieve details of an activity using its user id.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity Logs"
+                ],
+                "summary": "Get Activity by ID",
+                "responses": {}
+            }
+        },
         "/api/v1/employees/create": {
             "post": {
                 "description": "Create a new employee record for a specific organization",
@@ -2450,9 +2520,6 @@ const docTemplate = `{
                 },
                 "organization_id": {
                     "type": "string"
-                },
-                "status": {
-                    "type": "string"
                 }
             }
         },
@@ -2466,6 +2533,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "date_created": {
                     "type": "string"
                 },
@@ -2473,7 +2543,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "discount_value": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "end_date": {
                     "type": "string"
@@ -2485,6 +2555,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "start_date": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "who_created": {
                     "type": "string"
                 }
             }
@@ -2506,7 +2582,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "discount_value": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "end_date": {
                     "type": "string"
@@ -2530,6 +2606,9 @@ const docTemplate = `{
                 },
                 "event_id": {
                     "type": "string"
+                },
+                "important_level": {
+                    "type": "integer"
                 },
                 "start_date": {
                     "type": "string"
@@ -2631,6 +2710,9 @@ const docTemplate = `{
         "domain.EventTicket": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
                 "event_id": {
                     "type": "string"
                 },
@@ -2665,7 +2747,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "price": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "purchase_date": {
                     "type": "string"

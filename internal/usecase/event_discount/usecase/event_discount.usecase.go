@@ -9,7 +9,7 @@ import (
 	eventwishlistrepository "bookify/internal/repository/event_wishlist/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
-	cronjob "bookify/pkg/shared/cron"
+	cronjob "bookify/pkg/shared/schedules"
 	"bookify/pkg/shared/validate_data"
 	"context"
 	"errors"

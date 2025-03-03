@@ -2,7 +2,7 @@ package unit
 
 import (
 	"bookify/internal/domain"
-	"bookify/internal/infrastructor"
+	"bookify/internal/infrastructor/mongodb"
 	venuerepository "bookify/internal/repository/venue/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
@@ -11,8 +11,8 @@ import (
 )
 
 func TestFindAllVenue(t *testing.T) {
-	client, database := infrastructor.SetupTestDatabase(t)
-	defer infrastructor.TearDownTestDatabase(client, t)
+	client, database := mongodb.SetupTestDatabase(t)
+	defer mongodb.TearDownTestDatabase(client, t)
 
 	// Define the mock venue
 	mockVenue := &domain.Venue{

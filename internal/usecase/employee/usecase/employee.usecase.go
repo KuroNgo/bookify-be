@@ -13,6 +13,8 @@ import (
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"log"
 	"time"
 )
 
@@ -130,19 +132,16 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
-	// Convert currentUser from string to primitive objectID
 	userID, err := primitive.ObjectIDFromHex(currentUser)
 	if err != nil {
 		return err
 	}
 
-	// Handle get by id to get user data
 	userData, err := e.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	// from user data, check role of user
 	if userData.Role != constants.RoleSuperAdmin {
 		return errors.New(constants.MsgForbidden)
 	}
@@ -151,21 +150,12 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 		return err
 	}
 
-	// Handle get by id to get user data
-	count, err := e.employeeRepository.CountExist(ctx, employee.Email)
-	if err != nil {
-		return err
-	}
-
-	if count > 0 {
-		return errors.New(constants.MsgConflict)
-	}
-
 	organizationData, err := e.organizationRepository.GetByID(ctx, employee.OrganizationID)
 	if err != nil {
 		return err
 	}
 
+	// Tạo Employee Object
 	employeeInput := &domain.Employee{
 		ID:             primitive.NewObjectID(),
 		OrganizationID: employee.OrganizationID,
@@ -179,13 +169,21 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 		WhoCreated:     userData.Email,
 	}
 
+	// Chèn employee vào database
 	err = e.employeeRepository.CreateOne(ctx, employeeInput)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) { // Kiểm tra nếu email đã tồn tại
+			return errors.New(constants.MsgConflict)
+		}
 		return err
 	}
 
 	e.caches.Clear()
-	time.AfterFunc(time.Minute, func() {
+
+	// Gửi email sau khi tạo thành công
+	go func() {
+		time.Sleep(1 * time.Minute)
+
 		emailData := handles.EmailData{
 			FullName:         employee.FirstName + " " + employee.LastName,
 			Subject:          "[Bookify] - Welcome to Bookify! Your employee account is ready",
@@ -194,11 +192,10 @@ func (e employeeUseCase) CreateOne(ctx context.Context, employee *domain.Employe
 			OrganizationName: organizationData.Name,
 		}
 
-		err = handles.SendEmail(&emailData, employee.Email, "create_one.employee.html")
-		if err != nil {
-			return
+		if err := handles.SendEmail(&emailData, employee.Email, "create_one.employee.html"); err != nil {
+			log.Printf("Failed to send email: %v", err)
 		}
-	})
+	}()
 
 	return nil
 }
@@ -282,8 +279,8 @@ func (e employeeUseCase) DeleteOne(ctx context.Context, id string, currentUser s
 
 	return nil
 }
-
 func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser string) error {
+	// Tạo context timeout chỉ cho phần delete
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
 	defer cancel()
 
@@ -311,16 +308,23 @@ func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser 
 		return err
 	}
 
+	// Xóa cache ngay lập tức
 	e.caches.Clear()
 	e.cache.Clear()
 
-	time.AfterFunc(time.Minute*5, func() {
-		employeeData, err := e.employeeRepository.GetByID(ctx, employeeID)
+	// Tạo một context mới chỉ dùng cho email (không timeout theo request gốc)
+	go func() {
+		time.Sleep(5 * time.Minute)
+
+		// Dùng context riêng (không timeout theo request gốc)
+		emailCtx := context.Background()
+
+		employeeData, err := e.employeeRepository.GetByID(emailCtx, employeeID)
 		if err != nil {
 			return
 		}
 
-		organizationData, err := e.organizationRepository.GetByID(ctx, employeeData.OrganizationID)
+		organizationData, err := e.organizationRepository.GetByID(emailCtx, employeeData.OrganizationID)
 		if err != nil {
 			return
 		}
@@ -337,7 +341,7 @@ func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser 
 		if err != nil {
 			return
 		}
-	})
+	}()
 
 	return nil
 }
@@ -374,13 +378,18 @@ func (e employeeUseCase) Restore(ctx context.Context, id string, currentUser str
 	e.cache.Clear()
 
 	// AfterFunc will call goroutine for active function with time settings
-	time.AfterFunc(time.Minute*5, func() {
-		employeeData, err := e.employeeRepository.GetByID(ctx, employeeID)
+	go func() {
+		time.Sleep(5 * time.Minute)
+
+		// Dùng context riêng (không timeout theo request gốc)
+		restoreCtx := context.Background()
+
+		employeeData, err := e.employeeRepository.GetByID(restoreCtx, employeeID)
 		if err != nil {
 			return
 		}
 
-		organizationData, err := e.organizationRepository.GetByID(ctx, employeeData.OrganizationID)
+		organizationData, err := e.organizationRepository.GetByID(restoreCtx, employeeData.OrganizationID)
 		if err != nil {
 			return
 		}
@@ -397,7 +406,7 @@ func (e employeeUseCase) Restore(ctx context.Context, id string, currentUser str
 		if err != nil {
 			return
 		}
-	})
+	}()
 
 	return nil
 }

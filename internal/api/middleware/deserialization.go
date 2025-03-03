@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"bookify/internal/infrastructor"
+	"bookify/internal/infrastructor/mongodb"
 	"bookify/pkg/shared/token"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -40,7 +40,7 @@ func DeserializeUser() gin.HandlerFunc {
 			return
 		}
 
-		app, _ := infrastructor.App()
+		app, _ := mongodb.App()
 		env := app.Env
 
 		sub, err := token.ValidateToken(accessToken, env.AccessTokenPublicKey)

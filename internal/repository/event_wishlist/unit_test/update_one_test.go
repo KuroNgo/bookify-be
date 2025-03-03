@@ -2,7 +2,7 @@ package unit
 
 import (
 	"bookify/internal/domain"
-	"bookify/internal/infrastructor"
+	"bookify/internal/infrastructor/mongodb"
 	partnerrepository "bookify/internal/repository/partner/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
@@ -11,8 +11,8 @@ import (
 )
 
 func TestUpdateOnePartner(t *testing.T) {
-	client, database := infrastructor.SetupTestDatabase(t)
-	defer infrastructor.TearDownTestDatabase(client, t)
+	client, database := mongodb.SetupTestDatabase(t)
+	defer mongodb.TearDownTestDatabase(client, t)
 
 	// Function to clear the partner collection before each test case
 	clearPartnerCollection := func() {

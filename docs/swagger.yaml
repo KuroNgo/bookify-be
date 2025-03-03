@@ -19,8 +19,6 @@ definitions:
         type: string
       organization_id:
         type: string
-      status:
-        type: string
     type: object
   domain.EventDiscount:
     properties:
@@ -29,12 +27,14 @@ definitions:
         items:
           type: string
         type: array
+      created_at:
+        type: string
       date_created:
         type: string
       discount_unit:
         type: string
       discount_value:
-        type: integer
+        type: number
       end_date:
         type: string
       event_id:
@@ -42,6 +42,10 @@ definitions:
       id:
         type: string
       start_date:
+        type: string
+      updated_at:
+        type: string
+      who_created:
         type: string
     type: object
   domain.EventDiscountInput:
@@ -56,7 +60,7 @@ definitions:
       discount_unit:
         type: string
       discount_value:
-        type: integer
+        type: number
       end_date:
         type: string
       event_id:
@@ -72,6 +76,8 @@ definitions:
         type: string
       event_id:
         type: string
+      important_level:
+        type: integer
       start_date:
         type: string
       task:
@@ -138,6 +144,8 @@ definitions:
     type: object
   domain.EventTicket:
     properties:
+      created_at:
+        type: string
       event_id:
         type: string
       id:
@@ -162,7 +170,7 @@ definitions:
       id:
         type: string
       price:
-        type: integer
+        type: number
       purchase_date:
         type: string
       status:
@@ -319,6 +327,54 @@ info:
   title: Bookify
   version: "1.0"
 paths:
+  /api/v1/activity-logs/get/all:
+    get:
+      description: Retrieve a list of all activity log.
+      produces:
+      - application/json
+      responses: {}
+      summary: Get all activity log
+      tags:
+      - Activity Logs
+  /api/v1/activity-logs/get/id:
+    get:
+      description: Retrieve details of an activity using its id.
+      parameters:
+      - description: Activity Log ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get Activity by ID
+      tags:
+      - Activity Logs
+  /api/v1/activity-logs/get/level:
+    get:
+      description: Retrieve details of an organization using its Level.
+      parameters:
+      - description: Activity Level
+        in: query
+        name: level
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Get organization by level
+      tags:
+      - Activity Logs
+  /api/v1/activity-logs/get/user_id:
+    get:
+      description: Retrieve details of an activity using its user id.
+      produces:
+      - application/json
+      responses: {}
+      summary: Get Activity by ID
+      tags:
+      - Activity Logs
   /api/v1/employees/create:
     post:
       consumes:
