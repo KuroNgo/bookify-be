@@ -19,7 +19,6 @@ type ActivityLog struct {
 	BodySize     int                `json:"body_size" bson:"body_size"`
 	Path         string             `json:"path" bson:"path"`
 	Latency      string             `json:"latency" bson:"latency"`
-	Error        string             `json:"error" bson:"error"`
 	ActivityTime time.Time          `json:"activity_time" bson:"activity_time"`
 	ExpireAt     time.Time          `json:"expire_at" bson:"expire_at"`
 }

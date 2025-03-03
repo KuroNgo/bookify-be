@@ -63,6 +63,7 @@ func StructuredLogger(logger *zerolog.Logger, activity *activitylogcontroller.Ac
 					return
 				}
 			}()
+
 		}
 	}
 }

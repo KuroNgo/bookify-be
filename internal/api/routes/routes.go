@@ -35,7 +35,7 @@ func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronSche
 	privateRouterV1 := gin.Group("/api/v1")
 	userRouter := gin.Group("/api/v1")
 	router := gin.Group("")
-	value := activity_log_route.Activity(env, client, timeout, db)
+	value := activity_log_route.Activity(env, cr, client, timeout, db)
 
 	publicRouterV1.Use(
 		middleware.CORSPublic(),
@@ -64,9 +64,9 @@ func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronSche
 	router.OPTIONS("/*path", middleware.OptionMessages)
 
 	SwaggerRouter(env, timeout, db, router)
-	activity_log_route.ActivityRoute(env, client, timeout, db, privateRouterV1)
+	activity_log_route.ActivityRoute(env, cr, client, timeout, db, privateRouterV1)
 	user.UserRouter(env, timeout, db, client, userRouter)
-	event.EventsRouter(env, timeout, db, client, publicRouterV1)
+	event.EventsRouter(env, timeout, db, client, privateRouterV1)
 	event.AdminEventsRouter(env, timeout, db, client, privateRouterV1)
 	event_type.EventTypeRouter(env, timeout, db, publicRouterV1)
 	event_type.AdminEventTypeRouter(env, timeout, db, privateRouterV1)

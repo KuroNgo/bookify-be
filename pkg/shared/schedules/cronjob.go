@@ -61,6 +61,13 @@ func (cs *CronScheduler) GetJobCount() int {
 }
 
 func (cs *CronScheduler) GenerateCronExpression(day, month, hour, minute, dayOfWeek int) string {
+	if day < 1 {
+		day = 1
+	}
+	if month < 1 {
+		month = 1
+	}
+
 	log.Printf("Implemented job worker")
 	return fmt.Sprintf("%d %d %d %d %d", minute, hour, day, month, dayOfWeek)
 }

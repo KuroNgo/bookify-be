@@ -5,13 +5,17 @@ import (
 	"bookify/internal/domain"
 	activitylogrepository "bookify/internal/repository/activity_log/repository"
 	userrepository "bookify/internal/repository/user/repository"
+	"bookify/pkg/shared/mail/handles"
+	cronjob "bookify/pkg/shared/schedules"
 	"context"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"time"
 )
 
 type IActivityUseCase interface {
+	IJobWorkerActivityLogs
 	GetByID(ctx context.Context, id string) (domain.ActivityLog, error)
 	GetByLevel(ctx context.Context, id string) (domain.ActivityLog, error)
 	GetByUserID(ctx context.Context, id string) (domain.ActivityLog, error)
@@ -22,6 +26,7 @@ type IActivityUseCase interface {
 
 type activityUseCase struct {
 	database           *config.Database
+	cs                 *cronjob.CronScheduler
 	contextTimeout     time.Duration
 	activityRepository activitylogrepository.IActivityLogRepository
 	userRepository     userrepository.IUserRepository
@@ -29,9 +34,9 @@ type activityUseCase struct {
 	caches             *ristretto.Cache[string, []domain.Employee]
 }
 
-func NewActivityUseCase(database *config.Database, contextTimeout time.Duration, activityRepository activitylogrepository.IActivityLogRepository,
+func NewActivityUseCase(database *config.Database, cs *cronjob.CronScheduler, contextTimeout time.Duration, activityRepository activitylogrepository.IActivityLogRepository,
 	userRepository userrepository.IUserRepository) IActivityUseCase {
-	return &activityUseCase{database: database, contextTimeout: contextTimeout, activityRepository: activityRepository, userRepository: userRepository}
+	return &activityUseCase{database: database, cs: cs, contextTimeout: contextTimeout, activityRepository: activityRepository, userRepository: userRepository}
 }
 
 func (a *activityUseCase) GetByID(ctx context.Context, id string) (domain.ActivityLog, error) {
@@ -106,6 +111,11 @@ func (a *activityUseCase) CreateOne(ctx context.Context, activity *domain.Activi
 		return err
 	}
 
+	// Edit level and notice here
+	if activity.Method == "DELETE" {
+		activity.Level = 2
+	}
+
 	employeeInput := &domain.ActivityLog{
 		ID:           primitive.NewObjectID(),
 		ClientIP:     activity.ClientIP,
@@ -116,7 +126,6 @@ func (a *activityUseCase) CreateOne(ctx context.Context, activity *domain.Activi
 		BodySize:     activity.BodySize,
 		Path:         activity.Path,
 		Latency:      activity.Latency,
-		Error:        activity.Error,
 		ActivityTime: activity.ActivityTime,
 		ExpireAt:     activity.ExpireAt,
 	}
@@ -125,6 +134,28 @@ func (a *activityUseCase) CreateOne(ctx context.Context, activity *domain.Activi
 	if err != nil {
 		return err
 	}
+
+	// create background job
+	go func() {
+		if activity.Method == "DELETE" {
+			emailData := handles.EmailData{
+				FullName: "Administrator",
+				Subject:  "[Bookify] - System alert",
+				Email:    "hoaiphong01012002@gmail.com",
+			}
+
+			if err := handles.SendEmail(&emailData, emailData.Email, "delete_row.log.html"); err != nil {
+				log.Printf("Failed to send email: %v", err)
+			}
+		}
+	}()
+
+	go func() {
+		err = a.JobWorkerSendInformForAdminToExpireTimeActivityLog30DaysStart(a.cs)
+		if err != nil {
+			log.Printf("Job remove discount emails failed: %v", err)
+		}
+	}()
 
 	return nil
 }

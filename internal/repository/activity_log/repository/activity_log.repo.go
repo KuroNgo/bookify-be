@@ -136,7 +136,6 @@ func (a *activityLogRepository) UpdateOne(ctx context.Context, activityLog *doma
 		"body_size":     activityLog.BodySize,
 		"path":          activityLog.Path,
 		"latency":       activityLog.Latency,
-		"error":         activityLog.Error,
 		"activity_time": activityLog.ActivityTime,
 		"expire_at":     activityLog.ExpireAt,
 	}}
