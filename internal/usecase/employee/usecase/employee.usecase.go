@@ -225,8 +225,13 @@ func (e employeeUseCase) UpdateOne(ctx context.Context, id string, employee *dom
 		return err
 	}
 
+	employeeID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
 	employeeInput := &domain.Employee{
-		ID:             primitive.NewObjectID(),
+		ID:             employeeID,
 		OrganizationID: employee.OrganizationID,
 		FirstName:      employee.FirstName,
 		LastName:       employee.LastName,
@@ -269,13 +274,40 @@ func (e employeeUseCase) DeleteOne(ctx context.Context, id string, currentUser s
 		return err
 	}
 
+	employeeData, err := e.employeeRepository.GetByID(ctx, employeeID)
+	if err != nil {
+		return err
+	}
+
+	organizationData, err := e.organizationRepository.GetByID(ctx, employeeData.OrganizationID)
+	if err != nil {
+		return err
+	}
+
+	// Xóa nhân viên
 	err = e.employeeRepository.DeleteOne(ctx, employeeID)
 	if err != nil {
 		return err
 	}
 
+	// Xóa cache
 	e.caches.Clear()
 	e.cache.Clear()
+
+	// Tạo một goroutine để gửi email sau 5 phút
+	go func(emp handles.EmailData, email string) {
+		time.Sleep(5 * time.Minute)
+
+		err := handles.SendEmail(&emp, email, "delete_one.employee.html")
+		if err != nil {
+			return
+		}
+	}(handles.EmailData{
+		FullName:         employeeData.FirstName + " " + employeeData.LastName,
+		Subject:          "[Bookify] - Employee Account Removal Notification",
+		Email:            userData.Email,
+		OrganizationName: organizationData.Name,
+	}, employeeData.Email)
 
 	return nil
 }

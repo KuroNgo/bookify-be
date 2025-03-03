@@ -16,6 +16,7 @@ type EventTicketAssignment struct {
 	PurchaseDate time.Time          `bson:"purchase_date" json:"purchase_date"`
 	ExpiryDate   time.Time          `bson:"expiry_date" json:"expiry_date"`
 	Price        float64            `bson:"price" json:"price"`
+	Quantity     int                `bson:"quantity" json:"quantity"`
 	TicketType   string             `bson:"ticket_type" json:"ticket_type"`
 	Status       string             `bson:"status" json:"status"` // use, useless
 }
@@ -27,6 +28,7 @@ type EventTicketAssignmentInput struct {
 	PurchaseDate time.Time `bson:"purchase_date" json:"purchase_date"`
 	ExpiryDate   time.Time `bson:"expiry_date" json:"expiry_date"`
 	Price        float64   `bson:"price" json:"price"`
+	Quantity     int       `bson:"quantity" json:"quantity"`
 	TicketType   string    `bson:"ticket_type" json:"ticket_type"`
 	Status       string    `bson:"status" json:"status"` // use, useless
 }

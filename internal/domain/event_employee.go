@@ -17,7 +17,7 @@ type EventEmployee struct {
 }
 
 type Task struct {
-	Task           string    `bson:"task" json:"task"`
+	TaskName       string    `bson:"task_name" json:"task_name"`
 	ImportantLevel int       `bson:"important_level" json:"important_level"`
 	StartDate      time.Time `bson:"start_date" json:"start_date"`
 	Deadline       time.Time `bson:"deadline" json:"deadline"`
@@ -31,10 +31,14 @@ type EventEmployeeInput struct {
 	EventID        primitive.ObjectID `bson:"event_id" json:"event_id"`
 	EmployeeID     primitive.ObjectID `bson:"employee_id" bson:"employee_id"`
 	Task           string             `bson:"task" json:"task"`
+	TaskName       string             `bson:"task_name" json:"task_name"`
 	ImportantLevel int                `bson:"important_level" json:"important_level"`
 	StartDate      time.Time          `bson:"start_date" json:"start_date"`
 	Deadline       time.Time          `bson:"deadline" json:"deadline"`
 	TaskCompleted  bool               `bson:"task_completed" json:"task_completed"`
+	CreatedAt      time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt      time.Time          `bson:"updated_at" json:"updated_at"`
+	WhoCreated     string             `bson:"who_created" json:"who_created"`
 }
 
 type EventEmployeeResponse struct {

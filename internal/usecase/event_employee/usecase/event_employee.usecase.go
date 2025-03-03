@@ -3,13 +3,16 @@ package event_employee_usecase
 import (
 	"bookify/internal/config"
 	"bookify/internal/domain"
-	event_employee_repository "bookify/internal/repository/event_employee/repository"
+	employeerepository "bookify/internal/repository/employee/repository"
+	eventemployeerepository "bookify/internal/repository/event_employee/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
+	"bookify/pkg/shared/mail/handles"
 	"context"
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"sync"
 	"time"
 )
@@ -29,7 +32,8 @@ type IEventEmployeeUseCase interface {
 type eventEmployeeUseCase struct {
 	database                *config.Database
 	contextTimeout          time.Duration
-	eventEmployeeRepository event_employee_repository.IEventEmployeeRepository
+	eventEmployeeRepository eventemployeerepository.IEventEmployeeRepository
+	employeeRepository      employeerepository.IEmployeeRepository
 	userRepository          userrepository.IUserRepository
 	cache                   *ristretto.Cache[string, domain.EventEmployee]
 	cacheEmployee           *ristretto.Cache[string, domain.EventEmployeeResponse]
@@ -78,8 +82,8 @@ func NewCacheEventEmployees() (*ristretto.Cache[string, []domain.EventEmployeeRe
 	return cache, nil
 }
 
-func NewEventEmployeeUseCase(database *config.Database, contextTimeout time.Duration, eventEmployeeRepository event_employee_repository.IEventEmployeeRepository,
-	userRepository userrepository.IUserRepository) IEventEmployeeUseCase {
+func NewEventEmployeeUseCase(database *config.Database, contextTimeout time.Duration, eventEmployeeRepository eventemployeerepository.IEventEmployeeRepository,
+	employeeRepository employeerepository.IEmployeeRepository, userRepository userrepository.IUserRepository) IEventEmployeeUseCase {
 	cache, err := NewCacheEvent()
 	if err != nil {
 		panic(err)
@@ -95,7 +99,7 @@ func NewEventEmployeeUseCase(database *config.Database, contextTimeout time.Dura
 		panic(err)
 	}
 	return &eventEmployeeUseCase{cache: cache, cacheEmployee: cacheEmployee, cacheEmployees: cacheEmployees, database: database, contextTimeout: contextTimeout,
-		eventEmployeeRepository: eventEmployeeRepository, userRepository: userRepository}
+		eventEmployeeRepository: eventEmployeeRepository, employeeRepository: employeeRepository, userRepository: userRepository}
 }
 
 func (e *eventEmployeeUseCase) GetByID(ctx context.Context, id string) (domain.EventEmployee, error) {
@@ -256,11 +260,25 @@ func (e *eventEmployeeUseCase) CreateOne(ctx context.Context, eventEmployee *dom
 	//	return err
 	//}
 
+	taskData := domain.Task{
+		TaskName:       eventEmployee.TaskName,
+		ImportantLevel: eventEmployee.ImportantLevel,
+		StartDate:      eventEmployee.StartDate,
+		Deadline:       eventEmployee.Deadline,
+		TaskCompleted:  eventEmployee.TaskCompleted,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		WhoCreated:     userData.Email,
+	}
+
+	var tasksData []domain.Task
+	tasksData = append(tasksData, taskData)
+
 	eventEmployeeInput := &domain.EventEmployee{
 		ID:         primitive.NewObjectID(),
 		EventID:    eventEmployee.EventID,
 		EmployeeID: eventEmployee.EmployeeID,
-		Task:       []domain.Task{},
+		Task:       tasksData,
 	}
 
 	err = e.eventEmployeeRepository.CreateOne(ctx, eventEmployeeInput)
@@ -269,6 +287,30 @@ func (e *eventEmployeeUseCase) CreateOne(ctx context.Context, eventEmployee *dom
 	}
 
 	e.cacheEmployees.Clear()
+
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			employeeData, err := e.employeeRepository.GetByID(ctx, eventEmployee.EmployeeID)
+			if err != nil {
+				return
+			}
+
+			emailData := handles.EmailData{
+				EmployeeName: employeeData.FirstName + " " + employeeData.LastName,
+				EventName:    "[Bookify] - Task notification",
+				TaskName:     taskData.TaskName,
+				Deadline:     taskData.Deadline.Format("2006-01-02"),
+				AssignedBy:   userData.Email,
+			}
+
+			if err = handles.SendEmail(&emailData, employeeData.Email, "create_one_task.event_employee.html"); err != nil {
+				log.Printf("Failed to send email: %v", err)
+			}
+		}
+	}(ctx)
 
 	return nil
 }
