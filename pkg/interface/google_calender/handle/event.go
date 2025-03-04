@@ -8,8 +8,8 @@ import (
 	"log"
 )
 
-// Hàm tạo sự kiện trên Google Calendar
-func createEvent(summary, location, description, startTime, endTime string) {
+// CreateEvent Hàm tạo sự kiện trên Google Calendar
+func CreateEvent(summary, location, description, startTime, endTime string) {
 	client := GetClient()
 	srv, err := calendar.NewService(context.Background(), option.WithHTTPClient(client))
 	if err != nil {

@@ -30,6 +30,7 @@ type organizationUseCase struct {
 	organizationRepository organizationrepository.IOrganizationRepository
 	userRepository         userrepository.IUserRepository
 	mu                     *sync.Mutex
+	rwMutex                *sync.RWMutex
 	cache                  *ristretto.Cache[string, domain.Organization]
 	caches                 *ristretto.Cache[string, []domain.Organization]
 }
@@ -90,10 +91,13 @@ func (o organizationUseCase) GetByUserID(ctx context.Context, userId string) (do
 		return domain.Organization{}, err
 	}
 
+	o.rwMutex.RLock()
 	data, err := o.organizationRepository.GetByUserID(ctx, userID)
 	if err != nil {
+		o.rwMutex.RUnlock()
 		return domain.Organization{}, err
 	}
+	o.rwMutex.RUnlock()
 
 	o.cache.Set(userId, data, 1)
 	// wait for value to pass through buffers
@@ -117,10 +121,13 @@ func (o organizationUseCase) GetByID(ctx context.Context, id string) (domain.Org
 		return domain.Organization{}, err
 	}
 
+	o.rwMutex.RLock()
 	data, err := o.organizationRepository.GetByID(ctx, organizationId)
 	if err != nil {
+		o.rwMutex.RUnlock()
 		return domain.Organization{}, err
 	}
+	o.rwMutex.RUnlock()
 
 	o.cache.Set(id, data, 1)
 	// wait for value to pass through buffers
@@ -139,10 +146,13 @@ func (o organizationUseCase) GetAll(ctx context.Context) ([]domain.Organization,
 		return value, nil
 	}
 
+	o.rwMutex.RLock()
 	data, err := o.organizationRepository.GetAll(ctx)
 	if err != nil {
+		o.rwMutex.Unlock()
 		return nil, err
 	}
+	o.rwMutex.Unlock()
 
 	o.caches.Set("organizations", data, 1)
 	// wait for value to pass through buffers
@@ -192,12 +202,15 @@ func (o organizationUseCase) CreateOne(ctx context.Context, organization *domain
 		Phone:         organization.Phone,
 	}
 
+	o.mu.Lock()
 	err = o.organizationRepository.CreateOne(ctx, organizationInput)
 	if err != nil {
+		o.mu.Unlock()
 		return err
 	}
 
 	o.caches.Clear()
+	o.mu.Unlock()
 
 	return nil
 }
@@ -248,13 +261,16 @@ func (o organizationUseCase) UpdateOne(ctx context.Context, id string, organizat
 		Phone:         organization.Phone,
 	}
 
+	o.mu.Lock()
 	err = o.organizationRepository.UpdateOne(ctx, organizationInput)
 	if err != nil {
+		o.mu.Unlock()
 		return err
 	}
 
 	o.caches.Clear()
 	o.cache.Clear()
+	o.mu.Unlock()
 
 	return nil
 }
@@ -284,13 +300,16 @@ func (o organizationUseCase) DeleteOne(ctx context.Context, id string, currentUs
 		return err
 	}
 
+	o.mu.Lock()
 	err = o.organizationRepository.DeleteOne(ctx, organizationId)
 	if err != nil {
+		o.mu.Unlock()
 		return err
 	}
 
 	o.caches.Clear()
 	o.cache.Clear()
+	o.mu.Unlock()
 
 	return nil
 }
