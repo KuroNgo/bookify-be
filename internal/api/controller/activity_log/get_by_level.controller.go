@@ -24,7 +24,7 @@ func (a ActivityController) GetByLevel(ctx *gin.Context) {
 		return
 	}
 
-	_, err := a.UserUseCase.GetByID(ctx, fmt.Sprintf("%d", currentUser))
+	_, err := a.UserUseCase.GetByID(ctx, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"status":  "error",
@@ -37,7 +37,7 @@ func (a ActivityController) GetByLevel(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "fail",
-			"message": "Failed to get user data: " + err.Error(),
+			"message": "Failed to get log data: " + err.Error(),
 		})
 		return
 	}

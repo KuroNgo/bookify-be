@@ -35,6 +35,7 @@ type eventEmployeeUseCase struct {
 	eventEmployeeRepository eventemployeerepository.IEventEmployeeRepository
 	employeeRepository      employeerepository.IEmployeeRepository
 	userRepository          userrepository.IUserRepository
+	mu                      *sync.Mutex
 	cache                   *ristretto.Cache[string, domain.EventEmployee]
 	cacheEmployee           *ristretto.Cache[string, domain.EventEmployeeResponse]
 	cacheEmployees          *ristretto.Cache[string, []domain.EventEmployeeResponse]

@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -36,6 +37,7 @@ type employeeUseCase struct {
 	organizationRepository organizationrepository.IOrganizationRepository
 	cache                  *ristretto.Cache[string, domain.Employee]
 	caches                 *ristretto.Cache[string, []domain.Employee]
+	mu                     *sync.Mutex
 }
 
 // NewCacheEmployee Kiểm tra bộ đệm khi đã đạt đến giới hạn MaxCost
@@ -284,21 +286,24 @@ func (e employeeUseCase) DeleteOne(ctx context.Context, id string, currentUser s
 		return err
 	}
 
+	e.mu.Lock()
 	// Xóa nhân viên
 	err = e.employeeRepository.DeleteOne(ctx, employeeID)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
 
 	// Xóa cache
 	e.caches.Clear()
 	e.cache.Clear()
+	e.mu.Unlock()
 
 	// Tạo một goroutine để gửi email sau 5 phút
 	go func(emp handles.EmailData, email string) {
 		time.Sleep(5 * time.Minute)
 
-		err := handles.SendEmail(&emp, email, "delete_one.employee.html")
+		err = handles.SendEmail(&emp, email, "delete_one.employee.html")
 		if err != nil {
 			return
 		}
@@ -311,6 +316,7 @@ func (e employeeUseCase) DeleteOne(ctx context.Context, id string, currentUser s
 
 	return nil
 }
+
 func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser string) error {
 	// Tạo context timeout chỉ cho phần delete
 	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
@@ -335,14 +341,17 @@ func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser 
 		return err
 	}
 
+	e.mu.Lock()
 	err = e.employeeRepository.DeleteSoft(ctx, employeeID)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
 
 	// Xóa cache ngay lập tức
 	e.caches.Clear()
 	e.cache.Clear()
+	e.mu.Unlock()
 
 	// Tạo một context mới chỉ dùng cho email (không timeout theo request gốc)
 	go func() {
@@ -368,7 +377,6 @@ func (e employeeUseCase) DeleteSoft(ctx context.Context, id string, currentUser 
 			Email:            userData.Email,
 			OrganizationName: organizationData.Name,
 		}
-
 		err = handles.SendEmail(&emailData, employeeData.Email, "delete_one.employee.html")
 		if err != nil {
 			return
@@ -401,13 +409,16 @@ func (e employeeUseCase) Restore(ctx context.Context, id string, currentUser str
 		return err
 	}
 
+	e.mu.Lock()
 	err = e.employeeRepository.Restore(ctx, employeeID)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
 
 	e.caches.Clear()
 	e.cache.Clear()
+	e.mu.Unlock()
 
 	// AfterFunc will call goroutine for active function with time settings
 	go func() {

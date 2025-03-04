@@ -14,6 +14,7 @@ import (
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 	"time"
 )
 
@@ -30,9 +31,10 @@ type eventTicketAssignmentUseCase struct {
 	contextTimeout                  time.Duration
 	eventTicketAssignmentRepository eventticketassignmentrepository.IEventTicketAssignmentRepository
 	eventDiscountRepository         eventdiscountrepository.IEventDiscountRepository
+	eventTicketRepository           eventticketrepository.IEventTicketRepository
 	eventRepository                 eventrepository.IEventRepository
 	userRepository                  userrepository.IUserRepository
-	eventTicketRepository           eventticketrepository.IEventTicketRepository
+	mu                              *sync.Mutex
 	cache                           *ristretto.Cache[string, domain.EventTicketAssignment]
 	caches                          *ristretto.Cache[string, []domain.EventTicketAssignment]
 }

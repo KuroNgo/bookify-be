@@ -17,6 +17,7 @@ import (
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -38,6 +39,7 @@ type eventDiscountUseCase struct {
 	eventTicketRepository   eventticketrepository.IEventTicketRepository
 	wishlistRepository      eventwishlistrepository.IEventWishlistRepository
 	userRepository          userrepository.IUserRepository
+	mu                      *sync.Mutex
 	cache                   *ristretto.Cache[string, domain.EventDiscount]
 	caches                  *ristretto.Cache[string, []domain.EventDiscount]
 }
@@ -199,10 +201,15 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 		DateCreated:     time.Now(),
 	}
 
+	e.mu.Lock()
 	err = e.eventDiscountRepository.CreateOne(ctx, eventTypeInput)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
+
+	e.caches.Clear()
+	e.mu.Unlock()
 
 	// background job
 	go func() {
@@ -218,8 +225,6 @@ func (e *eventDiscountUseCase) CreateOne(ctx context.Context, discount *domain.E
 			log.Println("Failed to execute job:", err)
 		}
 	}()
-
-	e.caches.Clear()
 
 	return nil
 }
@@ -318,10 +323,16 @@ func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discoun
 		}()
 	}
 
+	e.mu.Lock()
 	err = e.eventDiscountRepository.UpdateOne(ctx, eventDiscountInput)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
+	e.mu.Unlock()
 
 	// background job
 	go func() {
@@ -337,9 +348,6 @@ func (e *eventDiscountUseCase) UpdateOne(ctx context.Context, id string, discoun
 			log.Println("Failed to execute job:", err)
 		}
 	}()
-
-	e.caches.Clear()
-	e.cache.Clear()
 
 	return nil
 }
@@ -368,10 +376,16 @@ func (e *eventDiscountUseCase) DeleteOne(ctx context.Context, id string, current
 		return err
 	}
 
+	e.mu.Lock()
 	err = e.eventDiscountRepository.DeleteOne(ctx, discountID)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
+
+	e.caches.Clear()
+	e.cache.Clear()
+	e.mu.Unlock()
 
 	go func() {
 		err = e.RemoveJobWorkerSendDiscountForApplicableUsersIfTheyHaveWishlist(e.cs)
@@ -386,9 +400,6 @@ func (e *eventDiscountUseCase) DeleteOne(ctx context.Context, id string, current
 			log.Println("Failed to execute job:", err)
 		}
 	}()
-
-	e.caches.Clear()
-	e.cache.Clear()
 
 	return nil
 }
