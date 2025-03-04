@@ -23,6 +23,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"log"
 	"mime/multipart"
+	"sync"
 	"time"
 )
 
@@ -56,6 +57,7 @@ type userUseCase struct {
 	database       *config.Database
 	contextTimeout time.Duration
 	userRepository repository.IUserRepository
+	mu             *sync.Mutex
 	cache          *ristretto.Cache[string, domain.User]
 	caches         *ristretto.Cache[string, []domain.User]
 	client         *mongo_driven.Client

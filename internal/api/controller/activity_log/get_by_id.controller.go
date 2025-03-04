@@ -24,7 +24,7 @@ func (a ActivityController) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	_, err := a.UserUseCase.GetByID(ctx, fmt.Sprintf("%d", currentUser))
+	_, err := a.UserUseCase.GetByID(ctx, fmt.Sprintf("%s", currentUser))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"status":  "error",

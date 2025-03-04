@@ -12,6 +12,7 @@ import (
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 	"time"
 )
 
@@ -29,6 +30,7 @@ type eventWishlistUseCase struct {
 	eventWishlistRepository eventwishlistrepository.IEventWishlistRepository
 	eventRepository         event_repository.IEventRepository
 	userRepository          userrepository.IUserRepository
+	mu                      *sync.Mutex
 	cache                   *ristretto.Cache[string, domain.EventWishlist]
 	caches                  *ristretto.Cache[string, []domain.EventWishlist]
 }

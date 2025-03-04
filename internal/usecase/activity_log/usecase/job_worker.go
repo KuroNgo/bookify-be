@@ -46,7 +46,6 @@ func (a *activityUseCase) RemoveActivityLog(ctx context.Context) error {
 
 func (a *activityUseCase) JobWorkerSendInformForAdminToExpireTimeActivityLog30DaysStart(cs *cronjob.CronScheduler) error {
 	cronExpression := cs.GenerateCronExpression(0, 0, 12, 1, 0)
-	log.Println("=== Job is running ===") // Log để kiểm tra job có chạy không
 	cs.AddCronJob("sendActivityExpiringEmails", cronExpression, func(ctx context.Context) error {
 		err := a.SendInformForAdminToExpireTimeActivityLog30DaysStart(ctx)
 		if err != nil {

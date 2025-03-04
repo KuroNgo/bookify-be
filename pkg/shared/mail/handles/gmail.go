@@ -19,6 +19,11 @@ type EmailData struct {
 	Subject          string
 	JobTitle         string
 	OrganizationName string
+	EmployeeName     string
+	TaskName         string
+	Deadline         string
+	AssignedBy       string
+	EventName        string
 	ExpireDate       string
 }
 

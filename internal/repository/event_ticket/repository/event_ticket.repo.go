@@ -17,6 +17,7 @@ type IEventTicketRepository interface {
 	GetAll(ctx context.Context) ([]domain.EventTicket, error)
 	CreateOne(ctx context.Context, eventTicket domain.EventTicket) error
 	UpdateOne(ctx context.Context, eventTicket domain.EventTicket) error
+	UpdateQuantity(ctx context.Context, eventID primitive.ObjectID, decrement int) error
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
 }
 
@@ -123,6 +124,25 @@ func (e *eventTicketRepository) UpdateOne(ctx context.Context, eventTicket domai
 	_, err := collectionEventTicket.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (e *eventTicketRepository) UpdateQuantity(ctx context.Context, eventID primitive.ObjectID, decrement int) error {
+	collection := e.database.Collection(e.collectionEventTicket)
+
+	// Chỉ cập nhật nếu quantity > 0 để tránh bị âm
+	filter := bson.M{"_id": eventID, "quantity": bson.M{"$gt": 0}}
+	update := bson.M{"$inc": bson.M{"quantity": -decrement}}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("event ticket is sold out")
 	}
 
 	return nil

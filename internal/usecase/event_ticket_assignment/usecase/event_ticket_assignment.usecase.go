@@ -5,7 +5,8 @@ import (
 	"bookify/internal/domain"
 	eventrepository "bookify/internal/repository/event/repository"
 	eventdiscountrepository "bookify/internal/repository/event_discount/repository"
-	event_ticket_repository "bookify/internal/repository/event_ticket_assignment/repository"
+	eventticketrepository "bookify/internal/repository/event_ticket/repository"
+	eventticketassignmentrepository "bookify/internal/repository/event_ticket_assignment/repository"
 	userrepository "bookify/internal/repository/user/repository"
 	"bookify/pkg/shared/constants"
 	"bookify/pkg/shared/helper"
@@ -13,6 +14,7 @@ import (
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 	"time"
 )
 
@@ -27,10 +29,12 @@ type IEventTicketAssignmentUseCase interface {
 type eventTicketAssignmentUseCase struct {
 	database                        *config.Database
 	contextTimeout                  time.Duration
-	eventTicketAssignmentRepository event_ticket_repository.IEventTicketAssignmentRepository
+	eventTicketAssignmentRepository eventticketassignmentrepository.IEventTicketAssignmentRepository
 	eventDiscountRepository         eventdiscountrepository.IEventDiscountRepository
+	eventTicketRepository           eventticketrepository.IEventTicketRepository
 	eventRepository                 eventrepository.IEventRepository
 	userRepository                  userrepository.IUserRepository
+	mu                              *sync.Mutex
 	cache                           *ristretto.Cache[string, domain.EventTicketAssignment]
 	caches                          *ristretto.Cache[string, []domain.EventTicketAssignment]
 }
@@ -64,7 +68,8 @@ func NewCacheEventTicketAssignments() (*ristretto.Cache[string, []domain.EventTi
 }
 
 func NewEventTicketAssignmentUseCase(database *config.Database, contextTimeout time.Duration,
-	eventTicketAssignmentRepository event_ticket_repository.IEventTicketAssignmentRepository, userRepository userrepository.IUserRepository) IEventTicketAssignmentUseCase {
+	eventTicketAssignmentRepository eventticketassignmentrepository.IEventTicketAssignmentRepository,
+	eventTicketRepository eventticketrepository.IEventTicketRepository, userRepository userrepository.IUserRepository) IEventTicketAssignmentUseCase {
 	cache, err := NewCacheEventTicketAssignment()
 	if err != nil {
 		panic(err)
@@ -75,7 +80,8 @@ func NewEventTicketAssignmentUseCase(database *config.Database, contextTimeout t
 		panic(err)
 	}
 	return &eventTicketAssignmentUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout,
-		eventTicketAssignmentRepository: eventTicketAssignmentRepository, userRepository: userRepository}
+		eventTicketAssignmentRepository: eventTicketAssignmentRepository, eventTicketRepository: eventTicketRepository,
+		userRepository: userRepository}
 }
 
 func (e *eventTicketAssignmentUseCase) GetByID(ctx context.Context, id string) (domain.EventTicketAssignment, error) {
@@ -153,7 +159,7 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 	}
 
 	// calculate a value of cost payable
-	var costsPayable = eventTicketAssignment.Price
+	var costsPayable = eventTicketAssignment.Price * float64(eventTicketAssignment.Quantity)
 	if !helper.IsZeroValue(discount) { // Chỉ áp dụng giảm giá nếu có
 		if discount.DiscountUnit == "percent" {
 			costsPayable = eventTicketAssignment.Price * (1 - discount.DiscountValue/100)
@@ -178,6 +184,7 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 		PurchaseDate: time.Now(),
 		ExpiryDate:   eventTicketAssignment.ExpiryDate,
 		Price:        costsPayable,
+		Quantity:     eventTicketAssignment.Quantity,
 		TicketType:   eventTicketAssignment.TicketType,
 		Status:       eventTicketAssignment.Status,
 	}
@@ -186,6 +193,18 @@ func (e *eventTicketAssignmentUseCase) CreateOne(ctx context.Context, eventTicke
 	if err != nil {
 		return err
 	}
+
+	go func(eventID primitive.ObjectID) {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Giới hạn 5 giây
+		defer cancel()
+
+		eventTicketData, err := e.eventTicketRepository.GetByEventID(bgCtx, eventID)
+		if err != nil {
+			return
+		}
+
+		_ = e.eventTicketRepository.UpdateQuantity(bgCtx, eventTicketData.ID, 1)
+	}(eventID)
 
 	// clear cache
 	e.caches.Clear()

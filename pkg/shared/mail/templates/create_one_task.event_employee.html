@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Notification</title>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Task Notification</h2>
+    </div>
+    <div class="content">
+        <p>Hello {{ .EmployeeName }},</p>
+        <p>You have been assigned a new task for the event <strong>{{ .EventName }}</strong>.</p>
+        <p><strong>Task Details:</strong></p>
+        <ul>
+            <li><strong>Task:</strong> {{ .TaskName }}</li>
+            <li><strong>Deadline:</strong> {{ .Deadline }}</li>
+            <li><strong>Assigned By:</strong> {{ .AssignedBy }}</li>
+        </ul>
+        <p>Please ensure that you complete the task by the deadline.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 Bookify. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

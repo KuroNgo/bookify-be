@@ -10,6 +10,7 @@ import (
 	"errors"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 	"time"
 )
 
@@ -26,6 +27,7 @@ type eventPartnerUseCase struct {
 	contextTimeout         time.Duration
 	eventPartnerRepository event_partner_repository.IEventPartnerRepository
 	userRepository         userrepository.IUserRepository
+	mu                     *sync.Mutex
 	cache                  *ristretto.Cache[string, domain.EventPartner]
 	caches                 *ristretto.Cache[string, []domain.EventPartner]
 }

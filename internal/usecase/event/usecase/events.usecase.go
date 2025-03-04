@@ -19,6 +19,7 @@ import (
 	mongodriven "go.mongodb.org/mongo-driver/mongo"
 	"mime/multipart"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -47,6 +48,7 @@ type eventUseCase struct {
 	venueRepository        venuerepository.IVenueRepository
 	userRepository         userrepository.IUserRepository
 	client                 *mongodriven.Client
+	mu                     *sync.Mutex
 	cache                  *ristretto.Cache[string, domain.Event]
 	caches                 *ristretto.Cache[string, []domain.Event]
 	cacheResponses         *ristretto.Cache[string, domain.EventResponsePage]
@@ -430,13 +432,16 @@ func (e eventUseCase) CreateOne(ctx context.Context, event *domain.EventInput) e
 		TotalExpenditure:  event.TotalExpenditure,
 	}
 
+	e.mu.Lock()
 	err = e.eventRepository.CreateOne(ctx, eventInput)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
 
 	e.cacheResponses.Clear()
 	e.caches.Clear()
+	e.mu.Unlock()
 
 	return nil
 }
@@ -577,14 +582,17 @@ func (e eventUseCase) UpdateOne(ctx context.Context, id string, event *domain.Ev
 		Tags:              event.Tags,
 	}
 
+	e.mu.Lock()
 	err = e.eventRepository.UpdateOne(ctx, eventInput)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
 
 	e.cacheResponses.Clear()
 	e.caches.Clear()
 	e.cache.Clear()
+	e.mu.Unlock()
 
 	return nil
 }
@@ -667,14 +675,17 @@ func (e eventUseCase) DeleteOne(ctx context.Context, eventID string) error {
 		return err
 	}
 
+	e.mu.Lock()
 	err = e.eventRepository.DeleteOne(ctx, id)
 	if err != nil {
+		e.mu.Unlock()
 		return err
 	}
 
 	e.cacheResponses.Clear()
 	e.caches.Clear()
 	e.cache.Clear()
+	e.mu.Unlock()
 
 	return nil
 }
