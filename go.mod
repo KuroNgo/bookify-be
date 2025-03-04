@@ -30,8 +30,12 @@ require (
 	github.com/blevesearch/zapx/v14 v14.3.10 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.16 // indirect
 	github.com/blevesearch/zapx/v16 v16.1.9-0.20241217210638-a0519e7caf3b // indirect
+	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/casbin/casbin/v2 v2.103.0 // indirect
+	github.com/casbin/govaluate v1.3.0 // indirect
+	github.com/casbin/mongodb-adapter/v3 v3.7.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudinary/cloudinary-go/v2 v2.9.0 // indirect
