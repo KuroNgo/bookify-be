@@ -7,7 +7,7 @@ import (
 )
 
 func CasbinRouter(env *config.Database, group *gin.RouterGroup) {
-	router := group.Group("")
 
+	router := group.Group("")
 	casbin_routers.CasbinRouter(router, env)
 }
