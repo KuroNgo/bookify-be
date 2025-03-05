@@ -18,6 +18,7 @@ import (
 	"bookify/internal/api/routes/user"
 	venue_route "bookify/internal/api/routes/venue"
 	"bookify/internal/config"
+	middlewares "bookify/pkg/interface/casbin/middleware"
 	cronjob "bookify/pkg/shared/schedules"
 	"context"
 	"fmt"
@@ -51,6 +52,7 @@ func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronSche
 		gzip.Gzip(gzip.DefaultCompression,
 			gzip.WithExcludedPaths([]string{",*"})),
 		middleware.DeserializeUser(),
+		middlewares.CheckAuth(),
 	)
 
 	userRouter.Use(
@@ -64,7 +66,7 @@ func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronSche
 	router.OPTIONS("/*path", middleware.OptionMessages)
 
 	SwaggerRouter(env, timeout, db, router)
-	CasbinRouter(env, router)
+	CasbinRouter(env, publicRouterV1)
 	activity_log_route.ActivityRoute(env, cr, client, timeout, db, privateRouterV1)
 	user.UserRouter(env, timeout, db, client, userRouter)
 	event.EventsRouter(env, timeout, db, client, privateRouterV1)

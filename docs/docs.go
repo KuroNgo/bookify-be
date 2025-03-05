@@ -88,6 +88,222 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/casbin/add/api/role": {
+            "post": {
+                "description": "Add APIs with specific methods to a role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Assign API permissions to a role",
+                "parameters": [
+                    {
+                        "description": "Role and API data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.RoleData"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/add/role": {
+            "post": {
+                "description": "Add a new role with API and method to the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Add a role to the system",
+                "parameters": [
+                    {
+                        "description": "Role data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.RoleData"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/add/role/api": {
+            "post": {
+                "description": "Add role-based permissions for a specific API and method",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Add role permissions for an API",
+                "parameters": [
+                    {
+                        "description": "API data with Role and Methods",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.APIData"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/add/user": {
+            "post": {
+                "description": "Assign a role to a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Add a role to a user",
+                "parameters": [
+                    {
+                        "description": "User and Role data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.UserRole"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/delete": {
+            "delete": {
+                "description": "Delete a role from the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Delete a role",
+                "parameters": [
+                    {
+                        "description": "Role data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.Role"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/delete/api/role": {
+            "delete": {
+                "description": "Remove role-based permissions for an API and method",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Delete role permissions for an API",
+                "parameters": [
+                    {
+                        "description": "API and Role data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.APIRole"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/delete/role/api": {
+            "delete": {
+                "description": "Remove APIs with specific methods for a role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Delete API for a role",
+                "parameters": [
+                    {
+                        "description": "Role and API data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.RoleAPI"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/v1/casbin/delete/user": {
+            "delete": {
+                "description": "Remove a specific role from a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Casbin"
+                ],
+                "summary": "Delete role for a user",
+                "parameters": [
+                    {
+                        "description": "User ID and Role data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.UserRole"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/employees/create": {
             "post": {
                 "description": "Create a new employee record for a specific organization",
@@ -2598,6 +2814,9 @@ const docTemplate = `{
         "domain.EventEmployeeInput": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
                 "deadline": {
                     "type": "string"
                 },
@@ -2618,6 +2837,15 @@ const docTemplate = `{
                 },
                 "task_completed": {
                     "type": "boolean"
+                },
+                "task_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "who_created": {
+                    "type": "string"
                 }
             }
         },
@@ -2751,6 +2979,9 @@ const docTemplate = `{
                 },
                 "purchase_date": {
                     "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
                 },
                 "status": {
                     "description": "use, useless",
@@ -2971,6 +3202,106 @@ const docTemplate = `{
             "properties": {
                 "verification_code": {
                     "type": "string"
+                }
+            }
+        },
+        "handler.APIData": {
+            "type": "object",
+            "properties": {
+                "api": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "role": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "handler.APIRole": {
+            "type": "object",
+            "properties": {
+                "api": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "handler.Role": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.RoleAPI": {
+            "type": "object",
+            "properties": {
+                "api": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.RoleData": {
+            "type": "object",
+            "properties": {
+                "api": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "GET",
+                        "POST",
+                        "PUT"
+                    ]
+                },
+                "method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "GET",
+                        "DELETE"
+                    ]
+                },
+                "role": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "handler.UserRole": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }
