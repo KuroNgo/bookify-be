@@ -14,7 +14,7 @@ func TestCreateOnePartner(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the partner collection before each test case
+	// Function to clear the partner collection before each test_e2e case
 	clearPartnerCollection := func() {
 		err := database.Collection("partner").Drop(context.Background())
 		if err != nil {
@@ -32,7 +32,7 @@ func TestCreateOnePartner(t *testing.T) {
 
 	mockPartnerNil := &domain.Partner{}
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		input       *domain.Partner
@@ -53,10 +53,10 @@ func TestCreateOnePartner(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clearPartnerCollection() // Clear the collection before each test
+			clearPartnerCollection() // Clear the collection before each test_e2e
 
 			ur := partnerrepository.NewPartnerRepository(database, "partner")
 			err := ur.CreateOne(context.Background(), tt.input)

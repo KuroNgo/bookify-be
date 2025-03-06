@@ -14,7 +14,7 @@ func TestFindAllEventType(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the event collection before each test case
+	// Function to clear the event collection before each test_e2e case
 	clearEventTypeCollection := func() {
 		err := database.Collection("event_type").Drop(context.Background())
 		if err != nil {
@@ -31,7 +31,7 @@ func TestFindAllEventType(t *testing.T) {
 
 	ur := event_type_repository.NewEventTypeRepository(database, "event_type")
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name         string
 		setupFunc    func()
@@ -57,16 +57,16 @@ func TestFindAllEventType(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clear collection before each test
+			// Clear collection before each test_e2e
 			clearEventTypeCollection()
 
 			// Run setup function
 			tt.setupFunc()
 
-			// Call the function under test
+			// Call the function under test_e2e
 			events, err := ur.GetAll(context.Background())
 
 			// Assert the results

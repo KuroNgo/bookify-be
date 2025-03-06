@@ -15,7 +15,7 @@ func TestUpdateOneEmployee(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the organization collection before each test case
+	// Function to clear the organization collection before each test_e2e case
 	clearOrganizationCollection := func() {
 		err := database.Collection("organization").Drop(context.Background())
 		if err != nil {
@@ -57,7 +57,7 @@ func TestUpdateOneEmployee(t *testing.T) {
 	err = em.CreateOne(context.Background(), mockEmployee)
 	assert.Nil(t, err)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		inputData   *domain.Employee
@@ -92,7 +92,7 @@ func TestUpdateOneEmployee(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := em.UpdateOne(context.Background(), tt.inputData)

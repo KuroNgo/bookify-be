@@ -14,7 +14,7 @@ func TestGetAllEventTickets(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Hàm dọn dẹp collection trước mỗi test
+	// Hàm dọn dẹp collection trước mỗi test_e2e
 	clearEventTicketCollection := func() {
 		err := database.Collection("event_ticket").Drop(context.Background())
 		if err != nil {
@@ -27,7 +27,7 @@ func TestGetAllEventTickets(t *testing.T) {
 	// Khởi tạo repository
 	ur := eventticketrepository.NewEventTicketRepository(database, "event_ticket")
 
-	// Chuẩn bị dữ liệu test
+	// Chuẩn bị dữ liệu test_e2e
 	tickets := []domain.EventTicket{
 		{
 			ID:       primitive.NewObjectID(),
@@ -73,7 +73,7 @@ func TestGetAllEventTickets(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.expectSize == 0 {
-				// Dọn sạch collection nếu test case yêu cầu danh sách rỗng
+				// Dọn sạch collection nếu test_e2e case yêu cầu danh sách rỗng
 				err := database.Collection("event_ticket").Drop(context.Background())
 				assert.NoError(t, err)
 			}

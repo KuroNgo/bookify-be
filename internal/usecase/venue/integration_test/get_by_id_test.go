@@ -21,7 +21,7 @@ func TestVenueUseCase_GetByID(t *testing.T) {
 	venueRepo := venue_repository.NewVenueRepository(database, "venue")
 	venueUC := venue_usecase.NewVenueUseCase(&databaseConfig, time.Second*5, venueRepo, nil)
 
-	// Helper: Clear the venue collection before each test case
+	// Helper: Clear the venue collection before each test_e2e case
 	clearVenueCollection := func() {
 		err := database.Collection("venue").Drop(context.Background())
 		if err != nil {

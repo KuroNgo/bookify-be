@@ -1,68 +1,62 @@
-# Bookify - Event Management & Ticketing Platform
+# Bookify - Microservices Architecture
 
-Bookify is a comprehensive web-based platform designed to help users create, manage, and promote events while providing a seamless ticket booking experience. Whether you're an event organizer looking for a streamlined way to manage attendees or an individual searching for exciting events to attend, Bookify simplifies the entire process from event creation to ticket sales and payment processing.
+Bookify is a web-based platform that allows users to create, manage events, and book seats online. 
+The project follows a microservices architecture to ensure scalability, maintainability, and high availability.
 
----
+## Tech Stack
 
-## 🌟 Key Features
+### Backend
+- **Golang**: The primary backend language.
+- **Gin**: Web framework for building high-performance REST APIs.
+- **Gorm**: ORM for handling database operations efficiently.
+- **Bleve**: Full-text search engine to support global search functionalities.
+- **Kafka / RabbitMQ**: Message brokers for asynchronous communication between services.
+- **Redis**: Used for caching and session management.
+- **PostgreSQL**: The main relational database for storing structured data.
+- **Cronjob (Golang)**: Scheduled tasks for automated system processes.
 
-### 🎫 Event Management
-- Create, edit, and manage events with full details including event name, date, time, location, description, and ticketing options.
-- Customize event visibility (public or private) and set attendee limits.
-- Set different ticket types such as early bird, VIP, and general admission.
+### Frontend
+- **Nuxt.js (Vue.js + TypeScript)**: The main frontend framework for SSR and SPA capabilities.
+- **Pinia Persist**: State management with persistence across sessions.
+- **IndexedDB (IDB Library)**: Local database storage for offline functionality.
+- **$fetch (Nuxt)**: API request handling with built-in SSR support.
 
-### 📅 Online Ticket Booking
-- Users can browse events based on categories, location, or keywords.
-- Secure and flexible ticket purchasing with multiple payment options.
-- Generate and send e-tickets with QR codes for easy check-in.
+### DevOps & Deployment
+- **Railway**: Cloud platform for deploying backend services.
+- **Docker**: Containerized services for microservices deployment.
+- **Kubernetes**: Orchestrating microservices for scalability and fault tolerance.
+- **Grafana + Prometheus**: Monitoring and logging for system health tracking.
 
-### 👥 Attendee Management
-- Organizers can monitor ticket sales and attendee registration in real-time.
-- Export attendee lists for streamlined event planning.
-- Send automated confirmation emails and updates to attendees.
+## Key Features
+- **User Authentication & Authorization** (JWT-based access control, refresh tokens).
+- **Event Management** (CRUD operations for creating and managing events).
+- **Booking System** (Allow users to book, modify, and cancel reservations).
+- **Global Search** (Full-text search powered by Bleve for quick data retrieval).
+- **Real-time Notifications** (Using WebSockets or Kafka for event updates and system alerts).
+- **Optimistic Updates** (Applied only in user table to enhance UX and performance).
+- **Google Calendar Integration** (Auto-scheduling events when users book seats).
+- **Microservices Communication** (Handled through Kafka or RabbitMQ).
+- **Scheduled Jobs** (Automated background tasks via Golang cronjobs).
 
-### 🔔 Notifications & Reminders
-- Automated email and push notifications keep attendees informed about event updates and reminders.
-- Organizers receive alerts for low ticket sales or event capacity limits.
+## Purpose of Libraries
+Each library used in this project serves a specific purpose to optimize system performance and maintainability:
+- **Bleve**: Enables fast and efficient full-text search across large datasets.
+- **Kafka / RabbitMQ**: Facilitates asynchronous messaging for loosely coupled microservices.
+- **Pinia Persist**: Ensures persistent state management on the frontend.
+- **IndexedDB (IDB Library)**: Provides offline data storage with an ISC-licensed library.
+- **Gorm**: Simplifies database interactions while maintaining high performance.
+- **Cronjob in Golang**: Handles recurring system tasks like cleanup, reporting, and notifications.
 
-### 📊 Reports & Analytics
-- Access real-time analytics on ticket sales, revenue, and attendee engagement.
-- Generate performance reports to evaluate event success and optimize future planning.
+## Testing Strategy
+- **Unit Tests**: Table-driven tests for backend services.
+- **API Testing**: Direct integration testing rather than using mock controllers.
+- **End-to-End Testing**: Ensuring seamless communication between microservices.
 
----
-
-## 🎯 Our Mission
-
-At Bookify, we aim to bridge the gap between event organizers and attendees by providing an efficient, user-friendly event management system. Our platform is designed to optimize the entire event lifecycle, ensuring that event planning, promotion, and execution are as smooth as possible.
-
----
-
-## 💡 Future Enhancements
-
-### 📱 Mobile Application
-- Develop dedicated iOS and Android applications for on-the-go event management and ticket booking.
-- Provide mobile event check-in via QR code scanning for faster entry.
-
-### 🌍 Multi-language Support
-- Implement multilingual interfaces to cater to a global audience.
-- Provide localized event discovery for users from different regions.
-
-### 💳 Payment Gateway Integrations
-- Expand payment options by integrating additional gateways like PayPal, Stripe, and Apple Pay.
-- Support multiple currencies for international ticket sales.
-
-### 🤖 AI-Powered Event Recommendations
-- Suggest relevant events based on user preferences and browsing history.
-- Personalized event discovery through AI-driven insights.
-
-### 🛠️ Advanced Organizer Tools
-- Offer marketing tools such as email campaigns and social media integrations.
-- Provide attendee engagement features like live polling and feedback collection.
+## Future Enhancements
+- Implementing **event-driven architecture** to further decouple services.
+- Improving **data synchronization mechanisms** for better offline support.
+- Enhancing **observability** with more detailed logging and distributed tracing.
 
 ---
+This README provides an overview of Bookify's architecture and key components. If you have any questions or need further details, feel free to reach out!
 
-## 🚀 Get Started
-
-Whether you're hosting a business seminar, music festival, or community meetup, Bookify provides the tools to make your event successful. Join us in transforming the way events are managed and experienced!
-
-Stay tuned for updates as we continue improving Bookify to make event management easier and more accessible!

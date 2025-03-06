@@ -15,7 +15,7 @@ func TestUpdateOneEventTicket(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Hàm dọn dẹp collection trước mỗi test
+	// Hàm dọn dẹp collection trước mỗi test_e2e
 	clearEventTicketCollection := func() {
 		err := database.Collection("event_ticket").Drop(context.Background())
 		if err != nil {

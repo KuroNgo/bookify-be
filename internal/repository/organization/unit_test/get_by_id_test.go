@@ -14,7 +14,7 @@ func TestFindByIDOrganization(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the organization collection before each test case
+	// Function to clear the organization collection before each test_e2e case
 	clearOrganizationCollection := func() {
 		err := database.Collection("organization").Drop(context.Background())
 		if err != nil {
@@ -35,7 +35,7 @@ func TestFindByIDOrganization(t *testing.T) {
 	err := ur.CreateOne(context.Background(), mockOrganization)
 	assert.Nil(t, err)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		inputID     primitive.ObjectID
@@ -56,7 +56,7 @@ func TestFindByIDOrganization(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := ur.GetByID(context.Background(), tt.inputID)

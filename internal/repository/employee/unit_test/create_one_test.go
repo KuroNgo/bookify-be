@@ -15,7 +15,7 @@ func TestCreateOneEmployee(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the partner collection before each test case
+	// Function to clear the partner collection before each test_e2e case
 	clearEmployeeCollection := func() {
 		err := database.Collection("employee").Drop(context.Background())
 		if err != nil {
@@ -23,7 +23,7 @@ func TestCreateOneEmployee(t *testing.T) {
 		}
 	}
 
-	// Function to clear the partner collection before each test case
+	// Function to clear the partner collection before each test_e2e case
 	clearOrganizationCollection := func() {
 		err := database.Collection("organization").Drop(context.Background())
 		if err != nil {
@@ -56,7 +56,7 @@ func TestCreateOneEmployee(t *testing.T) {
 
 	mockEmployeeNil := &domain.Employee{}
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		input       *domain.Employee
@@ -77,10 +77,10 @@ func TestCreateOneEmployee(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clearEmployeeCollection() // Clear the collection before each test
+			clearEmployeeCollection() // Clear the collection before each test_e2e
 
 			ur := employee_repository.NewEmployeeRepository(database, "employee")
 			err := ur.CreateOne(context.Background(), tt.input)

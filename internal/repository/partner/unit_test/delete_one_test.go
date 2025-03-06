@@ -26,7 +26,7 @@ func TestDeleteOnePartner(t *testing.T) {
 	err := ur.CreateOne(context.Background(), mockPartner)
 	assert.Nil(t, err)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		inputID     primitive.ObjectID
@@ -47,7 +47,7 @@ func TestDeleteOnePartner(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ur.DeleteOne(context.Background(), tt.inputID)

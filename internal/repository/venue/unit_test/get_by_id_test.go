@@ -14,7 +14,7 @@ func TestFindByIDVenue(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the venue collection before each test case
+	// Function to clear the venue collection before each test_e2e case
 	clearVenueCollection := func() {
 		err := database.Collection("venue").Drop(context.Background())
 		if err != nil {
