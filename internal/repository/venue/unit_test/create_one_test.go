@@ -28,10 +28,10 @@ func TestCreateOneVenue(t *testing.T) {
 		Capacity:    100,
 		AddressLine: "123 Main Street",
 		City:        "New York",
-		State:       "NY",
 		Country:     "USA",
-		PostalCode:  "10001",
-		OnlineFlat:  false,
+		EventMode:   "online",
+		LinkAttend:  "",
+		FromAttend:  "",
 	}
 
 	// Define test cases

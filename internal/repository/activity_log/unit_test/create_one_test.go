@@ -3,87 +3,63 @@ package unit
 import (
 	"bookify/internal/domain"
 	"bookify/internal/infrastructor/mongodb"
-	employee_repository "bookify/internal/repository/employee/repository"
-	organization_repository "bookify/internal/repository/organization/repository"
+	activity_log_repository "bookify/internal/repository/activity_log/repository"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
+	"time"
 )
 
-func TestCreateOneEmployee(t *testing.T) {
+func TestCreateOneActivityLog(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the partner collection before each test case
-	clearEmployeeCollection := func() {
-		err := database.Collection("employee").Drop(context.Background())
+	// Function to clear the activity log collection before each test case
+	clearActivityLogCollection := func() {
+		err := database.Collection("activity_logs").Drop(context.Background())
 		if err != nil {
-			t.Fatalf("Failed to clear employee collection: %v", err)
+			t.Fatalf("Failed to clear activity_logs collection: %v", err)
 		}
 	}
-
-	// Function to clear the partner collection before each test case
-	clearOrganizationCollection := func() {
-		err := database.Collection("organization").Drop(context.Background())
-		if err != nil {
-			t.Fatalf("Failed to clear organization collection: %v", err)
-		}
-	}
-	clearOrganizationCollection()
-
-	mockOrganization := &domain.Organization{
-		ID:            primitive.NewObjectID(),
-		Name:          "Tech Corp",
-		ContactPerson: "John Doe",
-		Email:         "john.doe@techcorp.com",
-		Phone:         "0329245971",
-	}
-
-	ur := organization_repository.NewOrganizationRepository(database, "organization")
-	err := ur.CreateOne(context.Background(), mockOrganization)
-	assert.Nil(t, err)
 
 	// Mock data
-	mockEmployee := &domain.Employee{
-		ID:             primitive.NewObjectID(),
-		OrganizationID: mockOrganization.ID, // Gắn với Organization đã mock
-		FirstName:      "Jane",
-		LastName:       "Smith",
-		JobTitle:       "Software Engineer",
-		Email:          "jane.smith@techcorp.com",
+	mockActivityLog := &domain.ActivityLog{
+		ID:           primitive.NewObjectID(),
+		ClientIP:     "192.168.1.1",
+		UserID:       primitive.NewObjectID(),
+		Level:        1,
+		Method:       "POST",
+		StatusCode:   200,
+		BodySize:     512,
+		Path:         "/api/v1/login",
+		Latency:      "100ms",
+		ActivityTime: time.Now(),
+		ExpireAt:     time.Now().Add(24 * time.Hour),
 	}
-
-	mockEmployeeNil := &domain.Employee{}
 
 	// Define test cases
 	tests := []struct {
 		name        string
-		input       *domain.Employee
+		input       *domain.ActivityLog
 		expectedErr bool
 		description string
 	}{
 		{
-			name:        "success_create_employee",
-			input:       mockEmployee,
+			name:        "success_create_activity_log",
+			input:       mockActivityLog,
 			expectedErr: false,
-			description: "Should successfully create a employee",
-		},
-		{
-			name:        "error_create_partner_with_nil",
-			input:       mockEmployeeNil,
-			expectedErr: true,
-			description: "Should return error when creating a employee with nil fields",
+			description: "Should successfully create an activity log",
 		},
 	}
 
 	// Execute test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clearEmployeeCollection() // Clear the collection before each test
+			clearActivityLogCollection() // Clear the collection before each test
 
-			ur := employee_repository.NewEmployeeRepository(database, "employee")
-			err := ur.CreateOne(context.Background(), tt.input)
+			repo := activity_log_repository.NewActivityLogRepository(database, "activity_logs")
+			err := repo.CreateOne(context.Background(), tt.input)
 
 			if tt.expectedErr {
 				assert.Error(t, err, tt.description)

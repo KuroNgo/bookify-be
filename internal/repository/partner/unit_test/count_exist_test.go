@@ -1,4 +1,4 @@
-package unit_test
+package unit
 
 import (
 	"bookify/internal/domain"
@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestFindByIDPartner(t *testing.T) {
+func TestCountExist(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
@@ -21,48 +21,53 @@ func TestFindByIDPartner(t *testing.T) {
 			t.Fatalf("Failed to clear partner collection: %v", err)
 		}
 	}
-
 	clearPartnerCollection()
+	// Mock data
 	mockPartner := &domain.Partner{
 		ID:    primitive.NewObjectID(),
 		Name:  "kuro",
 		Email: "kuro@gmail.com",
 		Phone: "0329245971",
 	}
-	ur := partnerrepository.NewPartnerRepository(database, "partner")
-	err := ur.CreateOne(context.Background(), mockPartner)
+
+	par := partnerrepository.NewPartnerRepository(database, "partner")
+	err := par.CreateOne(context.Background(), mockPartner)
 	assert.Nil(t, err)
 
 	// Define test cases
 	tests := []struct {
 		name        string
-		inputID     primitive.ObjectID
+		partnerName string
+		expectedCnt int64
 		expectedErr bool
 		description string
 	}{
 		{
-			name:        "success_find_partner_by_id",
-			inputID:     mockPartner.ID,
+			name:        "success_count_existing_partner",
+			partnerName: "kuro",
+			expectedCnt: 1,
 			expectedErr: false,
-			description: "Should successfully find partner by ID",
+			description: "Should return count 1 for existing partner",
 		},
 		{
-			name:        "error_find_partner_by_invalid_id",
-			inputID:     primitive.NilObjectID,
+			name:        "success_count_non_existing_partner",
+			partnerName: "nonexistent",
+			expectedCnt: 0,
 			expectedErr: false,
-			description: "Should return error when finding partner with invalid ID",
+			description: "Should return count 0 for non-existing partner",
 		},
 	}
 
 	// Execute test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := ur.GetByID(context.Background(), tt.inputID)
+			count, err := par.CountExist(context.Background(), tt.partnerName)
 
 			if tt.expectedErr {
 				assert.Error(t, err, tt.description)
 			} else {
 				assert.Nil(t, err, tt.description)
+				assert.Equal(t, tt.expectedCnt, count, "Count should match expected value")
 			}
 		})
 	}

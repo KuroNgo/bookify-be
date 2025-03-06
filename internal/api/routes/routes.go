@@ -18,7 +18,6 @@ import (
 	"bookify/internal/api/routes/user"
 	venue_route "bookify/internal/api/routes/venue"
 	"bookify/internal/config"
-	middlewares "bookify/pkg/interface/casbin/middleware"
 	cronjob "bookify/pkg/shared/schedules"
 	"context"
 	"fmt"
@@ -52,7 +51,6 @@ func SetUp(env *config.Database, envRedis *config.Database, cr *cronjob.CronSche
 		gzip.Gzip(gzip.DefaultCompression,
 			gzip.WithExcludedPaths([]string{",*"})),
 		middleware.DeserializeUser(),
-		middlewares.CheckAuth(),
 	)
 
 	userRouter.Use(
