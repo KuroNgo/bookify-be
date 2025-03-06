@@ -26,7 +26,7 @@ func TestFindAllPartner(t *testing.T) {
 	err := par.CreateOne(context.Background(), mockPartner)
 	assert.Nil(t, err)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		expectedErr bool
@@ -39,7 +39,7 @@ func TestFindAllPartner(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := par.GetAll(context.Background())

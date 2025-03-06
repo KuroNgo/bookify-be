@@ -14,7 +14,7 @@ func TestCreateOneVenue(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the venue collection before each test case
+	// Function to clear the venue collection before each test_e2e case
 	clearVenueCollection := func() {
 		err := database.Collection("venue").Drop(context.Background())
 		if err != nil {
@@ -34,7 +34,7 @@ func TestCreateOneVenue(t *testing.T) {
 		FromAttend:  "",
 	}
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		venue       *domain.Venue
@@ -55,10 +55,10 @@ func TestCreateOneVenue(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clearVenueCollection() // Clear the collection before each test
+			clearVenueCollection() // Clear the collection before each test_e2e
 			ur := venuerepository.NewVenueRepository(database, "venue")
 			err := ur.CreateOne(context.Background(), tt.venue)
 

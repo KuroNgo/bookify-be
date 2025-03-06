@@ -27,7 +27,7 @@ func TestFindAllOrganization(t *testing.T) {
 	err := ur.CreateOne(context.Background(), mockOrganization)
 	assert.Nil(t, err)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		expectedErr bool
@@ -40,7 +40,7 @@ func TestFindAllOrganization(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := ur.GetAll(context.Background())

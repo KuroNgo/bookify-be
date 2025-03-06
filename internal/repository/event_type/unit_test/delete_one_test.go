@@ -14,7 +14,7 @@ func TestDeleteOneEventType(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the event collection before each test case
+	// Function to clear the event collection before each test_e2e case
 	clearEventTypeCollection := func() {
 		err := database.Collection("event_type").Drop(context.Background())
 		if err != nil {

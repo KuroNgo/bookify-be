@@ -11,8 +11,8 @@ import (
 )
 
 func TestGetByUserID(t *testing.T) {
-	client, database := mongodb.SetupTestDatabase(t) // Thiết lập database test
-	defer mongodb.TearDownTestDatabase(client, t)    // Dọn dẹp sau khi test xong
+	client, database := mongodb.SetupTestDatabase(t) // Thiết lập database test_e2e
+	defer mongodb.TearDownTestDatabase(client, t)    // Dọn dẹp sau khi test_e2e xong
 
 	// Mock data
 	mockUserID := primitive.NewObjectID()
@@ -28,7 +28,7 @@ func TestGetByUserID(t *testing.T) {
 	err := eventWishlistRepo.CreateOne(context.Background(), mockWishlist)
 	assert.Nil(t, err)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		userID      primitive.ObjectID
@@ -49,7 +49,7 @@ func TestGetByUserID(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			wishlist, err := eventWishlistRepo.GetByUserID(context.Background(), tt.userID)

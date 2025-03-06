@@ -18,7 +18,7 @@ func TestGetAllEvent(t *testing.T) {
 	client, database := mongodb.SetupTestDatabase(t)
 	defer mongodb.TearDownTestDatabase(client, t)
 
-	// Function to clear the event collection before each test case
+	// Function to clear the event collection before each test_e2e case
 	clearEventTypeCollection := func() {
 		err := database.Collection("event_type").Drop(context.Background())
 		if err != nil {
@@ -35,7 +35,7 @@ func TestGetAllEvent(t *testing.T) {
 	err := et.CreateOne(context.Background(), mockEventType)
 	assert.Nil(t, err)
 
-	// Function to clear the venue collection before each test case
+	// Function to clear the venue collection before each test_e2e case
 	clearVenueCollection := func() {
 		err := database.Collection("venue").Drop(context.Background())
 		if err != nil {
@@ -58,7 +58,7 @@ func TestGetAllEvent(t *testing.T) {
 	err = ve.CreateOne(context.Background(), mockVenue)
 	assert.Nil(t, err)
 
-	// Function to clear the partner collection before each test case
+	// Function to clear the partner collection before each test_e2e case
 	clearOrganizationCollection := func() {
 		err := database.Collection("organization").Drop(context.Background())
 		if err != nil {
@@ -79,7 +79,7 @@ func TestGetAllEvent(t *testing.T) {
 	err = or.CreateOne(context.Background(), mockOrganization)
 	assert.Nil(t, err)
 
-	// Function to clear the event collection before each test case
+	// Function to clear the event collection before each test_e2e case
 	clearEventCollection := func() {
 		err := database.Collection("event").Drop(context.Background())
 		if err != nil {
@@ -109,7 +109,7 @@ func TestGetAllEvent(t *testing.T) {
 	ev := event_repository.NewEventRepository(database, "event")
 	err = ev.CreateOne(context.Background(), mockEventInput)
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name      string
 		expectErr bool
@@ -120,7 +120,7 @@ func TestGetAllEvent(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err = ev.GetAll(context.Background())

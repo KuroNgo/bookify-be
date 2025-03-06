@@ -26,7 +26,7 @@ func TestDeleteOneVenue(t *testing.T) {
 		FromAttend:  "",
 	}
 
-	// Define test cases
+	// Define test_e2e cases
 	tests := []struct {
 		name        string
 		venueID     primitive.ObjectID
@@ -47,10 +47,10 @@ func TestDeleteOneVenue(t *testing.T) {
 		},
 	}
 
-	// Execute test cases
+	// Execute test_e2e cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clear the venue collection before each test
+			// Clear the venue collection before each test_e2e
 			clearVenueCollection := func() {
 				err := database.Collection("venue").Drop(context.Background())
 				if err != nil {
@@ -58,7 +58,7 @@ func TestDeleteOneVenue(t *testing.T) {
 				}
 			}
 
-			clearVenueCollection() // Clear collection before each test
+			clearVenueCollection() // Clear collection before each test_e2e
 			ur := venuerepository.NewVenueRepository(database, "venue")
 			err := ur.CreateOne(context.Background(), mockVenue)
 			assert.Nil(t, err)
