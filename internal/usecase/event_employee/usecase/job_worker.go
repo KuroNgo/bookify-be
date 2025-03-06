@@ -6,6 +6,8 @@ import (
 )
 
 type ICronjobEventEmployee interface {
+	SendQuestOfEmployeeInform(ctx context.Context) error
+	DeadlineInform(ctx context.Context) error
 	StartSchedulesSendQuestOfEmployeeInform(cs *cronjob.CronScheduler) error
 	StopSchedulerDeadlineInform(cs *cronjob.CronScheduler) error
 }

@@ -25,8 +25,6 @@ type IEventEmployeeUseCase interface {
 	CreateOne(ctx context.Context, eventEmployee *domain.EventEmployeeInput, currentUser string) error
 	UpdateOne(ctx context.Context, id string, eventEmployee *domain.EventEmployeeInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
-	SendQuestOfEmployeeInform(ctx context.Context) error
-	DeadlineInform(ctx context.Context) error
 }
 
 type eventEmployeeUseCase struct {
