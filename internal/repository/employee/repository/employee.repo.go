@@ -128,7 +128,7 @@ func (e employeeRepository) DeleteOne(ctx context.Context, id primitive.ObjectID
 func (e employeeRepository) DeleteSoft(ctx context.Context, id primitive.ObjectID) error {
 	employeeCollection := e.database.Collection(e.collectionEmployee)
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": id, "status": "enabled"}
 	update := bson.M{"$set": bson.M{
 		"status":     "disabled",
 		"updated_at": time.Now(),

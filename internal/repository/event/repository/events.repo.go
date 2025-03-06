@@ -23,6 +23,7 @@ type IEventRepository interface {
 	GetByStartTimePagination(ctx context.Context, startTime time.Time, page string) ([]domain.Event, int64, int, error)
 	GetAll(ctx context.Context) ([]domain.Event, error)
 	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
+	
 	CreateOne(ctx context.Context, event *domain.Event) error
 	UpdateOne(ctx context.Context, event *domain.Event) error
 	UpdateImage(ctx context.Context, event *domain.Event) error
