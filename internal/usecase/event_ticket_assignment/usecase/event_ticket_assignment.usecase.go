@@ -24,6 +24,7 @@ type IEventTicketAssignmentUseCase interface {
 	CreateOne(ctx context.Context, eventTicketAssignment *domain.EventTicketAssignmentInput, currentUser string) error
 	UpdateOne(ctx context.Context, id string, eventTicketAssignment *domain.EventTicketAssignmentInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
+	StatisticsRevenueByEventID(ctx context.Context, eventId string, currentUser string) (domain.EventTicketAssignmentResponse, error)
 }
 
 type eventTicketAssignmentUseCase struct {
@@ -68,7 +69,7 @@ func NewCacheEventTicketAssignments() (*ristretto.Cache[string, []domain.EventTi
 }
 
 func NewEventTicketAssignmentUseCase(database *config.Database, contextTimeout time.Duration,
-	eventTicketAssignmentRepository eventticketassignmentrepository.IEventTicketAssignmentRepository,
+	eventTicketAssignmentRepository eventticketassignmentrepository.IEventTicketAssignmentRepository, eventRepository eventrepository.IEventRepository,
 	eventTicketRepository eventticketrepository.IEventTicketRepository, userRepository userrepository.IUserRepository) IEventTicketAssignmentUseCase {
 	cache, err := NewCacheEventTicketAssignment()
 	if err != nil {
@@ -80,7 +81,7 @@ func NewEventTicketAssignmentUseCase(database *config.Database, contextTimeout t
 		panic(err)
 	}
 	return &eventTicketAssignmentUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout,
-		eventTicketAssignmentRepository: eventTicketAssignmentRepository, eventTicketRepository: eventTicketRepository,
+		eventTicketAssignmentRepository: eventTicketAssignmentRepository, eventTicketRepository: eventTicketRepository, eventRepository: eventRepository,
 		userRepository: userRepository}
 }
 
@@ -287,4 +288,35 @@ func (e *eventTicketAssignmentUseCase) DeleteOne(ctx context.Context, id string,
 	e.cache.Clear()
 
 	return nil
+}
+
+func (e *eventTicketAssignmentUseCase) StatisticsRevenueByEventID(ctx context.Context, eventId string, currentUser string) (domain.EventTicketAssignmentResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	userID, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	eventID, err := primitive.ObjectIDFromHex(eventId)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	isTrueData, err := e.eventRepository.GetByIDAndUserID(ctx, eventID, userID)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	if helper.IsZeroValue(isTrueData) {
+		return domain.EventTicketAssignmentResponse{}, nil
+	}
+
+	data, err := e.eventTicketAssignmentRepository.StatisticsRevenueByEventID(ctx, eventID)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	return data, nil
 }

@@ -29,8 +29,8 @@ type organizationUseCase struct {
 	contextTimeout         time.Duration
 	organizationRepository organizationrepository.IOrganizationRepository
 	userRepository         userrepository.IUserRepository
-	mu                     *sync.Mutex
-	rwMutex                *sync.RWMutex
+	mu                     sync.Mutex
+	rwMutex                sync.RWMutex
 	cache                  *ristretto.Cache[string, domain.Organization]
 	caches                 *ristretto.Cache[string, []domain.Organization]
 }
@@ -76,7 +76,7 @@ func NewOrganizationUseCase(database *config.Database, contextTimeout time.Durat
 	return &organizationUseCase{cache: cache, caches: caches, database: database, contextTimeout: contextTimeout, organizationRepository: organizationRepository, userRepository: userRepository}
 }
 
-func (o organizationUseCase) GetByUserID(ctx context.Context, userId string) (domain.Organization, error) {
+func (o *organizationUseCase) GetByUserID(ctx context.Context, userId string) (domain.Organization, error) {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 
@@ -106,7 +106,7 @@ func (o organizationUseCase) GetByUserID(ctx context.Context, userId string) (do
 	return data, nil
 }
 
-func (o organizationUseCase) GetByID(ctx context.Context, id string) (domain.Organization, error) {
+func (o *organizationUseCase) GetByID(ctx context.Context, id string) (domain.Organization, error) {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 
@@ -136,7 +136,7 @@ func (o organizationUseCase) GetByID(ctx context.Context, id string) (domain.Org
 	return data, nil
 }
 
-func (o organizationUseCase) GetAll(ctx context.Context) ([]domain.Organization, error) {
+func (o *organizationUseCase) GetAll(ctx context.Context) ([]domain.Organization, error) {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 
@@ -149,10 +149,10 @@ func (o organizationUseCase) GetAll(ctx context.Context) ([]domain.Organization,
 	o.rwMutex.RLock()
 	data, err := o.organizationRepository.GetAll(ctx)
 	if err != nil {
-		o.rwMutex.Unlock()
+		o.rwMutex.RUnlock()
 		return nil, err
 	}
-	o.rwMutex.Unlock()
+	o.rwMutex.RUnlock()
 
 	o.caches.Set("organizations", data, 1)
 	// wait for value to pass through buffers
@@ -161,7 +161,7 @@ func (o organizationUseCase) GetAll(ctx context.Context) ([]domain.Organization,
 	return data, nil
 }
 
-func (o organizationUseCase) CreateOne(ctx context.Context, organization *domain.OrganizationInput, currentUser string) error {
+func (o *organizationUseCase) CreateOne(ctx context.Context, organization *domain.OrganizationInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 
@@ -215,7 +215,7 @@ func (o organizationUseCase) CreateOne(ctx context.Context, organization *domain
 	return nil
 }
 
-func (o organizationUseCase) UpdateOne(ctx context.Context, id string, organization *domain.OrganizationInput, currentUser string) error {
+func (o *organizationUseCase) UpdateOne(ctx context.Context, id string, organization *domain.OrganizationInput, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 
@@ -275,7 +275,7 @@ func (o organizationUseCase) UpdateOne(ctx context.Context, id string, organizat
 	return nil
 }
 
-func (o organizationUseCase) DeleteOne(ctx context.Context, id string, currentUser string) error {
+func (o *organizationUseCase) DeleteOne(ctx context.Context, id string, currentUser string) error {
 	ctx, cancel := context.WithTimeout(ctx, o.contextTimeout)
 	defer cancel()
 

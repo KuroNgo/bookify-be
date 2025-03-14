@@ -32,3 +32,8 @@ type EventTicketAssignmentInput struct {
 	TicketType   string    `bson:"ticket_type" json:"ticket_type"`
 	Status       string    `bson:"status" json:"status"` // use, useless
 }
+
+type EventTicketAssignmentResponse struct {
+	EventTicketAssignment []EventTicketAssignment `json:"event_ticket_assignment"`
+	TotalRevenue          float64                 `json:"total_revenue"`
+}

@@ -16,6 +16,7 @@ import (
 
 type IEventRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.Event, error)
+	GetByIDAndUserID(ctx context.Context, id primitive.ObjectID, userID primitive.ObjectID) (domain.Event, error)
 	GetByTitle(ctx context.Context, title string) (domain.Event, error)
 	GetByOrganizationID(ctx context.Context, organizationID primitive.ObjectID) (domain.Event, error)
 	GetByOrganizationIDAndStartTime(ctx context.Context, organizationID primitive.ObjectID, startTime time.Time) ([]domain.Event, error)
@@ -23,7 +24,7 @@ type IEventRepository interface {
 	GetByStartTimePagination(ctx context.Context, startTime time.Time, page string) ([]domain.Event, int64, int, error)
 	GetAll(ctx context.Context) ([]domain.Event, error)
 	GetAllPagination(ctx context.Context, page string) ([]domain.Event, int64, int, error)
-	
+
 	CreateOne(ctx context.Context, event *domain.Event) error
 	UpdateOne(ctx context.Context, event *domain.Event) error
 	UpdateImage(ctx context.Context, event *domain.Event) error
@@ -45,6 +46,24 @@ func (e eventRepository) GetByID(ctx context.Context, id primitive.ObjectID) (do
 	collectionEvent := e.database.Collection(e.collectionEvent)
 
 	filter := bson.M{"_id": id}
+	var event domain.Event
+	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.Event{}, nil
+		}
+		return domain.Event{}, err
+	}
+
+	return event, nil
+}
+
+func (e eventRepository) GetByIDAndUserID(ctx context.Context, id primitive.ObjectID, userID primitive.ObjectID) (domain.Event, error) {
+	collectionEvent := e.database.Collection(e.collectionEvent)
+
+	filter := bson.M{
+		"_id":     id,
+		"user_id": userID,
+	}
 	var event domain.Event
 	if err := collectionEvent.FindOne(ctx, filter).Decode(&event); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

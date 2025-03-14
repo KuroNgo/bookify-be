@@ -12,6 +12,7 @@ type EventTicketAssignmentController struct {
 }
 
 type IEventTicketAssignmentUseCase interface {
+	StatisticsRevenueByEventID(ctx *gin.Context)
 	GetByID(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 	CreateOne(ctx *gin.Context)

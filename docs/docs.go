@@ -1054,6 +1054,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/event-ticket-assignments/statistics-revenue/event_id": {
+            "get": {
+                "description": "This API returns the total revenue of an event based on its Event ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignments"
+                ],
+                "summary": "Revenue statistics by Event ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the event to retrieve revenue statistics",
+                        "name": "event_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event-ticket-assignments/update": {
             "put": {
                 "description": "Updates an existing event ticket assignment",

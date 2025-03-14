@@ -15,6 +15,7 @@ type IEventTicketAssignmentRepository interface {
 	CreateOne(ctx context.Context, eventTicketAssignment domain.EventTicketAssignment) error
 	UpdateOne(ctx context.Context, eventTicketAssignment domain.EventTicketAssignment) error
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
+	StatisticsRevenueByEventID(ctx context.Context, eventId primitive.ObjectID) (domain.EventTicketAssignmentResponse, error)
 }
 
 type eventTicketAssignmentRepository struct {
@@ -110,4 +111,61 @@ func (e *eventTicketAssignmentRepository) DeleteOne(ctx context.Context, id prim
 	}
 
 	return nil
+}
+
+func (e *eventTicketAssignmentRepository) StatisticsRevenueByEventID(ctx context.Context, eventId primitive.ObjectID) (domain.EventTicketAssignmentResponse, error) {
+	eventTicketAssignmentCollection := e.database.Collection(e.collectionEventTicketAssignment)
+
+	// Sử dụng aggregation pipeline để nhóm và tính tổng revenue
+	pipeline := mongo.Pipeline{
+		{{"$match", bson.M{"event_id": eventId}}}, // Lọc theo event_id
+		{
+			{"$group", bson.M{
+				"_id":          nil, // Không cần nhóm theo trường nào, chỉ tính tổng toàn bộ
+				"totalRevenue": bson.M{"$sum": bson.M{"$multiply": []interface{}{"$price", "$quantity"}}},
+			}},
+		},
+	}
+
+	cursor, err := eventTicketAssignmentCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var totalRevenue float64
+	if cursor.Next(ctx) {
+		var result struct {
+			TotalRevenue float64 `bson:"totalRevenue"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return domain.EventTicketAssignmentResponse{}, err
+		}
+		totalRevenue = result.TotalRevenue
+	}
+
+	// Kiểm tra lỗi con trỏ
+	if err = cursor.Err(); err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	// Lấy danh sách vé chi tiết (nếu cần)
+	var eventTicketAssignments []domain.EventTicketAssignment
+	cursor2, err := eventTicketAssignmentCollection.Find(ctx, bson.M{"event_id": eventId})
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+	defer cursor2.Close(ctx)
+
+	if err = cursor2.All(ctx, &eventTicketAssignments); err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	// Trả về response
+	response := domain.EventTicketAssignmentResponse{
+		EventTicketAssignment: eventTicketAssignments,
+		TotalRevenue:          totalRevenue,
+	}
+
+	return response, nil
 }
