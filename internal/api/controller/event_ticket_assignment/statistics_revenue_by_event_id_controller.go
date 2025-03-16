@@ -31,7 +31,6 @@ func (e EventTicketAssignmentController) StatisticsRevenueByEventID(ctx *gin.Con
 		})
 		return
 	}
-
 	eventId := ctx.Query("event_id")
 
 	data, err := e.EventTicketAssignmentUseCase.StatisticsRevenueByEventID(ctx, eventId, user)

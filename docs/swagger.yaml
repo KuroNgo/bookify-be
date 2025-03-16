@@ -1137,6 +1137,23 @@ paths:
       summary: Update an event ticket assignment
       tags:
       - Event Ticket Assignments
+  /api/v1/event-ticket-assignments/update/cancel-ticket:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel an existing event ticket assignment
+      parameters:
+      - description: Event Ticket Assignment ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: Cancel an event ticket assignment for cancel tickets
+      tags:
+      - Event Ticket Assignments
   /api/v1/event-tickets/create:
     post:
       consumes:

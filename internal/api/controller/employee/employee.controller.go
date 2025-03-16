@@ -2,13 +2,13 @@ package employee_controller
 
 import (
 	"bookify/internal/config"
-	employee_usecase "bookify/internal/usecase/employee/usecase"
+	employeeusecase "bookify/internal/usecase/employee/usecase"
 	"github.com/gin-gonic/gin"
 )
 
 type EmployeeController struct {
 	Database        *config.Database
-	EmployeeUseCase employee_usecase.IEmployeeUseCase
+	EmployeeUseCase employeeusecase.IEmployeeUseCase
 }
 
 type IEmployeeController interface {
@@ -19,6 +19,6 @@ type IEmployeeController interface {
 	DeleteOne(ctx *gin.Context)
 }
 
-func NewEmployee(Database *config.Database, EmployeeUseCase employee_usecase.IEmployeeUseCase) IEmployeeController {
+func NewEmployee(Database *config.Database, EmployeeUseCase employeeusecase.IEmployeeUseCase) IEmployeeController {
 	return &EmployeeController{Database: Database, EmployeeUseCase: EmployeeUseCase}
 }

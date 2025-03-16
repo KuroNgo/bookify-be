@@ -12,6 +12,7 @@ import (
 	"bookify/pkg/shared/helper"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/dgraph-io/ristretto/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"sync"
@@ -20,11 +21,14 @@ import (
 
 type IEventTicketAssignmentUseCase interface {
 	GetByID(ctx context.Context, id string) (domain.EventTicketAssignment, error)
+	GetByUserID(ctx context.Context, userID string) (domain.EventTicketAssignmentResponse, error)
+	GetByEventID(ctx context.Context, eventID string) (domain.EventTicketAssignmentResponse, error)
 	GetAll(ctx context.Context) ([]domain.EventTicketAssignment, error)
 	CreateOne(ctx context.Context, eventTicketAssignment *domain.EventTicketAssignmentInput, currentUser string) error
 	UpdateOne(ctx context.Context, id string, eventTicketAssignment *domain.EventTicketAssignmentInput, currentUser string) error
 	DeleteOne(ctx context.Context, id string, currentUser string) error
 	StatisticsRevenueByEventID(ctx context.Context, eventId string, currentUser string) (domain.EventTicketAssignmentResponse, error)
+	CancelTickets(ctx context.Context, id string, currentUser string) error
 }
 
 type eventTicketAssignmentUseCase struct {
@@ -109,6 +113,101 @@ func (e *eventTicketAssignmentUseCase) GetByID(ctx context.Context, id string) (
 	e.cache.Wait()
 
 	return data, nil
+}
+
+func (e *eventTicketAssignmentUseCase) GetByUserID(ctx context.Context, userID string) (domain.EventTicketAssignmentResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	userId, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	data, err := e.eventTicketAssignmentRepository.GetByUserID(ctx, userId)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	var totalRevenue float64
+	for _, i := range data {
+		totalRevenue += i.Price * float64(i.Quantity)
+	}
+
+	response := domain.EventTicketAssignmentResponse{
+		EventTicketAssignment: data,
+		TotalRevenue:          totalRevenue,
+	}
+
+	return response, nil
+}
+
+func (e *eventTicketAssignmentUseCase) GetByEventID(ctx context.Context, eventID string) (domain.EventTicketAssignmentResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	eventId, err := primitive.ObjectIDFromHex(eventID)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	data, err := e.eventTicketAssignmentRepository.GetByEventID(ctx, eventId)
+	if err != nil {
+		return domain.EventTicketAssignmentResponse{}, err
+	}
+
+	var totalRevenue float64
+	for _, i := range data {
+		totalRevenue += i.Price * float64(i.Quantity)
+	}
+
+	response := domain.EventTicketAssignmentResponse{
+		EventTicketAssignment: data,
+		TotalRevenue:          totalRevenue,
+	}
+
+	return response, nil
+}
+
+func (e *eventTicketAssignmentUseCase) CancelTickets(ctx context.Context, id string, currentUser string) error {
+	ctx, cancel := context.WithTimeout(ctx, e.contextTimeout)
+	defer cancel()
+
+	eventTicketAssignmentID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	userId, err := primitive.ObjectIDFromHex(currentUser)
+	if err != nil {
+		return err
+	}
+
+	// Tìm vé theo ID
+	ticket, err := e.eventTicketAssignmentRepository.GetByID(ctx, eventTicketAssignmentID)
+	if err != nil {
+		return fmt.Errorf("không tìm thấy vé: %w", err)
+	}
+
+	// Kiểm tra quyền hủy vé
+	if ticket.AttendanceID != userId {
+		return fmt.Errorf("người dùng không có quyền hủy vé này")
+	}
+
+	// Kiểm tra trạng thái vé
+	if ticket.Status == "used" {
+		return fmt.Errorf("vé đã được sử dụng, không thể hủy")
+	}
+
+	// Cập nhật trạng thái vé
+	ticket.Status = "canceled"
+
+	// Lưu thay đổi vào database
+	if err := e.eventTicketAssignmentRepository.UpdateStatus(ctx, eventTicketAssignmentID, ticket.Status); err != nil {
+		return fmt.Errorf("lỗi khi cập nhật trạng thái vé: %w", err)
+	}
+
+	return nil
 }
 
 func (e *eventTicketAssignmentUseCase) GetAll(ctx context.Context) ([]domain.EventTicketAssignment, error) {

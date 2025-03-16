@@ -1106,6 +1106,31 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/event-ticket-assignments/update/cancel-ticket": {
+            "patch": {
+                "description": "Cancel an existing event ticket assignment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Ticket Assignments"
+                ],
+                "summary": "Cancel an event ticket assignment for cancel tickets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event Ticket Assignment ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/v1/event-tickets/create": {
             "post": {
                 "description": "Creates a new event ticket for the current user",

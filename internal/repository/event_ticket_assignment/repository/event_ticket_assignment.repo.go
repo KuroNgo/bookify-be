@@ -11,9 +11,12 @@ import (
 
 type IEventTicketAssignmentRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (domain.EventTicketAssignment, error)
+	GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]domain.EventTicketAssignment, error)
+	GetByEventID(ctx context.Context, eventID primitive.ObjectID) ([]domain.EventTicketAssignment, error)
 	GetAll(ctx context.Context) ([]domain.EventTicketAssignment, error)
 	CreateOne(ctx context.Context, eventTicketAssignment domain.EventTicketAssignment) error
 	UpdateOne(ctx context.Context, eventTicketAssignment domain.EventTicketAssignment) error
+	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error
 	DeleteOne(ctx context.Context, id primitive.ObjectID) error
 	StatisticsRevenueByEventID(ctx context.Context, eventId primitive.ObjectID) (domain.EventTicketAssignmentResponse, error)
 }
@@ -40,6 +43,52 @@ func (e *eventTicketAssignmentRepository) GetByID(ctx context.Context, id primit
 	}
 
 	return eventTicketAssignment, nil
+}
+
+func (e *eventTicketAssignmentRepository) GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]domain.EventTicketAssignment, error) {
+	eventTicketAssignmentCollection := e.database.Collection(e.collectionEventTicketAssignment)
+
+	filter := bson.M{"user_id": userID}
+	cursor, err := eventTicketAssignmentCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var eventTicketAssignments []domain.EventTicketAssignment
+	for cursor.Next(ctx) {
+		var eventTicketAssignment domain.EventTicketAssignment
+		if err = cursor.Decode(&eventTicketAssignment); err != nil {
+			return nil, err
+		}
+
+		eventTicketAssignments = append(eventTicketAssignments, eventTicketAssignment)
+	}
+
+	return eventTicketAssignments, nil
+}
+
+func (e *eventTicketAssignmentRepository) GetByEventID(ctx context.Context, eventID primitive.ObjectID) ([]domain.EventTicketAssignment, error) {
+	eventTicketAssignmentCollection := e.database.Collection(e.collectionEventTicketAssignment)
+
+	filter := bson.M{"event_id": eventID}
+	cursor, err := eventTicketAssignmentCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var eventTicketAssignments []domain.EventTicketAssignment
+	for cursor.Next(ctx) {
+		var eventTicketAssignment domain.EventTicketAssignment
+		if err = cursor.Decode(&eventTicketAssignment); err != nil {
+			return nil, err
+		}
+
+		eventTicketAssignments = append(eventTicketAssignments, eventTicketAssignment)
+	}
+
+	return eventTicketAssignments, nil
 }
 
 func (e *eventTicketAssignmentRepository) GetAll(ctx context.Context) ([]domain.EventTicketAssignment, error) {
@@ -90,6 +139,24 @@ func (e *eventTicketAssignmentRepository) UpdateOne(ctx context.Context, eventTi
 			"price":         eventTicketAssignment.Price,
 			"ticket_type":   eventTicketAssignment.TicketType,
 			"status":        eventTicketAssignment.Status,
+		},
+	}
+
+	_, err := eventTicketAssignmentCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *eventTicketAssignmentRepository) UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) error {
+	eventTicketAssignmentCollection := e.database.Collection(e.collectionEventTicketAssignment)
+
+	filter := bson.M{"id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"status": status,
 		},
 	}
 
